@@ -1,3 +1,8 @@
+---
+name: scaffold-exercises
+description: Create exercise directory structures that pass lint validation with proper naming conventions and required files. Use when user wants to scaffold exercises, create lesson directories, or set up exercise problem/solution folders.
+---
+
 # Scaffold Exercises
 
 Create exercise directory structures that pass `pnpm ai-hero-cli internal lint`.
