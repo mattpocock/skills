@@ -1,3 +1,8 @@
+---
+name: obsidian-vault
+description: Navigate and manage an Obsidian vault with wikilinks, index notes, and proper naming conventions. Use when working with Obsidian notes, searching the vault, creating new notes, or finding related content.
+---
+
 # Obsidian Vault
 
 ## Vault location
