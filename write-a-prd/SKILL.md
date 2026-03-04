@@ -1,3 +1,8 @@
+---
+name: write-a-prd
+description: This skill audits your repository and interrogates your design goals to transform high-level ideas into a structured, architecture-driven Product Requirements Document formatted as a GitHub issue.
+---
+
 This skill will be invoked when the user wants to create a PRD. You should go through the steps below. You may skip steps if you don't consider them necessary.
 
 1. Ask the user for a long, detailed description of the problem they want to solve and any potential ideas for solutions.
