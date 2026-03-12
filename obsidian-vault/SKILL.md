@@ -1,3 +1,8 @@
+---
+name: obsidian-vault
+description: Manage an Obsidian knowledge vault with flat structure, Title Case naming, wikilinks, and index notes. Searches, creates, and links notes in the vault. Use when user wants to create, search, or organize notes in their Obsidian vault, or mentions Obsidian, wikilinks, or knowledge management.
+---
+
 # Obsidian Vault
 
 ## Vault location

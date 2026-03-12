@@ -1,9 +1,9 @@
 ---
 name: request-refactor-plan
-description: Use this skill when user wants to create a refactor plan.
+description: Create detailed refactor plans through problem exploration, codebase verification, option analysis, and user interviews. Breaks implementation into tiny commits and produces a GitHub issue with the plan. Use when user wants to plan a refactor, create a refactoring strategy, restructure code, reduce technical debt, or needs a step-by-step refactoring breakdown.
 ---
 
-This skill will be invoked when the user wants to create a refactor request. You should go through the steps below. You may skip steps if you don't consider them necessary.
+Guides the user through creating a refactor plan via the steps below. Steps may be skipped if not necessary.
 
 1. Ask the user for a long, detailed description of the problem they want to solve and any potential ideas for solutions.
 

@@ -1,3 +1,8 @@
+---
+name: prd-to-issues
+description: Break a PRD into independently-grabbable GitHub issues using vertical slices (tracer bullets). Creates issues with dependency ordering, HITL/AFK classification, and acceptance criteria. Use when user wants to convert a PRD into issues, break down a feature into tasks, or create GitHub issues from a product requirements document.
+---
+
 # PRD to Issues
 
 Break a PRD into independently-grabbable GitHub issues using vertical slices (tracer bullets).

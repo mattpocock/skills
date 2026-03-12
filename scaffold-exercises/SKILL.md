@@ -1,3 +1,8 @@
+---
+name: scaffold-exercises
+description: Create exercise directory structures that pass ai-hero-cli lint validation. Handles section and exercise naming, variants (problem/solution/explainer), readme stubs, and proper numbering conventions. Use when user wants to scaffold exercises, create exercise directories, or set up course content structure for ai-hero.
+---
+
 # Scaffold Exercises
 
 Create exercise directory structures that pass `pnpm ai-hero-cli internal lint`.
