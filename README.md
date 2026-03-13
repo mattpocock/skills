@@ -2,6 +2,18 @@
 
 A collection of agent skills that extend capabilities across planning, development, and tooling.
 
+## Installation
+
+You can install these skills directly into Claude Code using the native marketplace:
+
+```bash
+# 1. Register the marketplace
+/plugin marketplace add mattpocock/skills
+
+# 2. Install all skills
+/plugin install skills@mattpocock
+```
+
 ## Planning & Design
 
 These skills help you think through problems before writing code.
