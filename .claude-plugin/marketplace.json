@@ -1,0 +1,29 @@
+{
+  "name": "mattpocock",
+  "plugins": [
+    {
+      "name": "skills",
+      "description": "All 16 of Matt Pocock's production-grade Claude Code skills.",
+      "source": "./",
+      "strict": false,
+      "skills": [
+        "./design-an-interface",
+        "./edit-article",
+        "./git-guardrails-claude-code",
+        "./grill-me",
+        "./improve-codebase-architecture",
+        "./migrate-to-shoehorn",
+        "./obsidian-vault",
+        "./prd-to-issues",
+        "./prd-to-plan",
+        "./request-refactor-plan",
+        "./scaffold-exercises",
+        "./setup-pre-commit",
+        "./tdd",
+        "./triage-issue",
+        "./write-a-prd",
+        "./write-a-skill"
+      ]
+    }
+  ]
+}
