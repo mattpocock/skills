@@ -1,19 +1,45 @@
 ---
 name: git-guardrails-claude-code
-description: Set up Claude Code hooks to block dangerous git commands (push, reset --hard, clean, branch -D, etc.) before they execute. Use when user wants to prevent destructive git operations, add git safety hooks, or block git push/reset in Claude Code.
+description: Set up Claude Code hooks to block dangerous git and gh CLI commands before they execute. Use when user wants to prevent destructive git operations, block dangerous GitHub CLI actions (repo delete, pr merge, secret management, API mutations), or add git/gh safety hooks to Claude Code.
 ---
 
-# Setup Git Guardrails
+# Setup Git & GitHub CLI Guardrails
 
-Sets up a PreToolUse hook that intercepts and blocks dangerous git commands before Claude executes them.
+Sets up a PreToolUse hook that intercepts and blocks dangerous git and gh CLI commands before Claude executes them.
 
 ## What Gets Blocked
+
+### Git commands
 
 - `git push` (all variants including `--force`)
 - `git reset --hard`
 - `git clean -f` / `git clean -fd`
 - `git branch -D`
 - `git checkout .` / `git restore .`
+
+### GitHub CLI (`gh`) commands
+
+**Destructive operations:**
+- `gh repo delete` / `gh repo archive` / `gh repo rename` / `gh repo edit`
+- `gh release delete` / `gh release delete-asset`
+- `gh issue delete`
+- `gh codespace delete`
+- `gh repo deploy-key delete`
+
+**Shared-state modifications (visible to others):**
+- `gh pr merge` / `gh pr close` / `gh pr review` / `gh pr comment`
+- `gh issue close` / `gh issue lock` / `gh issue comment`
+- `gh release create`
+- `gh workflow run`
+
+**Secret and variable management:**
+- `gh secret set` / `gh secret delete`
+- `gh variable set` / `gh variable delete`
+- `gh repo deploy-key add`
+
+**Raw API mutations:**
+- `gh api -X DELETE|POST|PUT|PATCH`
+- `gh api --method DELETE|POST|PUT|PATCH`
 
 When blocked, Claude sees a message telling it that it does not have authority to access these commands.
 
