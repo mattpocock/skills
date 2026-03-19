@@ -2,13 +2,42 @@
 
 A collection of agent skills that extend capabilities across planning, development, and tooling.
 
+## Installation
+
+Install all skills using the [Vercel skills CLI](https://github.com/vercel-labs/skills):
+
+```bash
+npx skills@latest add evans-sam/skills
+```
+
+Or install individual skills:
+
+```bash
+npx skills@latest add evans-sam/skills --skill write-a-plan --skill tdd
+```
+
+You can also install the CLI globally:
+
+```bash
+npm i -g skills
+skills add evans-sam/skills
+```
+
+Skills are installed to `~/.claude/skills/` and available immediately in Claude Code.
+
 ## Planning & Design
 
 These skills help you think through problems before writing code.
 
 - **write-a-prd** — Create a PRD through an interactive interview, codebase exploration, and module design. Filed as a markdown doc in `~/Development/docs/prd`.
+- **write-a-plan** — Create a robust implementation plan from scratch through relentless interviewing, codebase exploration, and vertical slicing. No PRD required. Saves to `./plans/`.
+- **prd-to-plan** — Turn a PRD into a multi-phase implementation plan using tracer-bullet vertical slices. Saves to `./plans/`.
 - **prd-to-issues** — Break a PRD into independently-grabbable markdown docs in `~/Development/docs/issues` using vertical slices.
+- **write-a-test-plan** — Create a comprehensive testing plan from a PRD, implementation plan, or triage document. Covers local data setup, required services, acceptance tests, and edge cases.
+- **design-an-interface** — Generate multiple radically different interface designs for a module using parallel sub-agents. Great for exploring API shapes and comparing trade-offs.
+- **request-refactor-plan** — Create a detailed refactor plan with tiny commits via user interview. Saves as a local markdown RFC document.
 - **grill-me** — Get relentlessly interviewed about a plan or design until every branch of the decision tree is resolved.
+- **ubiquitous-language** — Extract a DDD-style ubiquitous language glossary from the current conversation, flagging ambiguities and proposing canonical terms. Saves to `UBIQUITOUS_LANGUAGE.md`.
 
 ## Development
 
@@ -23,6 +52,6 @@ These skills help you write, refactor, and fix code.
 - **setup-pre-commit** — Set up Husky pre-commit hooks with lint-staged, Prettier, type checking, and tests.
 - **git-guardrails-claude-code** — Set up Claude Code hooks to block dangerous git commands (push, reset --hard, clean, etc.) before they execute.
 
-## Writing Skills
+## Meta
 
 - **write-a-skill** — Create new skills with proper structure, progressive disclosure, and bundled resources.
