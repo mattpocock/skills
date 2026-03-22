@@ -25,20 +25,35 @@ The friction you encounter IS the signal.
 
 ### 2. Present candidates
 
-Present a numbered list of deepening opportunities. For each candidate, show:
+Present a numbered list of deepening opportunities. Each candidate is a **problem area** — an isolated, bounded zone of architectural friction. Candidates are NOT solutions; identifying the interface or refactor strategy comes later, from the parallel sub-agents in Step 5.
+
+For each candidate, show:
 
 - **Cluster**: Which modules/concepts are involved
 - **Why they're coupled**: Shared types, call patterns, co-ownership of a concept
 - **Dependency category**: See [REFERENCE.md](REFERENCE.md) for the four categories
 - **Test impact**: What existing tests would be replaced by boundary tests
 
-Do NOT propose interfaces yet. Ask the user: "Which of these would you like to explore?"
+Do NOT propose interfaces yet.
 
-### 3. User picks a candidate
+Ask the user: "Which of these would you like to explore? Select one or more and assign each a processing order number (e.g. '1, 3, 2' means process candidate 1 first, then 3, then 2). Selected candidates should each represent an isolated problem area — if two candidates overlap significantly, you may want to select only one or resolve the overlap before proceeding."
 
-### 4. Frame the problem space
+### 3. User selects candidates and assigns order
 
-Before spawning sub-agents, write a user-facing explanation of the problem space for the chosen candidate:
+The user selects one or more candidates and specifies the order in which to process them. If only one candidate is selected, proceed directly to Step 4.
+
+If multiple are selected, maintain a tracking table throughout the session — update it after each issue is created so it's always current:
+
+| Order | Candidate | Issue # | URL |
+|---|---|---|---|
+| 1 | Candidate name | — | — |
+| 2 | Candidate name | — | — |
+
+Process each candidate in the specified order, completing Steps 4–7 fully for each before moving to the next. The user can stop the loop at any point — if they do, skip directly to Step 8 with whatever issues have been created so far. If only one issue was created in total, skip Step 8 entirely.
+
+### 4. Frame the problem space (per candidate)
+
+Before spawning sub-agents, write a user-facing explanation of the problem space for the current candidate:
 
 - The constraints any new interface would need to satisfy
 - The dependencies it would need to rely on
@@ -46,11 +61,15 @@ Before spawning sub-agents, write a user-facing explanation of the problem space
 
 Show this to the user, then immediately proceed to Step 5. The user reads and thinks about the problem while the sub-agents work in parallel.
 
-### 5. Design multiple interfaces
+### 5. Design multiple interfaces (per candidate)
 
 Spawn 3+ sub-agents in parallel using the Agent tool. Each must produce a **radically different** interface for the deepened module.
 
-Prompt each sub-agent with a separate technical brief (file paths, coupling details, dependency category, what's being hidden). This brief is independent of the user-facing explanation in Step 4. Give each agent a different design constraint:
+Prompt each sub-agent with a separate technical brief containing:
+- File paths, coupling details, dependency category, what's being hidden
+- A summary of interface decisions already made for earlier candidates in this session (if any), so designs avoid proposing changes to the same modules
+
+This brief is independent of the user-facing explanation in Step 4. Give each agent a different design constraint:
 
 - Agent 1: "Minimize the interface — aim for 1-3 entry points max"
 - Agent 2: "Maximize flexibility — support many use cases and extension"
@@ -69,8 +88,22 @@ Present designs sequentially, then compare them in prose.
 
 After comparing, give your own recommendation: which design you think is strongest and why. If elements from different designs would combine well, propose a hybrid. Be opinionated — the user wants a strong read, not just a menu.
 
-### 6. User picks an interface (or accepts recommendation)
+### 6. User picks an interface (per candidate, or accepts recommendation)
 
-### 7. Create GitHub issue
+### 7. Create GitHub issue (per candidate)
 
 Create a refactor RFC as a GitHub issue using `gh issue create`. Use the template in [REFERENCE.md](REFERENCE.md). Do NOT ask the user to review before creating — just create it and share the URL.
+
+Update the tracking table with the issue number and URL. If more candidates remain and the user wants to continue, return to Step 4 for the next one.
+
+### 8. Isolation comparison
+
+Once all selected candidates have issues created, fetch the full content of each using `gh issue view <number> --json title,body` — do not rely on session memory.
+
+Then compare across all of them:
+
+- List all issues (title + URL)
+- Identify any overlapping responsibilities, shared modules, or coupling between the candidates — places where implementing one issue could conflict with or invalidate another
+- Highlight specifically which issues (if any) need to be adjusted to ensure they remain properly isolated from each other
+
+Do NOT edit the issues automatically. Surface the findings clearly and let the user decide whether to update any issues before implementation begins.
