@@ -37,6 +37,9 @@ These skills help you think through problems before writing code.
 - **design-an-interface** — Generate multiple radically different interface designs for a module using parallel sub-agents. Great for exploring API shapes and comparing trade-offs.
 - **request-refactor-plan** — Create a detailed refactor plan with tiny commits via user interview. Saves as a local markdown RFC document.
 - **grill-me** — Get relentlessly interviewed about a plan or design until every branch of the decision tree is resolved.
+- **blueprint-scratchpad** — Start the shaping period for a feature blueprint. Fetches Linear project context and linked docs, grills the engineer on the full problem space, and produces a working scratchpad. Supports multi-session check-ins.
+- **blueprint-draft** — Transform a shaping scratchpad into a formal engineering blueprint with decided language, collaborative estimation, and Linear ticket linking.
+- **blueprint-publish** — Curate a working blueprint and scratchpad into a team-ready Notion page with section-by-section review before publishing.
 - **ubiquitous-language** — Extract a DDD-style ubiquitous language glossary from the current conversation, flagging ambiguities and proposing canonical terms. Saves to `UBIQUITOUS_LANGUAGE.md`.
 
 ## Development
