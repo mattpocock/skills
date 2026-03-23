@@ -27,7 +27,7 @@ This skill will be invoked when the user wants to create a refactor request. You
 
 8. Break the implementation into a plan of tiny commits. Remember Martin Fowler's advice to "make each refactoring step as small as possible, so that you can always see the program working."
 
-9. Save the refactor plan as a markdown file in `~/Development/docs/rfc/` with a kebab-case filename derived from the refactor topic (e.g., `extract-auth-module.md`). Use the following template:
+9. Ask the user where they'd like to save this RFC — for example a local file path, a GitHub wiki page, a Notion or Confluence doc. Use the following template, then save or deliver it appropriately for the chosen destination.
 
 <refactor-plan-template>
 

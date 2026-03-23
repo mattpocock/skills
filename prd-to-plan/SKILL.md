@@ -9,9 +9,11 @@ Break a PRD into a phased implementation plan using vertical slices (tracer bull
 
 ## Process
 
-### 1. Confirm the PRD is in context
+### 1. Locate the PRD
 
-The PRD should already be in the conversation. If it isn't, ask the user to paste it or point you to the file. The user may also provide links to Linear issues/projects, Figma designs, or Notion documents for additional context.
+Ask the user where the PRD lives. It might be a local file path, a GitHub wiki page, a Notion or Confluence doc, or already in the conversation. The user may also provide links to Linear issues/projects or Figma designs for additional context.
+
+Read or fetch the PRD from wherever it lives.
 
 ### 2. Gather external context
 
@@ -67,7 +69,7 @@ Iterate until the user approves the breakdown.
 
 ### 7. Write the plan file
 
-Create `./plans/` if it doesn't exist. Write the plan as a Markdown file named after the feature (e.g. `./plans/user-onboarding.md`). Use the template below.
+Ask the user where they'd like to save this — for example a local file path, a GitHub wiki page, or a Notion doc. Use the template below, then save or deliver it appropriately for the chosen destination.
 
 <plan-template>
 # Plan: <Feature Name>

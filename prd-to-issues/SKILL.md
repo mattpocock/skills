@@ -11,9 +11,9 @@ Break a PRD into independently-grabbable implementation issues using vertical sl
 
 ### 1. Locate the PRD
 
-Ask the user for the PRD file path (likely in `~/Development/docs/prd/`). The user may also provide links to Linear issues/projects, Figma designs, or Notion documents for additional context.
+Ask the user where the PRD lives. It might be a local file path, a GitHub wiki page, a Notion or Confluence doc, or already in the conversation. The user may also provide links to Linear issues/projects or Figma designs for additional context.
 
-If the PRD is not already in your context window, read it from the provided file path.
+Read or fetch the PRD from wherever it lives.
 
 ### 2. Gather external context
 
@@ -61,14 +61,21 @@ Iterate until the user approves the breakdown.
 
 ### 6. Create the issue documents
 
-For each approved slice, save a markdown file in `~/Development/docs/issues/`. Use a kebab-case filename derived from the slice title (e.g., `add-user-auth-flow.md`). Use the issue body template below.
+Ask the user where they'd like these saved. Common destinations:
 
-Create issues in dependency order (blockers first) so you can reference filenames in the "Blocked by" field.
+- **GitHub Issues**: create each one directly with `gh issue create`
+- **Local files**: save markdown files to a directory of the user's choice
+- **Notion / Confluence**: create pages via MCP tools if available
+- **Linear**: create issues via Linear MCP tools if available
+
+Create issues in dependency order (blockers first) so you can reference each issue in the "Blocked by" field.
+
+Use the issue body template below for each issue.
 
 <issue-template>
 ## Parent PRD
 
-`<prd-filename>` (in `~/Development/docs/prd/`)
+`<link or reference to the source PRD>`
 
 ## What to build
 

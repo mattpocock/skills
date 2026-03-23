@@ -73,7 +73,7 @@ Iterate until approved.
 
 ### 8. Write the plan file
 
-Create `./plans/` if it doesn't exist. Write the plan as Markdown named after the feature (e.g. `./plans/user-onboarding.md`).
+Ask the user where they'd like to save this — for example a local file path, a GitHub wiki page, or a Notion doc. Save or deliver it appropriately for the chosen destination.
 
 <plan-template>
 # Plan: <Feature Name>

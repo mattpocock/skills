@@ -63,7 +63,14 @@ Rules:
 
 ### 6. Create the issue document
 
-Save a markdown file in `~/Development/docs/issues/` with a kebab-case filename derived from the problem (e.g., `broken-auth-redirect.md`). Use the template below. Do NOT ask the user to review before creating - just create it and share the file path.
+Ask the user where they'd like this saved. Common destinations:
+
+- **GitHub Issue**: create it directly with `gh issue create`
+- **Local file**: save to a path of the user's choice
+- **Linear**: create via Linear MCP tools if available
+- **Notion / Confluence**: create a page via MCP tools if available
+
+Use the template below. Do NOT ask the user to review before creating — just create it and share the link or path.
 
 <issue-template>
 

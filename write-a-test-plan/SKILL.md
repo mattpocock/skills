@@ -14,7 +14,7 @@ Generate a comprehensive testing plan by searching the conversation and project 
 Search for context in this order. Use ALL sources found, not just the first match:
 
 - **Conversation context**: Check if a PRD, implementation plan, or triage doc has already been discussed
-- **Local docs**: Search `~/Development/docs/prd/`, `~/Development/docs/issues/`, and `/plans/` for relevant documents
+- **Local docs**: Ask the user where their PRDs, issues, and plans are stored. Read from the provided paths
 - **Codebase**: Explore existing tests, test utilities, fixtures, and test configuration to understand current test patterns
 
 The user may also provide links to Linear issues, Figma designs, or Notion documents for additional context.
@@ -61,7 +61,7 @@ Iterate until the user approves.
 
 ### 6. Save the test plan
 
-Create `~/Development/docs/test-plans/` if it doesn't exist. Save the plan with a kebab-case filename derived from the feature name (e.g., `user-onboarding-test-plan.md`).
+Ask the user where they'd like to save this — for example a local file path, a GitHub wiki page, a Notion or Confluence doc. Save or deliver it appropriately for the chosen destination.
 
 <test-plan-template>
 # Test Plan: <Feature Name>

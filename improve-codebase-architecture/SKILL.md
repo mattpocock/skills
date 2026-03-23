@@ -73,4 +73,10 @@ After comparing, give your own recommendation: which design you think is stronge
 
 ### 7. Create Markdown issue
 
-Create a refactor RFC as a markdown doc in `~/Development/docs/rfc`. Use the template in [REFERENCE.md](REFERENCE.md). Do NOT ask the user to review before creating — just create it and share the file path.
+Ask the user where they'd like to save this RFC. Common destinations:
+
+- **Local file**: save to a path of the user's choice
+- **GitHub wiki**: save to the repo wiki
+- **Notion / Confluence**: create a page via MCP tools if available
+
+Use the template in [REFERENCE.md](REFERENCE.md). Do NOT ask the user to review before creating — just create it and share the link or path.
