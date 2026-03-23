@@ -44,10 +44,10 @@ The user selects one or more candidates and specifies the order in which to proc
 
 If multiple are selected, maintain a tracking table throughout the session — update it after each issue is created so it's always current:
 
-| Order | Candidate | Issue # | URL |
-|---|---|---|---|
-| 1 | Candidate name | — | — |
-| 2 | Candidate name | — | — |
+| Order | Candidate      | Issue # | URL |
+| ----- | -------------- | ------- | --- |
+| 1     | Candidate name | —       | —   |
+| 2     | Candidate name | —       | —   |
 
 Process each candidate in the specified order, completing Steps 4–7 fully for each before moving to the next. The user can stop the loop at any point — if they do, skip directly to Step 8 with whatever issues have been created so far. If only one issue was created in total, skip Step 8 entirely.
 
@@ -66,6 +66,7 @@ Show this to the user, then immediately proceed to Step 5. The user reads and th
 Spawn 3+ sub-agents in parallel using the Agent tool. Each must produce a **radically different** interface for the deepened module.
 
 Prompt each sub-agent with a separate technical brief containing:
+
 - File paths, coupling details, dependency category, what's being hidden
 - A summary of interface decisions already made for earlier candidates in this session (if any), so designs avoid proposing changes to the same modules
 
