@@ -24,7 +24,7 @@ These skills help you think through problems before writing code.
   npx skills@latest add mattpocock/skills/prd-to-issues
   ```
 
-- **grill-me** — Get relentlessly interviewed about a plan or design until every branch of the decision tree is resolved.
+- **grill-me** — Stress-test a plan, design, strategy, process, or important decision until the key branches, trade-offs, and open questions are clear.
 
   ```
   npx skills@latest add mattpocock/skills/grill-me
