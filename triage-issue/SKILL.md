@@ -1,6 +1,6 @@
 ---
 name: triage-issue
-description: Triage a bug or issue by exploring the codebase to find root cause, then create a GitHub issue with a TDD-based fix plan. Use when user reports a bug, wants to file an issue, mentions "triage", or wants to investigate and plan a fix for a problem.
+description: Triage a bug or issue by exploring the codebase to find root cause, then create an Azure DevOps Bug work item with a TDD-based fix plan. Use when user reports a bug, wants to file an issue, mentions "triage", or wants to investigate and plan a fix for a problem.
 ---
 
 # Triage Issue
@@ -54,9 +54,22 @@ Rules:
 - Include a final refactor step if needed
 - **Durability**: Only suggest fixes that would survive radical codebase changes. Describe behaviors and contracts, not internal structure. Tests assert on observable outcomes (API responses, UI state, user-visible effects), not internal state. A good suggestion reads like a spec; a bad one reads like a diff.
 
-### 5. Create the GitHub issue
+### 5. Create the Azure DevOps Bug
 
-Create a GitHub issue using `gh issue create` with the template below. Do NOT ask the user to review before creating - just create it and share the URL.
+Run `az account show` to verify Azure CLI authentication. If it fails, instruct the user to run `az login` followed by `az extension add --name azure-devops`.
+
+Infer the ADO org and project from `git remote get-url origin`:
+- `https://dev.azure.com/{org}/{project}/_git/{repo}` → extract `{org}` and `{project}`.
+- `https://{org}.visualstudio.com/{project}/_git/{repo}` → extract accordingly.
+- If inference fails, ask: *"What is your ADO org URL and project name?"*
+
+Ask once: *"What area path and iteration path should I use? (e.g. `MyProject\Team`, `MyProject\Sprint 5`)"*
+
+Create an ADO Bug using `az boards work-item create` with the template below. Do NOT ask the user to review before creating — just create it and share the URL.
+
+`az boards work-item create --title "<bug title>" --type Bug --description "<body>" --area "<area-path>" --iteration "<iteration-path>" --org https://dev.azure.com/<org> --project "<project>" --query id --output tsv`
+
+Capture the returned ID and share the work item URL: `https://dev.azure.com/<org>/<project>/_workitems/edit/<id>`
 
 <issue-template>
 
@@ -99,4 +112,4 @@ A numbered list of RED-GREEN cycles:
 
 </issue-template>
 
-After creating the issue, print the issue URL and a one-line summary of the root cause.
+After creating the work item, print the work item URL and a one-line summary of the root cause.

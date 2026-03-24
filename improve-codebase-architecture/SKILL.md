@@ -5,7 +5,7 @@ description: Explore a codebase to find opportunities for architectural improvem
 
 # Improve Codebase Architecture
 
-Explore a codebase like an AI would, surface architectural friction, discover opportunities for improving testability, and propose module-deepening refactors as GitHub issue RFCs.
+Explore a codebase like an AI would, surface architectural friction, discover opportunities for improving testability, and propose module-deepening refactors as Azure DevOps User Story RFCs.
 
 A **deep module** (John Ousterhout, "A Philosophy of Software Design") has a small interface hiding a large implementation. Deep modules are more testable, more AI-navigable, and let you test at the boundary instead of inside.
 
@@ -71,6 +71,19 @@ After comparing, give your own recommendation: which design you think is stronge
 
 ### 6. User picks an interface (or accepts recommendation)
 
-### 7. Create GitHub issue
+### 7. Create Azure DevOps User Story
 
-Create a refactor RFC as a GitHub issue using `gh issue create`. Use the template in [REFERENCE.md](REFERENCE.md). Do NOT ask the user to review before creating — just create it and share the URL.
+Run `az account show` to verify Azure CLI authentication. If it fails, instruct the user to run `az login` followed by `az extension add --name azure-devops`.
+
+Infer the ADO org and project from `git remote get-url origin`:
+- `https://dev.azure.com/{org}/{project}/_git/{repo}` → extract `{org}` and `{project}`.
+- `https://{org}.visualstudio.com/{project}/_git/{repo}` → extract accordingly.
+- If inference fails, ask: *"What is your ADO org URL and project name?"*
+
+Ask once: *"What area path and iteration path should I use? (e.g. `MyProject\Team`, `MyProject\Sprint 5`)"*
+
+Create the refactor RFC as an ADO User Story using the template in [REFERENCE.md](REFERENCE.md). Do NOT ask the user to review before creating — just create it and share the URL.
+
+`az boards work-item create --title "<refactor title>" --type "User Story" --description "<body from REFERENCE.md template>" --area "<area-path>" --iteration "<iteration-path>" --org https://dev.azure.com/<org> --project "<project>" --query id --output tsv`
+
+Capture the returned ID and share the work item URL: `https://dev.azure.com/<org>/<project>/_workitems/edit/<id>`

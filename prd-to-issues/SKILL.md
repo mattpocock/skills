@@ -1,19 +1,30 @@
 ---
 name: prd-to-issues
-description: Break a PRD into independently-grabbable GitHub issues using tracer-bullet vertical slices. Use when user wants to convert a PRD to issues, create implementation tickets, or break down a PRD into work items.
+description: Break a PRD into independently-grabbable Azure DevOps User Stories using tracer-bullet vertical slices. Use when user wants to convert a PRD to work items, create implementation tickets, or break down a PRD into User Stories.
 ---
 
 # PRD to Issues
 
-Break a PRD into independently-grabbable GitHub issues using vertical slices (tracer bullets).
+Break a PRD into independently-grabbable Azure DevOps User Stories using vertical slices (tracer bullets).
 
 ## Process
 
+### 0. Preflight
+
+Run `az account show` to verify the user is authenticated with the Azure CLI. If it fails, instruct them to run `az login` followed by `az extension add --name azure-devops`.
+
+Infer the ADO org and project from the git remote by running `git remote get-url origin`:
+- If the URL is `https://dev.azure.com/{org}/{project}/_git/{repo}`, extract `{org}` and `{project}`.
+- If the URL is `https://{org}.visualstudio.com/{project}/_git/{repo}`, extract accordingly.
+- If inference fails, ask: *"What is your ADO org URL (e.g. `https://dev.azure.com/myorg`) and project name?"*
+
+Ask once upfront: *"What area path and iteration path should I use for the work items? (e.g. `MyProject\Team`, `MyProject\Sprint 5`)"*. Use these for all work items created this session.
+
 ### 1. Locate the PRD
 
-Ask the user for the PRD GitHub issue number (or URL).
+Ask the user for the PRD work item ID (numeric) or full URL (e.g. `https://dev.azure.com/org/project/_workitems/edit/1234`). Extract the numeric ID from whichever form they provide.
 
-If the PRD is not already in your context window, fetch it with `gh issue view <number>` (with comments).
+If the PRD is not already in your context window, fetch it with `az boards work-item show --id <id> --org https://dev.azure.com/<org>`.
 
 ### 2. Explore the codebase (optional)
 
@@ -49,16 +60,22 @@ Ask the user:
 
 Iterate until the user approves the breakdown.
 
-### 5. Create the GitHub issues
+### 5. Create the Azure DevOps User Stories
 
-For each approved slice, create a GitHub issue using `gh issue create`. Use the issue body template below.
+For each approved slice, create an ADO User Story using `az boards work-item create`. Use the work item body template below.
 
-Create issues in dependency order (blockers first) so you can reference real issue numbers in the "Blocked by" field.
+Create items in dependency order (blockers first) so you can reference real work item IDs in the "Blocked by" field.
 
-<issue-template>
+For each slice run: `az boards work-item create --title "<title>" --type "User Story" --description "<body>" --area "<area-path>" --iteration "<iteration-path>" --fields "System.Tags=<HITL or AFK>" --org https://dev.azure.com/<org> --project "<project>" --query id --output tsv`
+
+Capture the returned numeric ID, then link the User Story to the parent PRD: `az boards work-item relation add --id <user-story-id> --relation-type "System.LinkTypes.Hierarchy-Reverse" --target-id <prd-item-id> --org https://dev.azure.com/<org>`
+
+For items with dependencies, add a blocking link from the blocked item to its blocker: `az boards work-item relation add --id <blocked-item-id> --relation-type "System.LinkTypes.Dependency-Reverse" --target-id <blocker-item-id> --org https://dev.azure.com/<org>`
+
+<work-item-template>
 ## Parent PRD
 
-#<prd-issue-number>
+Work item #<prd-item-id>
 
 ## What to build
 
@@ -72,7 +89,7 @@ A concise description of this vertical slice. Describe the end-to-end behavior, 
 
 ## Blocked by
 
-- Blocked by #<issue-number> (if any)
+- Blocked by #<work-item-id> (if any)
 
 Or "None - can start immediately" if no blockers.
 
@@ -83,6 +100,6 @@ Reference by number from the parent PRD:
 - User story 3
 - User story 7
 
-</issue-template>
+</work-item-template>
 
-Do NOT close or modify the parent PRD issue.
+Do NOT modify the parent PRD work item.
