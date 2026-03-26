@@ -1,0 +1,40 @@
+# git-guardrails configuration
+#
+# This file controls which repositories allow write operations and
+# what permission mode applies to each command category.
+#
+# REPO ALLOWLIST
+# Glob patterns matched against "owner/repo" from git remote origin.
+# Repos not matching any pattern are fully blocked for write operations.
+# Lines starting with # are comments. Blank lines are ignored.
+
+[repos]
+# Examples:
+# myusername/*
+# my-personal-org/*
+
+# COMMAND CATEGORIES
+# Each category can be set to one of three modes:
+#   allow  - permitted on allowlisted repos (blocked everywhere else)
+#   ask    - Claude pauses and asks you for confirmation
+#   block  - always blocked regardless of repo
+#
+# The "destructive" category is ALWAYS block and cannot be changed.
+# It is enforced by the separate block-always.sh hook.
+
+[git-push]
+# Non-force git push (force push is always blocked separately)
+mode=allow
+
+[pr-write]
+# gh pr create, close, reopen, comment, edit, review
+# (gh pr merge is always blocked separately)
+mode=allow
+
+[issue-write]
+# gh issue create, close, reopen, comment, edit, lock, unlock, transfer
+mode=allow
+
+[repo-settings]
+# gh repo edit
+mode=block
