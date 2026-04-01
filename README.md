@@ -6,7 +6,7 @@ A collection of agent skills that extend capabilities across planning, developme
 
 These skills help you think through problems before writing code.
 
-- **write-a-prd** — Create a PRD through an interactive interview, codebase exploration, and module design. Filed as a GitHub issue.
+- **write-a-prd** — Create a PRD through an interactive interview, codebase exploration, and module design. Filed as a Jira Epic.
 
   ```
   npx skills@latest add mattpocock/skills/write-a-prd
@@ -18,7 +18,19 @@ These skills help you think through problems before writing code.
   npx skills@latest add mattpocock/skills/prd-to-plan
   ```
 
-- **prd-to-issues** — Break a PRD into independently-grabbable GitHub issues using vertical slices.
+- **prd-to-bdd** — Turn a Jira Epic into executable Gherkin `.feature` files and Cucumber JS/TS step skeletons.
+
+  ```
+  npx skills@latest add mattpocock/skills/prd-to-bdd
+  ```
+
+- **implement-scenarios** — Implement Gherkin scenarios using double-loop TDD: outer acceptance loop, inner unit-test loop.
+
+  ```
+  npx skills@latest add mattpocock/skills/implement-scenarios
+  ```
+
+- **prd-to-issues** — Break a Jira Epic into independently-grabbable Jira Stories using vertical slices.
 
   ```
   npx skills@latest add mattpocock/skills/prd-to-issues
@@ -36,7 +48,7 @@ These skills help you think through problems before writing code.
   npx skills@latest add mattpocock/skills/design-an-interface
   ```
 
-- **request-refactor-plan** — Create a detailed refactor plan with tiny commits via user interview, then file it as a GitHub issue.
+- **request-refactor-plan** — Create a detailed refactor plan with tiny commits via user interview, then file it as a Jira Task.
 
   ```
   npx skills@latest add mattpocock/skills/request-refactor-plan
@@ -52,13 +64,13 @@ These skills help you write, refactor, and fix code.
   npx skills@latest add mattpocock/skills/tdd
   ```
 
-- **triage-issue** — Investigate a bug by exploring the codebase, identify the root cause, and file a GitHub issue with a TDD-based fix plan.
+- **triage-issue** — Investigate a bug by exploring the codebase, identify the root cause, and file a Jira Bug with a TDD-based fix plan.
 
   ```
   npx skills@latest add mattpocock/skills/triage-issue
   ```
 
-- **improve-codebase-architecture** — Explore a codebase for architectural improvement opportunities, focusing on deepening shallow modules and improving testability.
+- **improve-codebase-architecture** — Explore a codebase for architectural improvement opportunities, focusing on deepening shallow modules and improving testability. Filed as a Jira Task RFC.
 
   ```
   npx skills@latest add mattpocock/skills/improve-codebase-architecture
@@ -74,6 +86,12 @@ These skills help you write, refactor, and fix code.
 
   ```
   npx skills@latest add mattpocock/skills/scaffold-exercises
+  ```
+
+- **event-storming** — Guide a structured event storming session and produce a reusable domain modelling artefact.
+
+  ```
+  npx skills@latest add mattpocock/skills/event-storming
   ```
 
 ## Tooling & Setup
