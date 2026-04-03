@@ -2,6 +2,23 @@
 
 A collection of agent skills that extend capabilities across planning, development, and tooling.
 
+## Installation
+
+### [npx skills CLI](https://www.npmjs.com/package/skills)
+
+```
+npx skills@latest add mattpocock/skills/<skill-name>
+```
+
+### [Claude Code Marketplace](https://code.claude.com/docs/en/discover-plugins.md)
+
+Add the marketplace, then install individual plugins:
+
+```
+/plugin marketplace add mattpocock/skills
+/plugin install <skill-name>
+```
+
 ## Planning & Design
 
 These skills help you think through problems before writing code.
@@ -10,36 +27,48 @@ These skills help you think through problems before writing code.
 
   ```
   npx skills@latest add mattpocock/skills/write-a-prd
+  # or
+  /plugin install write-a-prd
   ```
 
 - **prd-to-plan** — Turn a PRD into a multi-phase implementation plan using tracer-bullet vertical slices.
 
   ```
   npx skills@latest add mattpocock/skills/prd-to-plan
+  # or
+  /plugin install prd-to-plan
   ```
 
 - **prd-to-issues** — Break a PRD into independently-grabbable GitHub issues using vertical slices.
 
   ```
   npx skills@latest add mattpocock/skills/prd-to-issues
+  # or
+  /plugin install prd-to-issues
   ```
 
 - **grill-me** — Get relentlessly interviewed about a plan or design until every branch of the decision tree is resolved.
 
   ```
   npx skills@latest add mattpocock/skills/grill-me
+  # or
+  /plugin install grill-me
   ```
 
 - **design-an-interface** — Generate multiple radically different interface designs for a module using parallel sub-agents.
 
   ```
   npx skills@latest add mattpocock/skills/design-an-interface
+  # or
+  /plugin install design-an-interface
   ```
 
 - **request-refactor-plan** — Create a detailed refactor plan with tiny commits via user interview, then file it as a GitHub issue.
 
   ```
   npx skills@latest add mattpocock/skills/request-refactor-plan
+  # or
+  /plugin install request-refactor-plan
   ```
 
 ## Development
@@ -50,30 +79,40 @@ These skills help you write, refactor, and fix code.
 
   ```
   npx skills@latest add mattpocock/skills/tdd
+  # or
+  /plugin install tdd
   ```
 
 - **triage-issue** — Investigate a bug by exploring the codebase, identify the root cause, and file a GitHub issue with a TDD-based fix plan.
 
   ```
   npx skills@latest add mattpocock/skills/triage-issue
+  # or
+  /plugin install triage-issue
   ```
 
 - **improve-codebase-architecture** — Explore a codebase for architectural improvement opportunities, focusing on deepening shallow modules and improving testability.
 
   ```
   npx skills@latest add mattpocock/skills/improve-codebase-architecture
+  # or
+  /plugin install improve-codebase-architecture
   ```
 
 - **migrate-to-shoehorn** — Migrate test files from `as` type assertions to @total-typescript/shoehorn.
 
   ```
   npx skills@latest add mattpocock/skills/migrate-to-shoehorn
+  # or
+  /plugin install migrate-to-shoehorn
   ```
 
 - **scaffold-exercises** — Create exercise directory structures with sections, problems, solutions, and explainers.
 
   ```
   npx skills@latest add mattpocock/skills/scaffold-exercises
+  # or
+  /plugin install scaffold-exercises
   ```
 
 ## Tooling & Setup
@@ -82,12 +121,16 @@ These skills help you write, refactor, and fix code.
 
   ```
   npx skills@latest add mattpocock/skills/setup-pre-commit
+  # or
+  /plugin install setup-pre-commit
   ```
 
 - **git-guardrails-claude-code** — Set up Claude Code hooks to block dangerous git commands (push, reset --hard, clean, etc.) before they execute.
 
   ```
   npx skills@latest add mattpocock/skills/git-guardrails-claude-code
+  # or
+  /plugin install git-guardrails-claude-code
   ```
 
 ## Writing & Knowledge
@@ -96,22 +139,30 @@ These skills help you write, refactor, and fix code.
 
   ```
   npx skills@latest add mattpocock/skills/write-a-skill
+  # or
+  /plugin install write-a-skill
   ```
 
 - **edit-article** — Edit and improve articles by restructuring sections, improving clarity, and tightening prose.
 
   ```
   npx skills@latest add mattpocock/skills/edit-article
+  # or
+  /plugin install edit-article
   ```
 
 - **ubiquitous-language** — Extract a DDD-style ubiquitous language glossary from the current conversation.
 
   ```
   npx skills@latest add mattpocock/skills/ubiquitous-language
+  # or
+  /plugin install ubiquitous-language
   ```
 
 - **obsidian-vault** — Search, create, and manage notes in an Obsidian vault with wikilinks and index notes.
 
   ```
   npx skills@latest add mattpocock/skills/obsidian-vault
+  # or
+  /plugin install obsidian-vault
   ```
