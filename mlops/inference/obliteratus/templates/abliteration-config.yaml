@@ -1,0 +1,33 @@
+# OBLITERATUS Abliteration Config
+# Usage: obliteratus run this-file.yaml
+#
+# This is for reproducible, version-controlled abliteration runs.
+# For one-off usage, the CLI flags are simpler.
+
+# Model to abliterate
+model:
+  name: "meta-llama/Llama-3.1-8B-Instruct"
+  dtype: "bfloat16"         # float16, bfloat16, float32
+  quantization: null         # null, "4bit", "8bit"
+  device: "auto"             # auto, cuda, cuda:0, cpu
+
+# Abliteration method and parameters
+abliteration:
+  method: "informed"         # See SKILL.md Step 4 for all 13 methods
+  n_directions: null         # null = auto-detect, or integer (e.g., 8)
+  regularization: 0.0        # 0.0-1.0, fraction of original to preserve
+  refinement_passes: 1       # Iterative passes (increase for self-repair)
+  norm_preserve: true        # Keep weight norms intact after projection
+
+# Output
+output:
+  directory: "./abliterated-models"
+  save_metadata: true        # Save abliteration_metadata.json alongside model
+  contribute: false          # Save community contribution data
+
+# Verification
+verify:
+  enabled: true
+  test_prompts: null         # null = use built-in test prompts
+  compute_perplexity: true
+  compute_kl: true

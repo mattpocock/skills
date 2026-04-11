@@ -1,0 +1,79 @@
+% ALGORITHM STYLE -- Released 8 April 1996
+%    for LaTeX-2e
+% Copyright -- 1994 Peter Williams
+% E-mail Peter.Williams@dsto.defence.gov.au
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{algorithm}
+\typeout{Document Style `algorithm' - floating environment}
+
+\RequirePackage{float}
+\RequirePackage{ifthen}
+\newcommand{\ALG@within}{nothing}
+\newboolean{ALG@within}
+\setboolean{ALG@within}{false}
+\newcommand{\ALG@floatstyle}{ruled}
+\newcommand{\ALG@name}{Algorithm}
+\newcommand{\listalgorithmname}{List of \ALG@name s}
+
+% Declare Options
+% first appearance
+\DeclareOption{plain}{
+  \renewcommand{\ALG@floatstyle}{plain}
+}
+\DeclareOption{ruled}{
+  \renewcommand{\ALG@floatstyle}{ruled}
+}
+\DeclareOption{boxed}{
+  \renewcommand{\ALG@floatstyle}{boxed}
+}
+% then numbering convention
+\DeclareOption{part}{
+  \renewcommand{\ALG@within}{part}
+  \setboolean{ALG@within}{true}
+}
+\DeclareOption{chapter}{
+  \renewcommand{\ALG@within}{chapter}
+  \setboolean{ALG@within}{true}
+}
+\DeclareOption{section}{
+  \renewcommand{\ALG@within}{section}
+  \setboolean{ALG@within}{true}
+}
+\DeclareOption{subsection}{
+  \renewcommand{\ALG@within}{subsection}
+  \setboolean{ALG@within}{true}
+}
+\DeclareOption{subsubsection}{
+  \renewcommand{\ALG@within}{subsubsection}
+  \setboolean{ALG@within}{true}
+}
+\DeclareOption{nothing}{
+  \renewcommand{\ALG@within}{nothing}
+  \setboolean{ALG@within}{true}
+}
+\DeclareOption*{\edef\ALG@name{\CurrentOption}}
+
+% ALGORITHM
+%
+\ProcessOptions
+\floatstyle{\ALG@floatstyle}
+\ifthenelse{\boolean{ALG@within}}{
+  \ifthenelse{\equal{\ALG@within}{part}}
+     {\newfloat{algorithm}{htbp}{loa}[part]}{}
+  \ifthenelse{\equal{\ALG@within}{chapter}}
+     {\newfloat{algorithm}{htbp}{loa}[chapter]}{}
+  \ifthenelse{\equal{\ALG@within}{section}}
+     {\newfloat{algorithm}{htbp}{loa}[section]}{}
+  \ifthenelse{\equal{\ALG@within}{subsection}}
+     {\newfloat{algorithm}{htbp}{loa}[subsection]}{}
+  \ifthenelse{\equal{\ALG@within}{subsubsection}}
+     {\newfloat{algorithm}{htbp}{loa}[subsubsection]}{}
+  \ifthenelse{\equal{\ALG@within}{nothing}}
+     {\newfloat{algorithm}{htbp}{loa}}{}
+}{
+  \newfloat{algorithm}{htbp}{loa}
+}
+\floatname{algorithm}{\ALG@name}
+
+\newcommand{\listofalgorithms}{\listof{algorithm}{\listalgorithmname}}
+

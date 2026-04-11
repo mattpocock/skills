@@ -1,0 +1,40 @@
+# OBLITERATUS Analysis Study Config
+# Usage: obliteratus run this-file.yaml --preset jailbreak
+#
+# Run analysis modules to understand refusal geometry BEFORE abliterating.
+# Useful for research or when you want to understand what you're removing.
+
+# Model to analyze
+model:
+  name: "meta-llama/Llama-3.1-8B-Instruct"
+  dtype: "bfloat16"
+  quantization: "4bit"       # Saves VRAM for analysis
+  device: "auto"
+
+# Study configuration
+study:
+  # Available presets: quick, full, attention, jailbreak, guardrail, knowledge
+  preset: "jailbreak"
+
+  # Or specify individual strategies:
+  # strategies:
+  #   - layer_removal
+  #   - head_pruning
+  #   - ffn_ablation
+  #   - embedding_ablation
+
+# Analysis modules to run (subset of the 27 available)
+analysis:
+  - alignment_imprint        # Detect DPO/RLHF/CAI/SFT training method
+  - concept_geometry          # Map refusal cone geometry
+  - logit_lens               # Find which layer decides to refuse
+  - anti_ouroboros            # Detect self-repair tendency
+  - cross_layer              # Cross-layer alignment clustering
+  - causal_tracing           # Causal necessity of components
+  - residual_stream          # Attention vs MLP contribution
+
+# Output
+output:
+  directory: "./analysis-results"
+  save_plots: true           # Generate matplotlib visualizations
+  save_report: true          # Generate markdown report

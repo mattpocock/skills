@@ -1,0 +1,101 @@
+% This file compiles with both LuaLaTeX and XeLaTeX
+\documentclass[11pt]{article}
+
+% Change "review" to "final" to generate the final (sometimes called camera-ready) version.
+% Change to "preprint" to generate a non-anonymous version with page numbers.
+\usepackage[review]{acl}
+
+% This is not strictly necessary, and may be commented out,
+% but it will improve the layout of the manuscript,
+% and will typically save some space.
+ \usepackage{microtype}
+
+% If the title and author information does not fit in the area allocated, uncomment the following
+%
+%\setlength\titlebox{<dim>}
+%
+% and set <dim> to something 5cm or larger.
+
+% These font selection commands work with
+% LuaLaTeX and XeLaTeX, but not pdfLaTeX.
+\usepackage[english,bidi=default]{babel} % English as the main language.
+\babelfont{rm}{TeXGyreTermesX} % similar to Times
+%%% include whatever languages you need below this line
+\babelprovide[import]{hindi}
+\babelfont[*devanagari]{rm}{Lohit Devanagari}
+\babelprovide[import]{arabic}
+\babelfont[*arabic]{rm}{Noto Sans Arabic}
+
+
+%\usepackage{polyglossia}
+%\setdefaultlanguage{english}
+%\setotherlanguages{arabic,russian,thai,hindi,kannada}
+
+%%%%%
+
+
+\title{LuaLaTeX and XeLaTeX Template for *ACL Style Files}
+
+% Author information can be set in various styles:
+% For several authors from the same institution:
+% \author{Author 1 \and ... \and Author n \\
+%         Address line \\ ... \\ Address line}
+% if the names do not fit well on one line use
+%         Author 1 \\ {\bf Author 2} \\ ... \\ {\bf Author n} \\
+% For authors from different institutions:
+% \author{Author 1 \\ Address line \\  ... \\ Address line
+%         \And  ... \And
+%         Author n \\ Address line \\ ... \\ Address line}
+% To start a seperate ``row'' of authors use \AND, as in
+% \author{Author 1 \\ Address line \\  ... \\ Address line
+%         \AND
+%         Author 2 \\ Address line \\ ... \\ Address line \And
+%         Author 3 \\ Address line \\ ... \\ Address line}
+
+\author{First Author \\
+  Affiliation / Address line 1 \\
+  Affiliation / Address line 2 \\
+  Affiliation / Address line 3 \\
+  \texttt{email@domain} \\\And
+  Second Author \\
+  Affiliation / Address line 1 \\
+  Affiliation / Address line 2 \\
+  Affiliation / Address line 3 \\
+  \texttt{email@domain} \\}
+
+\begin{document}
+
+\maketitle
+\begin{abstract}
+This document provides an example showing how
+to use the *ACL style files with either
+LuaLaTeX or XeLaTeX.
+\end{abstract}
+
+
+\section{Introduction}
+
+Please see the general instructions
+in the file \verb|acl_latex.tex|.
+
+Here are some examples of text in various languages.
+
+Hindi: \foreignlanguage{hindi}{मानव अधिकारों की सार्वभौम घोषणा}
+
+Arabic: \foreignlanguage{arabic}{الإعلان العالمي لحقوق الإنسان}
+
+Here is an example citation:
+\citet{Gusfield:97} argues that...
+
+
+% Entries for the entire Anthology, followed by custom entries
+\bibliography{custom}
+
+\appendix
+
+\section{Example Appendix}
+\label{sec:appendix}
+
+This is an appendix.
+
+\end{document}

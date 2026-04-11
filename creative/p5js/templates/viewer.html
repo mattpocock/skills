@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<!--
+  p5.js Interactive Viewer Template
+  =================================
+  USE THIS AS THE STARTING POINT for interactive generative art sketches.
+
+  FIXED (keep as-is):
+  ✓ Layout structure (sidebar + canvas)
+  ✓ Seed navigation (prev/next/random/jump)
+  ✓ Action buttons (regenerate, reset, download PNG)
+  ✓ Responsive canvas sizing
+  ✓ Parameter update + regeneration wiring
+
+  VARIABLE (replace for each project):
+  ✗ The p5.js algorithm (setup/draw/classes)
+  ✗ The PARAMS object (define what your art needs)
+  ✗ The parameter controls in the sidebar (sliders, pickers)
+  ✗ The color palette
+  ✗ The title and description
+
+  For headless export: add noLoop() and window._p5Ready=true in setup().
+-->
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Generative Art Viewer</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.11.3/p5.min.js"></script>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background: #0a0a0f;
+    color: #c8c8d0;
+    display: flex;
+    min-height: 100vh;
+    overflow: hidden;
+  }
+
+  /* --- Sidebar --- */
+  .sidebar {
+    width: 280px;
+    flex-shrink: 0;
+    background: #12121a;
+    border-right: 1px solid #1e1e2a;
+    padding: 20px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+  .sidebar h1 {
+    font-size: 18px;
+    font-weight: 600;
+    color: #e8e8f0;
+    margin-bottom: 4px;
+  }
+  .sidebar .subtitle {
+    font-size: 12px;
+    color: #666;
+    margin-bottom: 8px;
+  }
+  .section-title {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #555;
+    margin-bottom: 8px;
+  }
+
+  /* --- Seed Controls --- */
+  .seed-display {
+    font-family: 'SF Mono', 'Fira Code', monospace;
+    font-size: 24px;
+    font-weight: 700;
+    color: #e8e8f0;
+    text-align: center;
+    padding: 8px;
+    background: #1a1a25;
+    border-radius: 6px;
+    margin-bottom: 8px;
+  }
+  .seed-nav {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 6px;
+  }
+  .seed-nav button {
+    flex: 1;
+    padding: 6px;
+    font-size: 12px;
+  }
+  .seed-jump {
+    display: flex;
+    gap: 6px;
+  }
+  .seed-jump input {
+    flex: 1;
+    padding: 6px 8px;
+    background: #1a1a25;
+    border: 1px solid #2a2a35;
+    border-radius: 4px;
+    color: #c8c8d0;
+    font-size: 12px;
+    font-family: monospace;
+  }
+  .seed-jump button { padding: 6px 12px; font-size: 12px; }
+
+  /* --- Parameter Controls --- */
+  .control-group {
+    margin-bottom: 12px;
+  }
+  .control-group label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    color: #888;
+    margin-bottom: 4px;
+  }
+  .control-group .value {
+    color: #aaa;
+    font-family: monospace;
+    font-size: 11px;
+  }
+  .control-group input[type="range"] {
+    width: 100%;
+    height: 4px;
+    -webkit-appearance: none;
+    background: #2a2a35;
+    border-radius: 2px;
+    outline: none;
+  }
+  .control-group input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 14px; height: 14px;
+    border-radius: 50%;
+    background: #6a9bcc;
+    cursor: pointer;
+  }
+  .control-group input[type="color"] {
+    width: 100%;
+    height: 28px;
+    border: 1px solid #2a2a35;
+    border-radius: 4px;
+    background: #1a1a25;
+    cursor: pointer;
+  }
+
+  /* --- Buttons --- */
+  button {
+    padding: 8px 12px;
+    background: #1e1e2a;
+    border: 1px solid #2a2a35;
+    border-radius: 4px;
+    color: #c8c8d0;
+    font-size: 12px;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  button:hover { background: #2a2a3a; }
+  button.primary { background: #2a4a6a; border-color: #3a5a7a; }
+  button.primary:hover { background: #3a5a7a; }
+
+  .actions { display: flex; flex-direction: column; gap: 6px; }
+  .actions button { width: 100%; }
+
+  /* --- Canvas Area --- */
+  .canvas-area {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    background: #08080c;
+  }
+  canvas { display: block; }
+</style>
+</head>
+<body>
+
+<!-- === SIDEBAR === -->
+<div class="sidebar">
+  <!-- FIXED: Title (customize text, keep structure) -->
+  <div>
+    <h1 id="art-title">Generative Sketch</h1>
+    <div class="subtitle" id="art-subtitle">p5.js generative art</div>
+  </div>
+
+  <!-- FIXED: Seed Navigation -->
+  <div>
+    <div class="section-title">Seed</div>
+    <div class="seed-display" id="seed-display">42</div>
+    <div class="seed-nav">
+      <button onclick="changeSeed(-1)">&#9664; Prev</button>
+      <button onclick="changeSeed(1)">Next &#9654;</button>
+      <button onclick="randomizeSeed()">Random</button>
+    </div>
+    <div class="seed-jump">
+      <input type="number" id="seed-input" placeholder="Seed #" min="0">
+      <button onclick="jumpToSeed()">Go</button>
+    </div>
+  </div>
+
+  <!-- VARIABLE: Parameters (customize for each project) -->
+  <div id="params-section">
+    <div class="section-title">Parameters</div>
+
+    <!-- === REPLACE THESE WITH YOUR PARAMETERS === -->
+    <div class="control-group">
+      <label>Count <span class="value" id="count-val">500</span></label>
+      <input type="range" id="count" min="50" max="2000" step="50" value="500"
+             oninput="updateParam('count', +this.value)">
+    </div>
+
+    <div class="control-group">
+      <label>Scale <span class="value" id="scale-val">0.005</span></label>
+      <input type="range" id="scale" min="0.001" max="0.02" step="0.001" value="0.005"
+             oninput="updateParam('scale', +this.value)">
+    </div>
+
+    <div class="control-group">
+      <label>Speed <span class="value" id="speed-val">2.0</span></label>
+      <input type="range" id="speed" min="0.5" max="5" step="0.1" value="2.0"
+             oninput="updateParam('speed', +this.value)">
+    </div>
+    <!-- === END PARAMETER CONTROLS === -->
+  </div>
+
+  <!-- VARIABLE: Colors (optional — include if art needs adjustable palette) -->
+  <!--
+  <div>
+    <div class="section-title">Colors</div>
+    <div class="control-group">
+      <label>Background</label>
+      <input type="color" id="bg-color" value="#0a0a14"
+             oninput="updateParam('bgColor', this.value)">
+    </div>
+    <div class="control-group">
+      <label>Primary</label>
+      <input type="color" id="primary-color" value="#6a9bcc"
+             oninput="updateParam('primaryColor', this.value)">
+    </div>
+  </div>
+  -->
+
+  <!-- FIXED: Actions -->
+  <div class="actions">
+    <div class="section-title">Actions</div>
+    <button class="primary" onclick="regenerate()">Regenerate</button>
+    <button onclick="resetDefaults()">Reset Defaults</button>
+    <button onclick="downloadPNG()">Download PNG</button>
+  </div>
+</div>
+
+<!-- === CANVAS === -->
+<div class="canvas-area" id="canvas-container"></div>
+
+<script>
+// ====================================================================
+// CONFIGURATION — REPLACE FOR EACH PROJECT
+// ====================================================================
+const DEFAULTS = {
+  seed: 42,
+  count: 500,
+  scale: 0.005,
+  speed: 2.0,
+  // Add your parameters here
+};
+
+let PARAMS = { ...DEFAULTS };
+
+// ====================================================================
+// SEED NAVIGATION — FIXED (do not modify)
+// ====================================================================
+function changeSeed(delta) {
+  PARAMS.seed = Math.max(0, PARAMS.seed + delta);
+  document.getElementById('seed-display').textContent = PARAMS.seed;
+  regenerate();
+}
+
+function randomizeSeed() {
+  PARAMS.seed = Math.floor(Math.random() * 99999);
+  document.getElementById('seed-display').textContent = PARAMS.seed;
+  regenerate();
+}
+
+function jumpToSeed() {
+  let v = parseInt(document.getElementById('seed-input').value);
+  if (!isNaN(v) && v >= 0) {
+    PARAMS.seed = v;
+    document.getElementById('seed-display').textContent = PARAMS.seed;
+    document.getElementById('seed-input').value = '';
+    regenerate();
+  }
+}
+
+// ====================================================================
+// PARAMETER UPDATES — CUSTOMIZE updateParam body as needed
+// ====================================================================
+function updateParam(name, value) {
+  PARAMS[name] = value;
+  let el = document.getElementById(name + '-val');
+  if (el) el.textContent = typeof value === 'number' && value < 1 ? value.toFixed(3) : value;
+  regenerate();
+}
+
+function resetDefaults() {
+  PARAMS = { ...DEFAULTS };
+  // Reset all sliders to default values
+  for (let [key, val] of Object.entries(DEFAULTS)) {
+    let el = document.getElementById(key);
+    if (el) el.value = val;
+    let valEl = document.getElementById(key + '-val');
+    if (valEl) valEl.textContent = typeof val === 'number' && val < 1 ? val.toFixed(3) : val;
+  }
+  document.getElementById('seed-display').textContent = PARAMS.seed;
+  regenerate();
+}
+
+function regenerate() {
+  randomSeed(PARAMS.seed);
+  noiseSeed(PARAMS.seed);
+  // Clear and redraw
+  clear();
+  initializeArt();
+  redraw();
+}
+
+function downloadPNG() {
+  saveCanvas('generative-art-seed-' + PARAMS.seed, 'png');
+}
+
+// ====================================================================
+// P5.JS SKETCH — REPLACE ENTIRELY FOR EACH PROJECT
+// ====================================================================
+
+// Your state variables
+let particles = [];
+
+function initializeArt() {
+  // Initialize your generative system using PARAMS
+  // This is called on every regenerate()
+  particles = [];
+  for (let i = 0; i < PARAMS.count; i++) {
+    particles.push({
+      x: random(width),
+      y: random(height),
+      vx: 0, vy: 0
+    });
+  }
+}
+
+function setup() {
+  // Size canvas to fit container
+  let container = document.getElementById('canvas-container');
+  let size = Math.min(container.clientWidth - 40, container.clientHeight - 40, 1080);
+  let cnv = createCanvas(size, size);
+  cnv.parent('canvas-container');
+  pixelDensity(1);
+  colorMode(HSB, 360, 100, 100, 100);
+
+  randomSeed(PARAMS.seed);
+  noiseSeed(PARAMS.seed);
+  initializeArt();
+
+  // For interactive/animated sketches: remove noLoop()
+  // For static generation: keep noLoop()
+  noLoop();
+}
+
+function draw() {
+  background(0, 0, 5);
+
+  // === YOUR ALGORITHM HERE ===
+  // Use PARAMS.count, PARAMS.scale, PARAMS.speed, etc.
+  noStroke();
+  for (let p of particles) {
+    let n = noise(p.x * PARAMS.scale, p.y * PARAMS.scale);
+    let hue = (n * 200 + PARAMS.seed * 0.1) % 360;
+    fill(hue, 70, 80, 60);
+    circle(p.x, p.y, n * 10 + 2);
+  }
+  // === END ALGORITHM ===
+}
+
+function windowResized() {
+  let container = document.getElementById('canvas-container');
+  let size = Math.min(container.clientWidth - 40, container.clientHeight - 40, 1080);
+  resizeCanvas(size, size);
+  regenerate();
+}
+</script>
+</body>
+</html>

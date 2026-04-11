@@ -1,0 +1,218 @@
+%%%% COLM Macros (LaTex)
+%%%% Adapted by Yoav Artzi and Sasha Rush from Hugo Larochelle's adaptation for ICLR, which has been adaptated from the NIPS stylefile Macros
+%%%% Style File
+%%%% Dec 12, 1990   Rev Aug 14, 1991; Sept, 1995; April, 1997; April, 1999; October 2014
+
+% This file can be used with Latex2e whether running in main mode, or
+% 2.09 compatibility mode.
+%
+% If using main mode, you need to include the commands
+%             \documentclass{article}
+%             \usepackage{colm14submit_e}
+%
+
+% Define options
+\newif\ifcolmsubmission
+\newif\ifcolmpreprint
+\newif\ifcolmfinal
+
+% Set submission as default
+\colmsubmissiontrue
+\colmpreprintfalse
+\colmfinalfalse
+
+% Define option handling
+\DeclareOption{submission}{\colmsubmissiontrue\colmpreprintfalse\colmfinalfalse}
+\DeclareOption{preprint}{\colmsubmissionfalse\colmpreprinttrue\colmfinalfalse}
+\DeclareOption{final}{\colmsubmissionfalse\colmpreprintfalse\colmfinaltrue}
+\ProcessOptions\relax
+
+
+% Palatino font
+\RequirePackage{tgpagella} % text only
+\RequirePackage{mathpazo}  % math & text
+\RequirePackage{inconsolata} % for tt font
+
+% Change the overall width of the page.  If these parameters are
+%       changed, they will require corresponding changes in the
+%       maketitle section.
+%
+\usepackage{eso-pic} % used by \AddToShipoutPicture
+\RequirePackage{fancyhdr}
+\RequirePackage{natbib}
+
+% modification to natbib citations
+\setcitestyle{authoryear,round,citesep={;},aysep={,},yysep={;}}
+
+\renewcommand{\topfraction}{0.95}   % let figure take up nearly whole page
+\renewcommand{\textfraction}{0.05}  % let figure take up nearly whole page
+
+
+% Specify the dimensions of each page
+
+\setlength{\paperheight}{11in}
+\setlength{\paperwidth}{8.5in}
+
+
+\oddsidemargin .5in    %   Note \oddsidemargin = \evensidemargin
+\evensidemargin .5in
+\marginparwidth 0.07 true in
+%\marginparwidth 0.75 true in
+%\topmargin 0 true pt           % Nominal distance from top of page to top of
+%\topmargin 0.125in
+\topmargin -0.625in
+\addtolength{\headsep}{0.25in}
+\textheight 9.0 true in       % Height of text (including footnotes & figures)
+\textwidth 5.5 true in        % Width of text line.
+\widowpenalty=10000
+\clubpenalty=10000
+
+% \thispagestyle{empty}        \pagestyle{empty}
+\flushbottom \sloppy
+
+% We're never going to need a table of contents, so just flush it to
+% save space --- suggested by drstrip@sandia-2
+\def\addcontentsline#1#2#3{}
+
+% Title stuff, taken from deproc.
+\def\maketitle{\par
+\begingroup
+   \def\thefootnote{\fnsymbol{footnote}}
+   \def\@makefnmark{\hbox to 0pt{$^{\@thefnmark}$\hss}} % for perfect author
+                                                        % name centering
+%   The footnote-mark was overlapping the footnote-text,
+%   added the following to fix this problem               (MK)
+   \long\def\@makefntext##1{\parindent 1em\noindent
+                            \hbox to1.8em{\hss $\m@th ^{\@thefnmark}$}##1}
+   \@maketitle \@thanks
+\endgroup
+\setcounter{footnote}{0}
+\let\maketitle\relax \let\@maketitle\relax
+\gdef\@thanks{}\gdef\@author{}\gdef\@title{}\let\thanks\relax}
+
+% The toptitlebar has been raised to top-justify the first page
+
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\renewcommand{\headrulewidth}{1.5pt}
+\fancyhead{}
+
+% Title (includes both anonymized and non-anonymized versions)
+\def\@maketitle{\vbox{\hsize\textwidth
+%\linewidth\hsize \vskip 0.1in \toptitlebar \centering
+{\Large\bf \@title\par}
+%\bottomtitlebar % \vskip 0.1in %  minus
+\ifcolmfinal
+    \lhead{Published as a conference paper at COLM 2025}
+    \def\And{\end{tabular}\hfil\linebreak[0]\hfil
+            \begin{tabular}[t]{l}\bf\rule{\z@}{24pt}\ignorespaces}%
+  \def\AND{\end{tabular}\hfil\linebreak[4]\hfil
+            \begin{tabular}[t]{l}\bf\rule{\z@}{24pt}\ignorespaces}%
+    \begin{tabular}[t]{l}\bf\rule{\z@}{24pt}\@author\end{tabular}%
+\else\ifcolmpreprint
+\lhead{Preprint. Under review.}
+\def\And{\end{tabular}\hfil\linebreak[0]\hfil
+        \begin{tabular}[t]{l}\bf\rule{\z@}{24pt}\ignorespaces}%
+\def\AND{\end{tabular}\hfil\linebreak[4]\hfil
+        \begin{tabular}[t]{l}\bf\rule{\z@}{24pt}\ignorespaces}%
+\begin{tabular}[t]{l}\bf\rule{\z@}{24pt}\@author\end{tabular}%
+\else
+\lhead{Under review as a conference paper at COLM 2025}
+   \def\And{\end{tabular}\hfil\linebreak[0]\hfil
+            \begin{tabular}[t]{l}\bf\rule{\z@}{24pt}\ignorespaces}%
+  \def\AND{\end{tabular}\hfil\linebreak[4]\hfil
+            \begin{tabular}[t]{l}\bf\rule{\z@}{24pt}\ignorespaces}%
+    \begin{tabular}[t]{l}\bf\rule{\z@}{24pt}Anonymous authors\\Paper under double-blind review\end{tabular}%
+\fi\fi
+\vskip 0.3in minus 0.1in}}
+
+\renewenvironment{abstract}{\vskip.075in\centerline{\large\bf
+Abstract}\vspace{0.5ex}\begin{quote}}{\par\end{quote}\vskip 1ex}
+
+% Less leading in most fonts (due to the narrow columns)
+% The choices were between 1-pt and 1.5-pt leading
+%\def\@normalsize{\@setsize\normalsize{11pt}\xpt\@xpt} % got rid of @ (MK)
+\def\normalsize{\@setsize\normalsize{11pt}\xpt\@xpt}
+\def\small{\@setsize\small{10pt}\ixpt\@ixpt}
+\def\footnotesize{\@setsize\footnotesize{10pt}\ixpt\@ixpt}
+\def\scriptsize{\@setsize\scriptsize{8pt}\viipt\@viipt}
+\def\tiny{\@setsize\tiny{7pt}\vipt\@vipt}
+\def\large{\@setsize\large{14pt}\xiipt\@xiipt}
+\def\Large{\@setsize\Large{16pt}\xivpt\@xivpt}
+\def\LARGE{\@setsize\LARGE{20pt}\xviipt\@xviipt}
+\def\huge{\@setsize\huge{23pt}\xxpt\@xxpt}
+\def\Huge{\@setsize\Huge{28pt}\xxvpt\@xxvpt}
+
+
+
+% sections with less space
+\def\section{\@startsection {section}{1}{\z@}{-2.0ex plus
+    -0.5ex minus -.2ex}{1.5ex plus 0.3ex
+minus0.2ex}{\large\bf\raggedright}}
+
+\def\subsection{\@startsection{subsection}{2}{\z@}{-1.8ex plus
+-0.5ex minus -.2ex}{0.8ex plus .2ex}{\normalsize\bf\raggedright}}
+\def\subsubsection{\@startsection{subsubsection}{3}{\z@}{-1.5ex
+plus      -0.5ex minus -.2ex}{0.5ex plus
+.2ex}{\normalsize\bf\itshape\raggedright}}
+\def\paragraph{\@startsection{paragraph}{4}{\z@}{1.5ex plus
+0.5ex minus .2ex}{-1em}{\normalsize\bf}}
+\def\subparagraph{\@startsection{subparagraph}{5}{\z@}{1.5ex plus
+  0.5ex minus .2ex}{-1em}{\normalsize\it}}
+\def\subsubsubsection{\vskip
+5pt{\noindent\normalsize\raggedright}}
+
+
+% Footnotes
+\footnotesep 6.65pt %
+\skip\footins 9pt plus 4pt minus 2pt
+\def\footnoterule{\kern-3pt \hrule width 12pc \kern 2.6pt }
+\setcounter{footnote}{0}
+
+% Lists and paragraphs
+\parindent 0pt
+\topsep 4pt plus 1pt minus 2pt
+\partopsep 1pt plus 0.5pt minus 0.5pt
+\itemsep 2pt plus 1pt minus 0.5pt
+\parsep 2pt plus 1pt minus 0.5pt
+\parskip .5pc
+
+
+%\leftmargin2em
+\leftmargin3pc
+\leftmargini\leftmargin \leftmarginii 2em
+\leftmarginiii 1.5em \leftmarginiv 1.0em \leftmarginv .5em
+
+%\labelsep \labelsep 5pt
+
+\def\@listi{\leftmargin\leftmargini}
+\def\@listii{\leftmargin\leftmarginii
+   \labelwidth\leftmarginii\advance\labelwidth-\labelsep
+   \topsep 2pt plus 1pt minus 0.5pt
+   \parsep 1pt plus 0.5pt minus 0.5pt
+   \itemsep \parsep}
+\def\@listiii{\leftmargin\leftmarginiii
+    \labelwidth\leftmarginiii\advance\labelwidth-\labelsep
+    \topsep 1pt plus 0.5pt minus 0.5pt
+    \parsep \z@ \partopsep 0.5pt plus 0pt minus 0.5pt
+    \itemsep \topsep}
+\def\@listiv{\leftmargin\leftmarginiv
+     \labelwidth\leftmarginiv\advance\labelwidth-\labelsep}
+\def\@listv{\leftmargin\leftmarginv
+     \labelwidth\leftmarginv\advance\labelwidth-\labelsep}
+\def\@listvi{\leftmargin\leftmarginvi
+     \labelwidth\leftmarginvi\advance\labelwidth-\labelsep}
+
+\abovedisplayskip 7pt plus2pt minus5pt%
+\belowdisplayskip \abovedisplayskip
+\abovedisplayshortskip  0pt plus3pt%
+\belowdisplayshortskip  4pt plus3pt minus3pt%
+
+
+\def\toptitlebar{\hrule height4pt\vskip .25in\vskip-\parskip}
+
+\def\bottomtitlebar{\vskip .29in\vskip-\parskip\hrule height1pt\vskip
+.09in} %
+%Reduced second vskip to compensate for adding the strut in \@author
+
+

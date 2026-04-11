@@ -1,0 +1,12044 @@
+# Unsloth - Llms-Txt
+
+**Pages:** 136
+
+---
+
+## !pip install huggingface_hub hf_transfer
+
+**URL:** llms-txt#!pip-install-huggingface_hub-hf_transfer
+
+import os
+os.environ["HF_HUB_ENABLE_HF_TRANSFER"] = "1"
+from huggingface_hub import snapshot_download
+snapshot_download(
+    repo_id = "unsloth/Llama-4-Scout-17B-16E-Instruct-GGUF",
+    local_dir = "unsloth/Llama-4-Scout-17B-16E-Instruct-GGUF",
+    allow_patterns = ["*IQ2_XXS*"],
+)
+bash
+./llama.cpp/llama-cli \
+    --model unsloth/Llama-4-Scout-17B-16E-Instruct-GGUF/Llama-4-Scout-17B-16E-Instruct-UD-IQ2_XXS.gguf \
+    --threads 32 \
+    --ctx-size 16384 \
+    --n-gpu-layers 99 \
+    -ot ".ffn_.*_exps.=CPU" \
+    --seed 3407 \
+    --prio 3 \
+    --temp 0.6 \
+    --min-p 0.01 \
+    --top-p 0.9 \
+    -no-cnv \
+    --prompt "<|header_start|>user<|header_end|>\n\nCreate a Flappy Bird game.<|eot|><|header_start|>assistant<|header_end|>\n\n"
+```
+
+{% hint style="success" %}
+Read more on running Llama 4 here: <https://docs.unsloth.ai/basics/tutorial-how-to-run-and-fine-tune-llama-4>
+{% endhint %}
+
+**Examples:**
+
+Example 1 (unknown):
+```unknown
+And let's do inference!
+
+{% code overflow="wrap" %}
+```
+
+---
+
+## First uninstall xformers installed by previous libraries
+
+**URL:** llms-txt#first-uninstall-xformers-installed-by-previous-libraries
+
+pip uninstall xformers -y
+
+---
+
+## (1) Saving to GGUF / merging to 16bit for vLLM
+
+**URL:** llms-txt#(1)-saving-to-gguf-/-merging-to-16bit-for-vllm
+
+---
+
+## Qwen3-Coder: How to Run Locally
+
+**URL:** llms-txt#qwen3-coder:-how-to-run-locally
+
+**Contents:**
+- 🖥️ **Running Qwen3-Coder**
+  - :gear: Recommended Settings
+  - Run Qwen3-Coder-30B-A3B-Instruct:
+
+Run Qwen3-Coder-30B-A3B-Instruct and 480B-A35B locally with Unsloth Dynamic quants.
+
+Qwen3-Coder is Qwen’s new series of coding agent models, available in 30B (**Qwen3-Coder-Flash**) and 480B parameters. **Qwen3-480B-A35B-Instruct** achieves SOTA coding performance rivalling Claude Sonnet-4, GPT-4.1, and [Kimi K2](https://docs.unsloth.ai/models/tutorials-how-to-fine-tune-and-run-llms/kimi-k2-how-to-run-locally), with 61.8% on Aider Polygot and support for 256K (extendable to 1M) token context.
+
+We also uploaded Qwen3-Coder with native <mark style="background-color:purple;">**1M context length**</mark> extended by YaRN and full-precision 8bit and 16bit versions. [Unsloth](https://github.com/unslothai/unsloth) also now supports fine-tuning and [RL](https://docs.unsloth.ai/get-started/reinforcement-learning-rl-guide) of Qwen3-Coder.
+
+{% hint style="success" %}
+[**UPDATE:** We fixed tool-calling for Qwen3-Coder! ](#tool-calling-fixes)You can now use tool-calling seamlessly in llama.cpp, Ollama, LMStudio, Open WebUI, Jan etc. This issue was universal and affected all uploads (not just Unsloth), and we've communicated with the Qwen team about our fixes! [Read more](#tool-calling-fixes)
+{% endhint %}
+
+<a href="#run-qwen3-coder-30b-a3b-instruct" class="button secondary">Run 30B-A3B</a><a href="#run-qwen3-coder-480b-a35b-instruct" class="button secondary">Run 480B-A35B</a>
+
+{% hint style="success" %}
+**Does** [**Unsloth Dynamic Quants**](https://docs.unsloth.ai/basics/unsloth-dynamic-2.0-ggufs) **work?** Yes, and very well. In third-party testing on the Aider Polyglot benchmark, the **UD-Q4\_K\_XL (276GB)** dynamic quant nearly matched the **full bf16 (960GB)** Qwen3-coder model, scoring 60.9% vs 61.8%. [More details here.](https://huggingface.co/unsloth/Qwen3-Coder-480B-A35B-Instruct-GGUF/discussions/8)
+{% endhint %}
+
+#### **Qwen3 Coder - Unsloth Dynamic 2.0 GGUFs**:
+
+| Dynamic 2.0 GGUF (to run)                                                                                                                                                                                                     | 1M Context Dynamic 2.0 GGUF                                                                                                                                                                                                         |
+| ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| <ul><li><a href="https://huggingface.co/unsloth/Qwen3-Coder-30B-A3B-Instruct-GGUF">30B-A3B-Instruct</a></li><li><a href="https://huggingface.co/unsloth/Qwen3-Coder-480B-A35B-Instruct-GGUF">480B-A35B-Instruct</a></li></ul> | <ul><li><a href="https://huggingface.co/unsloth/Qwen3-Coder-30B-A3B-Instruct-1M-GGUF">30B-A3B-Instruct</a></li><li><a href="https://huggingface.co/unsloth/Qwen3-Coder-480B-A35B-Instruct-1M-GGUF">480B-A35B-Instruct</a></li></ul> |
+
+## 🖥️ **Running Qwen3-Coder**
+
+Below are guides for the [**30B-A3B**](#run-qwen3-coder-30b-a3b-instruct) and [**480B-A35B**](#run-qwen3-coder-480b-a35b-instruct) variants of the model.
+
+### :gear: Recommended Settings
+
+Qwen recommends these inference settings for both models:
+
+`temperature=0.7`, `top_p=0.8`, `top_k=20`, `repetition_penalty=1.05`
+
+* <mark style="background-color:green;">**Temperature of 0.7**</mark>
+* Top\_K of 20
+* Min\_P of 0.00 (optional, but 0.01 works well, llama.cpp default is 0.1)
+* Top\_P of 0.8
+* <mark style="background-color:green;">**Repetition Penalty of 1.05**</mark>
+* Chat template:&#x20;
+
+{% code overflow="wrap" %}
+
+{% endcode %}
+* Recommended context output: 65,536 tokens (can be increased). Details here.
+
+**Chat template/prompt format with newlines un-rendered**
+
+{% code overflow="wrap" %}
+
+<mark style="background-color:yellow;">**Chat template for tool calling**</mark> (Getting the current temperature for San Francisco). More details here for how to format tool calls.
+
+{% hint style="info" %}
+Reminder that this model supports only non-thinking mode and does not generate `<think></think>` blocks in its output. Meanwhile, specifying `enable_thinking=False` is no longer required.
+{% endhint %}
+
+### Run Qwen3-Coder-30B-A3B-Instruct:
+
+To achieve inference speeds of 6+ tokens per second for our Dynamic 4-bit quant, have at least **18GB of unified memory** (combined VRAM and RAM) or **18GB of system RAM** alone. As a rule of thumb, your available memory should match or exceed the size of the model you’re using. E.g. the UD\_Q8\_K\_XL quant (full precision), which is 32.5GB, will require at least **33GB of unified memory** (VRAM + RAM) or **33GB of RAM** for optimal performance.
+
+**NOTE:** The model can run on less memory than its total size, but this will slow down inference. Maximum memory is only needed for the fastest speeds.
+
+Given that this is a non thinking model, there is no need to set `thinking=False` and the model does not generate `<think> </think>` blocks.
+
+{% hint style="info" %}
+Follow the [**best practices above**](#recommended-settings). They're the same as the 480B model.
+{% endhint %}
+
+#### 🦙 Ollama: Run Qwen3-Coder-30B-A3B-Instruct Tutorial
+
+1. Install `ollama` if you haven't already! You can only run models up to 32B in size.
+
+2. Run the model! Note you can call `ollama serve`in another terminal if it fails! We include all our fixes and suggested parameters (temperature etc) in `params` in our Hugging Face upload!
+
+#### :sparkles: Llama.cpp: Run Qwen3-Coder-30B-A3B-Instruct Tutorial
+
+1. Obtain the latest `llama.cpp` on [GitHub here](https://github.com/ggml-org/llama.cpp). You can follow the build instructions below as well. Change `-DGGML_CUDA=ON` to `-DGGML_CUDA=OFF` if you don't have a GPU or just want CPU inference.
+
+2. You can directly pull from HuggingFace via:
+
+3. Download the model via (after installing `pip install huggingface_hub hf_transfer` ). You can choose UD\_Q4\_K\_XL or other quantized versions.
+
+**Examples:**
+
+Example 1 (unknown):
+```unknown
+<|im_start|>user
+  Hey there!<|im_end|>
+  <|im_start|>assistant
+  What is 1+1?<|im_end|>
+  <|im_start|>user
+  2<|im_end|>
+  <|im_start|>assistant
+```
+
+Example 2 (unknown):
+```unknown
+<|im_start|>user\nHey there!<|im_end|>\n<|im_start|>assistant\nWhat is 1+1?<|im_end|>\n<|im_start|>user\n2<|im_end|>\n<|im_start|>assistant\n
+```
+
+Example 3 (unknown):
+```unknown
+<|im_start|>user
+What's the temperature in San Francisco now? How about tomorrow?<|im_end|>
+<|im_start|>assistant
+<tool_call>\n<function=get_current_temperature>\n<parameter=location>\nSan Francisco, CA, USA
+</parameter>\n</function>\n</tool_call><|im_end|>
+<|im_start|>user
+<tool_response>
+{"temperature": 26.1, "location": "San Francisco, CA, USA", "unit": "celsius"}
+</tool_response>\n<|im_end|>
+```
+
+Example 4 (bash):
+```bash
+apt-get update
+apt-get install pciutils -y
+curl -fsSL https://ollama.com/install.sh | sh
+```
+
+---
+
+## Ensure all audio is at 24 kHz sampling rate (Orpheus’s expected rate)
+
+**URL:** llms-txt#ensure-all-audio-is-at-24-khz-sampling-rate-(orpheus’s-expected-rate)
+
+**Contents:**
+  - Fine-Tuning TTS with Unsloth
+
+dataset = dataset.cast_column("audio", Audio(sampling_rate=24000))
+
+filename,text
+  0001.wav,Hello there!
+  0002.wav,<sigh> I am very tired.
+  python
+  from datasets import Audio
+  dataset = load_dataset("csv", data_files="mydata.csv", split="train")
+  dataset = dataset.cast_column("filename", Audio(sampling_rate=24000))
+  python
+from unsloth import FastLanguageModel
+import torch
+dtype = None # None for auto detection. Float16 for Tesla T4, V100, Bfloat16 for Ampere+
+load_in_4bit = False # Use 4bit quantization to reduce memory usage. Can be False.
+
+model, tokenizer = FastLanguageModel.from_pretrained(
+    model_name = "unsloth/orpheus-3b-0.1-ft",
+    max_seq_length= 2048, # Choose any for long context!
+    dtype = dtype,
+    load_in_4bit = load_in_4bit,
+    #token = "hf_...", # use one if using gated models like meta-llama/Llama-2-7b-hf
+)
+
+from datasets import load_dataset
+dataset = load_dataset("MrDragonFox/Elise", split = "train")
+python
+
+**Examples:**
+
+Example 1 (unknown):
+```unknown
+This will download the dataset (\~328 MB for \~1.2k samples). Each item in `dataset` is a dictionary with at least:
+
+* `"audio"`: the audio clip (waveform array and metadata like sampling rate), and
+* `"text"`: the transcript string
+
+Orpheus supports tags like `<laugh>`, `<chuckle>`, `<sigh>`, `<cough>`, `<sniffle>`, `<groan>`, `<yawn>`, `<gasp>`, etc. For example: `"I missed you <laugh> so much!"`.  These tags are enclosed in angle brackets and will be treated as special tokens by the model (they match [Orpheus’s expected tags](https://github.com/canopyai/Orpheus-TTS) like `<laugh>` and `<sigh>`. During training, the model will learn to associate these tags with the corresponding audio patterns. The Elise dataset with tags already has many of these (e.g., 336 occurrences of “laughs”, 156 of “sighs”, etc. as listed in its card). If your dataset lacks such tags but you want to incorporate them, you can manually annotate the transcripts where the audio contains those expressions.
+
+**Option 2: Preparing a custom dataset** – If you have your own audio files and transcripts:
+
+* Organize audio clips (WAV/FLAC files) in a folder.
+* Create a CSV or TSV file with columns for file path and transcript. For example:
+```
+
+Example 2 (unknown):
+```unknown
+* Use `load_dataset("csv", data_files="mydata.csv", split="train")` to load it. You might need to tell the dataset loader how to handle audio paths. An alternative is using the `datasets.Audio` feature to load audio data on the fly:
+```
+
+Example 3 (unknown):
+```unknown
+Then `dataset[i]["audio"]` will contain the audio array.
+* **Ensure transcripts are normalized** (no unusual characters that the tokenizer might not know, except the emotion tags if used). Also ensure all audio have a consistent sampling rate (resample them if necessary to the target rate the model expects, e.g. 24kHz for Orpheus).
+
+In summary, for **dataset preparation**:
+
+* You need a **list of (audio, text)** pairs.
+* Use the HF `datasets` library to handle loading and optional preprocessing (like resampling).
+* Include any **special tags** in the text that you want the model to learn (ensure they are in `<angle_brackets>` format so the model treats them as distinct tokens).
+* (Optional) If multi-speaker, you could include a speaker ID token in the text or use a separate speaker embedding approach, but that’s beyond this basic guide (Elise is single-speaker).
+
+### Fine-Tuning TTS with Unsloth
+
+Now, let’s start fine-tuning! We’ll illustrate using Python code (which you can run in a Jupyter notebook, Colab, etc.).
+
+**Step 1: Load the Model and Dataset**
+
+In all our  TTS notebooks, we enable LoRA (16-bit) training and disable QLoRA (4-bit) training with: `load_in_4bit = False`. This is so the model can usually learn your dataset better and have higher accuracy.
+```
+
+Example 4 (unknown):
+```unknown
+{% hint style="info" %}
+If memory is very limited or if dataset is large, you can stream or load in chunks. Here, 3h of audio easily fits in RAM. If using your own dataset CSV, load it similarly.
+{% endhint %}
+
+**Step 2: Advanced - Preprocess the data for training (Optional)**
+
+We need to prepare inputs for the Trainer. For text-to-speech, one approach is to train the model in a causal manner: concatenate text and audio token IDs as the target sequence. However, since Orpheus is a decoder-only LLM that outputs audio, we can feed the text as input (context) and have the audio token ids as labels. In practice, Unsloth’s integration might do this automatically if the model’s config identifies it as text-to-speech. If not, we can do something like:
+```
+
+---
+
+## All Our Models
+
+**URL:** llms-txt#all-our-models
+
+**Contents:**
+  - New & recommended models:
+  - DeepSeek models:
+  - Llama models:
+  - Gemma models:
+  - Qwen models:
+  - Mistral models:
+  - Phi models:
+  - Other (GLM, Orpheus, Smol, Llava etc.) models:
+  - New models:
+  - DeepSeek models
+
+Unsloth model catalog for all our [Dynamic](https://docs.unsloth.ai/basics/unsloth-dynamic-2.0-ggufs) GGUF, 4-bit, 16-bit models on Hugging Face.
+
+{% tabs %}
+{% tab title="• GGUF + 4-bit" %} <a href="#deepseek-models" class="button secondary">DeepSeek</a><a href="#llama-models" class="button secondary">Llama</a><a href="#gemma-models" class="button secondary">Gemma</a><a href="#qwen-models" class="button secondary">Qwen</a><a href="#mistral-models" class="button secondary">Mistral</a><a href="#phi-models" class="button secondary">Phi</a>
+
+**GGUFs** let you run models in tools like Ollama, Open WebUI, and llama.cpp.\
+**Instruct (4-bit)** safetensors can be used for inference or fine-tuning.
+
+### New & recommended models:
+
+| Model                                                                                      | Variant                | GGUF                                                                            | Instruct (4-bit)                                                                            |
+| ------------------------------------------------------------------------------------------ | ---------------------- | ------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------- |
+| [**gpt-oss** ](https://docs.unsloth.ai/models/gpt-oss-how-to-run-and-fine-tune)            | 120b                   | [link](https://huggingface.co/unsloth/gpt-oss-120b-GGUF)                        | [link](https://huggingface.co/unsloth/gpt-oss-120b-unsloth-bnb-4bit)                        |
+|                                                                                            | 20b                    | [link](https://huggingface.co/unsloth/gpt-oss-20b-GGUF)                         | [link](https://huggingface.co/unsloth/gpt-oss-20b-unsloth-bnb-4bit)                         |
+| [**DeepSeek-V3.1**](https://docs.unsloth.ai/models/deepseek-v3.1-how-to-run-locally)       | Terminus               | [link](https://huggingface.co/unsloth/DeepSeek-V3.1-Terminus-GGUF)              | —                                                                                           |
+|                                                                                            | V3.1                   | [link](https://huggingface.co/unsloth/DeepSeek-V3.1-GGUF)                       | —                                                                                           |
+| [**Qwen3-VL**](https://docs.unsloth.ai/models/qwen3-vl-how-to-run-and-fine-tune)           | 2B-Instruct            | [link](https://huggingface.co/unsloth/Qwen3-VL-2B-Instruct-GGUF)                | [link](https://huggingface.co/unsloth/Qwen3-VL-2B-Instruct-unsloth-bnb-4bit)                |
+|                                                                                            | 2B-Thinking            | [link](https://huggingface.co/unsloth/Qwen3-VL-2B-Thinking-GGUF)                | [link](https://huggingface.co/unsloth/Qwen3-VL-2B-Thinking-unsloth-bnb-4bit)                |
+|                                                                                            | 4B-Instruct            | [link](https://huggingface.co/unsloth/Qwen3-VL-4B-Instruct-GGUF)                | [link](https://huggingface.co/unsloth/Qwen3-VL-4B-Instruct-unsloth-bnb-4bit)                |
+|                                                                                            | 4B-Thinking            | [link](https://huggingface.co/unsloth/Qwen3-VL-4B-Thinking-GGUF)                | [link](https://huggingface.co/unsloth/Qwen3-VL-4B-Thinking-unsloth-bnb-4bit)                |
+|                                                                                            | 8B-Instruct            | [link](https://huggingface.co/unsloth/Qwen3-VL-8B-Instruct-GGUF)                | [link](https://huggingface.co/unsloth/Qwen3-VL-8B-Instruct-unsloth-bnb-4bit)                |
+|                                                                                            | 8B-Thinking            | [link](https://huggingface.co/unsloth/Qwen3-VL-8B-Thinking-GGUF)                | [link](https://huggingface.co/unsloth/Qwen3-VL-8B-Thinking-unsloth-bnb-4bit)                |
+|                                                                                            | 30B-A3B-Instruct       | [link](https://huggingface.co/unsloth/Qwen3-VL-30B-A3B-Instruct-GGUF)           | —                                                                                           |
+|                                                                                            | 30B-A3B-Thinking       | [link](https://huggingface.co/unsloth/Qwen3-VL-30B-A3B-Thinking-GGUF)           | —                                                                                           |
+|                                                                                            | 32B-Instruct           | [link](https://huggingface.co/unsloth/Qwen3-VL-32B-Instruct-GGUF)               | [link](https://huggingface.co/unsloth/Qwen3-VL-32B-Instruct-unsloth-bnb-4bit)               |
+|                                                                                            | 32B-Thinking           | [link](https://huggingface.co/unsloth/Qwen3-VL-32B-Thinking-GGUF)               | [link](https://huggingface.co/unsloth/Qwen3-VL-32B-Thinking-unsloth-bnb-4bit)               |
+|                                                                                            | 235B-A22B-Instruct     | [link](https://huggingface.co/unsloth/Qwen3-VL-235B-A22B-Instruct-GGUF)         | —                                                                                           |
+|                                                                                            | 235B-A22B-Thinking     | [link](https://huggingface.co/unsloth/Qwen3-VL-235B-A22B-Thinking-GGUF)         | —                                                                                           |
+| [**Qwen3-2507**](https://docs.unsloth.ai/models/qwen3-how-to-run-and-fine-tune/qwen3-2507) | 30B-A3B-Instruct       | [link](https://huggingface.co/unsloth/Qwen3-30B-A3B-Instruct-2507-GGUF)         | —                                                                                           |
+|                                                                                            | 30B-A3B-Thinking       | [link](https://huggingface.co/unsloth/Qwen3-30B-A3B-Thinking-2507-GGUF)         | —                                                                                           |
+|                                                                                            | 235B-A22B-Thinking     | [link](https://huggingface.co/unsloth/Qwen3-235B-A22B-Thinking-2507-GGUF/)      | —                                                                                           |
+|                                                                                            | 235B-A22B-Instruct     | [link](https://huggingface.co/unsloth/Qwen3-235B-A22B-Instruct-2507-GGUF/)      | —                                                                                           |
+| **Qwen3-Coder**                                                                            | 30B-A3B                | [link](https://huggingface.co/unsloth/Qwen3-Coder-30B-A3B-Instruct-GGUF)        | —                                                                                           |
+|                                                                                            | 480B-A35B              | [link](https://huggingface.co/unsloth/Qwen3-Coder-480B-A35B-Instruct-GGUF)      | —                                                                                           |
+| **Granite-4.0 (new)**                                                                      | H-Small                | [link](https://huggingface.co/unsloth/granite-4.0-h-small-GGUF)                 | [link](https://huggingface.co/unsloth/granite-4.0-h-small-unsloth-bnb-4bit)                 |
+| **GLM (new)**                                                                              | 4.6                    | [link](https://huggingface.co/unsloth/GLM-4.6-GGUF)                             | —                                                                                           |
+|                                                                                            | 4.5-Air                | [link](https://huggingface.co/unsloth/GLM-4.5-Air-GGUF)                         | —                                                                                           |
+| **Kimi-K2-0905**                                                                           | 1T                     | [link](https://huggingface.co/unsloth/Kimi-K2-Instruct-0905-GGUF)               | —                                                                                           |
+| **Gemma 3n**                                                                               | E2B                    | [link](https://huggingface.co/unsloth/gemma-3n-E2B-it-GGUF)                     | [link](https://huggingface.co/unsloth/gemma-3n-E2B-it-unsloth-bnb-4bit)                     |
+|                                                                                            | E4B                    | [link](https://huggingface.co/unsloth/gemma-3n-E4B-it-GGUF)                     | [link](https://huggingface.co/unsloth/gemma-3n-E4B-it-unsloth-bnb-4bit)                     |
+| **DeepSeek-R1-0528**                                                                       | R1-0528-Qwen3-8B       | [link](https://huggingface.co/unsloth/DeepSeek-R1-0528-Qwen3-8B-GGUF)           | [link](https://huggingface.co/unsloth/DeepSeek-R1-0528-Qwen3-8B-unsloth-bnb-4bit)           |
+|                                                                                            | R1-0528                | [link](https://huggingface.co/unsloth/DeepSeek-R1-0528-GGUF)                    | —                                                                                           |
+| **Mistral**                                                                                | Magistral Small (2509) | [link](https://huggingface.co/unsloth/Magistral-Small-2509-GGUF)                | [link](https://huggingface.co/unsloth/Magistral-Small-2509-unsloth-bnb-4bit)                |
+|                                                                                            | Magistral Small (2507) | [link](https://huggingface.co/unsloth/Magistral-Small-2507-GGUF)                | [link](https://huggingface.co/unsloth/Magistral-Small-2507-unsloth-bnb-4bit)                |
+|                                                                                            | Small 3.2 24B (2506)   | [link](https://huggingface.co/unsloth/Mistral-Small-3.2-24B-Instruct-2506-GGUF) | [link](https://huggingface.co/unsloth/Mistral-Small-3.2-24B-Instruct-2506-unsloth-bnb-4bit) |
+| FLUX.1                                                                                     | Kontext-dev            | [link](https://huggingface.co/unsloth/FLUX.1-Kontext-dev-GGUF)                  | —                                                                                           |
+| **Qwen3**                                                                                  | 0.6 B                  | [link](https://huggingface.co/unsloth/Qwen3-0.6B-GGUF)                          | [link](https://huggingface.co/unsloth/Qwen3-0.6B-unsloth-bnb-4bit)                          |
+|                                                                                            | 1.7 B                  | [link](https://huggingface.co/unsloth/Qwen3-1.7B-GGUF)                          | [link](https://huggingface.co/unsloth/Qwen3-1.7B-unsloth-bnb-4bit)                          |
+|                                                                                            | 4 B                    | [link](https://huggingface.co/unsloth/Qwen3-4B-GGUF)                            | [link](https://huggingface.co/unsloth/Qwen3-4B-unsloth-bnb-4bit)                            |
+|                                                                                            | 8 B                    | [link](https://huggingface.co/unsloth/Qwen3-8B-GGUF)                            | [link](https://huggingface.co/unsloth/Qwen3-8B-unsloth-bnb-4bit)                            |
+|                                                                                            | 14 B                   | [link](https://huggingface.co/unsloth/Qwen3-14B-GGUF)                           | [link](https://huggingface.co/unsloth/Qwen3-14B-unsloth-bnb-4bit)                           |
+|                                                                                            | 30B-A3B                | [link](https://huggingface.co/unsloth/Qwen3-30B-A3B-GGUF)                       | [link](https://huggingface.co/unsloth/Qwen3-30B-A3B-bnb-4bit)                               |
+|                                                                                            | 32 B                   | [link](https://huggingface.co/unsloth/Qwen3-32B-GGUF)                           | [link](https://huggingface.co/unsloth/Qwen3-32B-unsloth-bnb-4bit)                           |
+|                                                                                            | 235B-A22B              | [link](https://huggingface.co/unsloth/Qwen3-235B-A22B-GGUF)                     | —                                                                                           |
+| **Llama 4**                                                                                | Scout 17B 16E          | [link](https://huggingface.co/unsloth/Llama-4-Scout-17B-16E-Instruct-GGUF)      | [link](https://huggingface.co/unsloth/Llama-4-Scout-17B-16E-Instruct-unsloth-bnb-4bit)      |
+|                                                                                            | Maverick 17B 128E      | [link](https://huggingface.co/unsloth/Llama-4-Maverick-17B-128E-Instruct-GGUF)  | —                                                                                           |
+| **Grok 2**                                                                                 | 270B                   | [link](https://huggingface.co/unsloth/grok-2-GGUF)                              | —                                                                                           |
+| **Qwen-2.5 Omni**                                                                          | 3 B                    | [link](https://huggingface.co/unsloth/Qwen2.5-Omni-3B-GGUF)                     | —                                                                                           |
+|                                                                                            | 7 B                    | [link](https://huggingface.co/unsloth/Qwen2.5-Omni-7B-GGUF)                     | —                                                                                           |
+| **Phi-4**                                                                                  | Reasoning-plus         | [link](https://huggingface.co/unsloth/Phi-4-reasoning-plus-GGUF)                | [link](https://huggingface.co/unsloth/Phi-4-reasoning-plus-unsloth-bnb-4bit)                |
+|                                                                                            | Reasoning              | [link](https://huggingface.co/unsloth/Phi-4-reasoning-GGUF)                     | [link](https://huggingface.co/unsloth/phi-4-reasoning-unsloth-bnb-4bit)                     |
+
+| Model             | Variant                | GGUF                                                                      | Instruct (4-bit)                                                                      |
+| ----------------- | ---------------------- | ------------------------------------------------------------------------- | ------------------------------------------------------------------------------------- |
+| **DeepSeek-V3.1** | Terminus               | [link](https://huggingface.co/unsloth/DeepSeek-V3.1-Terminus-GGUF)        |                                                                                       |
+|                   | V3.1                   | [link](https://huggingface.co/unsloth/DeepSeek-V3.1-GGUF)                 |                                                                                       |
+| **DeepSeek-V3**   | V3-0324                | [link](https://huggingface.co/unsloth/DeepSeek-V3-0324-GGUF)              | —                                                                                     |
+|                   | V3                     | [link](https://huggingface.co/unsloth/DeepSeek-V3-GGUF)                   | —                                                                                     |
+| **DeepSeek-R1**   | R1-0528                | [link](https://huggingface.co/unsloth/DeepSeek-R1-0528-GGUF)              | —                                                                                     |
+|                   | R1-0528-Qwen3-8B       | [link](https://huggingface.co/unsloth/DeepSeek-R1-0528-Qwen3-8B-GGUF)     | [link](https://huggingface.co/unsloth/DeepSeek-R1-0528-Qwen3-8B-unsloth-bnb-4bit)     |
+|                   | R1                     | [link](https://huggingface.co/unsloth/DeepSeek-R1-GGUF)                   | —                                                                                     |
+|                   | R1 Zero                | [link](https://huggingface.co/unsloth/DeepSeek-R1-Zero-GGUF)              | —                                                                                     |
+|                   | Distill Llama 3 8 B    | [link](https://huggingface.co/unsloth/DeepSeek-R1-Distill-Llama-8B-GGUF)  | [link](https://huggingface.co/unsloth/DeepSeek-R1-Distill-Llama-8B-unsloth-bnb-4bit)  |
+|                   | Distill Llama 3.3 70 B | [link](https://huggingface.co/unsloth/DeepSeek-R1-Distill-Llama-70B-GGUF) | [link](https://huggingface.co/unsloth/DeepSeek-R1-Distill-Llama-70B-bnb-4bit)         |
+|                   | Distill Qwen 2.5 1.5 B | [link](https://huggingface.co/unsloth/DeepSeek-R1-Distill-Qwen-1.5B-GGUF) | [link](https://huggingface.co/unsloth/DeepSeek-R1-Distill-Qwen-1.5B-unsloth-bnb-4bit) |
+|                   | Distill Qwen 2.5 7 B   | [link](https://huggingface.co/unsloth/DeepSeek-R1-Distill-Qwen-7B-GGUF)   | [link](https://huggingface.co/unsloth/DeepSeek-R1-Distill-Qwen-7B-unsloth-bnb-4bit)   |
+|                   | Distill Qwen 2.5 14 B  | [link](https://huggingface.co/unsloth/DeepSeek-R1-Distill-Qwen-14B-GGUF)  | [link](https://huggingface.co/unsloth/DeepSeek-R1-Distill-Qwen-14B-unsloth-bnb-4bit)  |
+|                   | Distill Qwen 2.5 32 B  | [link](https://huggingface.co/unsloth/DeepSeek-R1-Distill-Qwen-32B-GGUF)  | [link](https://huggingface.co/unsloth/DeepSeek-R1-Distill-Qwen-32B-bnb-4bit)          |
+
+| Model         | Variant             | GGUF                                                                           | Instruct (4-bit)                                                                       |
+| ------------- | ------------------- | ------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------- |
+| **Llama 4**   | Scout 17 B-16 E     | [link](https://huggingface.co/unsloth/Llama-4-Scout-17B-16E-Instruct-GGUF)     | [link](https://huggingface.co/unsloth/Llama-4-Scout-17B-16E-Instruct-unsloth-bnb-4bit) |
+|               | Maverick 17 B-128 E | [link](https://huggingface.co/unsloth/Llama-4-Maverick-17B-128E-Instruct-GGUF) | —                                                                                      |
+| **Llama 3.3** | 70 B                | [link](https://huggingface.co/unsloth/Llama-3.3-70B-Instruct-GGUF)             | [link](https://huggingface.co/unsloth/Llama-3.3-70B-Instruct-bnb-4bit)                 |
+| **Llama 3.2** | 1 B                 | [link](https://huggingface.co/unsloth/Llama-3.2-1B-Instruct-GGUF)              | [link](https://huggingface.co/unsloth/Llama-3.2-1B-Instruct-bnb-4bit)                  |
+|               | 3 B                 | [link](https://huggingface.co/unsloth/Llama-3.2-3B-Instruct-GGUF)              | [link](https://huggingface.co/unsloth/Llama-3.2-3B-Instruct-bnb-4bit)                  |
+|               | 11 B Vision         | —                                                                              | [link](https://huggingface.co/unsloth/Llama-3.2-11B-Vision-Instruct-unsloth-bnb-4bit)  |
+|               | 90 B Vision         | —                                                                              | [link](https://huggingface.co/unsloth/Llama-3.2-90B-Vision-Instruct-bnb-4bit)          |
+| **Llama 3.1** | 8 B                 | [link](https://huggingface.co/unsloth/Llama-3.1-8B-Instruct-GGUF)              | [link](https://huggingface.co/unsloth/Meta-Llama-3.1-8B-Instruct-bnb-4bit)             |
+|               | 70 B                | —                                                                              | [link](https://huggingface.co/unsloth/Meta-Llama-3.1-70B-Instruct-bnb-4bit)            |
+|               | 405 B               | —                                                                              | [link](https://huggingface.co/unsloth/Meta-Llama-3.1-405B-Instruct-bnb-4bit)           |
+| **Llama 3**   | 8 B                 | —                                                                              | [link](https://huggingface.co/unsloth/llama-3-8b-Instruct-bnb-4bit)                    |
+|               | 70 B                | —                                                                              | [link](https://huggingface.co/unsloth/llama-3-70b-bnb-4bit)                            |
+| **Llama 2**   | 7 B                 | —                                                                              | [link](https://huggingface.co/unsloth/llama-2-7b-chat-bnb-4bit)                        |
+|               | 13 B                | —                                                                              | [link](https://huggingface.co/unsloth/llama-2-13b-bnb-4bit)                            |
+| **CodeLlama** | 7 B                 | —                                                                              | [link](https://huggingface.co/unsloth/codellama-7b-bnb-4bit)                           |
+|               | 13 B                | —                                                                              | [link](https://huggingface.co/unsloth/codellama-13b-bnb-4bit)                          |
+|               | 34 B                | —                                                                              | [link](https://huggingface.co/unsloth/codellama-34b-bnb-4bit)                          |
+
+| Model        | Variant       | GGUF                                                         | Instruct (4-bit)                                                             |
+| ------------ | ------------- | ------------------------------------------------------------ | ---------------------------------------------------------------------------- |
+| **Gemma 3n** | E2B           | ​[link](https://huggingface.co/unsloth/gemma-3n-E2B-it-GGUF) | [link](https://huggingface.co/unsloth/gemma-3n-E2B-it-unsloth-bnb-4bit)      |
+|              | E4B           | [link](https://huggingface.co/unsloth/gemma-3n-E4B-it-GGUF)  | [link](https://huggingface.co/unsloth/gemma-3n-E4B-it-unsloth-bnb-4bit)      |
+| **Gemma 3**  | 270M          | [link](https://huggingface.co/unsloth/gemma-3-270m-it-GGUF)  | [link](https://huggingface.co/unsloth/gemma-3-270m-it)                       |
+|              | 1 B           | [link](https://huggingface.co/unsloth/gemma-3-1b-it-GGUF)    | [link](https://huggingface.co/unsloth/gemma-3-1b-it-unsloth-bnb-4bit)        |
+|              | 4 B           | [link](https://huggingface.co/unsloth/gemma-3-4b-it-GGUF)    | [link](https://huggingface.co/unsloth/gemma-3-4b-it-unsloth-bnb-4bit)        |
+|              | 12 B          | [link](https://huggingface.co/unsloth/gemma-3-12b-it-GGUF)   | [link](https://huggingface.co/unsloth/gemma-3-12b-it-unsloth-bnb-4bit)       |
+|              | 27 B          | [link](https://huggingface.co/unsloth/gemma-3-27b-it-GGUF)   | [link](https://huggingface.co/unsloth/gemma-3-27b-it-unsloth-bnb-4bit)       |
+| **MedGemma** | 4 B (vision)  | [link](https://huggingface.co/unsloth/medgemma-4b-it-GGUF)   | [link](https://huggingface.co/unsloth/medgemma-4b-it-unsloth-bnb-4bit)       |
+|              | 27 B (vision) | [link](https://huggingface.co/unsloth/medgemma-27b-it-GGUF)  | [link](https://huggingface.co/unsloth/medgemma-27b-text-it-unsloth-bnb-4bit) |
+| **Gemma 2**  | 2 B           | [link](https://huggingface.co/unsloth/gemma-2-it-GGUF)       | [link](https://huggingface.co/unsloth/gemma-2-2b-it-bnb-4bit)                |
+|              | 9 B           | —                                                            | [link](https://huggingface.co/unsloth/gemma-2-9b-it-bnb-4bit)                |
+|              | 27 B          | —                                                            | [link](https://huggingface.co/unsloth/gemma-2-27b-it-bnb-4bit)               |
+
+| Model                      | Variant    | GGUF                                                                         | Instruct (4-bit)                                                                |
+| -------------------------- | ---------- | ---------------------------------------------------------------------------- | ------------------------------------------------------------------------------- |
+| **Qwen 3**                 | 0.6 B      | [link](https://huggingface.co/unsloth/Qwen3-0.6B-GGUF)                       | [link](https://huggingface.co/unsloth/Qwen3-0.6B-unsloth-bnb-4bit)              |
+|                            | 1.7 B      | [link](https://huggingface.co/unsloth/Qwen3-1.7B-GGUF)                       | [link](https://huggingface.co/unsloth/Qwen3-1.7B-unsloth-bnb-4bit)              |
+|                            | 4 B        | [link](https://huggingface.co/unsloth/Qwen3-4B-GGUF)                         | [link](https://huggingface.co/unsloth/Qwen3-4B-unsloth-bnb-4bit)                |
+|                            | 8 B        | [link](https://huggingface.co/unsloth/Qwen3-8B-GGUF)                         | [link](https://huggingface.co/unsloth/Qwen3-8B-unsloth-bnb-4bit)                |
+|                            | 14 B       | [link](https://huggingface.co/unsloth/Qwen3-14B-GGUF)                        | [link](https://huggingface.co/unsloth/Qwen3-14B-unsloth-bnb-4bit)               |
+|                            | 30 B-A3B   | [link](https://huggingface.co/unsloth/Qwen3-30B-A3B-GGUF)                    | [link](https://huggingface.co/unsloth/Qwen3-30B-A3B-bnb-4bit)                   |
+|                            | 32 B       | [link](https://huggingface.co/unsloth/Qwen3-32B-GGUF)                        | [link](https://huggingface.co/unsloth/Qwen3-32B-unsloth-bnb-4bit)               |
+|                            | 235 B-A22B | [link](https://huggingface.co/unsloth/Qwen3-235B-A22B-GGUF)                  | —                                                                               |
+| **Qwen 2.5 Omni**          | 3 B        | [link](https://huggingface.co/unsloth/Qwen2.5-Omni-3B-GGUF)                  | —                                                                               |
+|                            | 7 B        | [link](https://huggingface.co/unsloth/Qwen2.5-Omni-7B-GGUF)                  | —                                                                               |
+| **Qwen 2.5 VL**            | 3 B        | [link](https://huggingface.co/unsloth/Qwen2.5-VL-3B-Instruct-GGUF)           | [link](https://huggingface.co/unsloth/Qwen2.5-VL-3B-Instruct-unsloth-bnb-4bit)  |
+|                            | 7 B        | [link](https://huggingface.co/unsloth/Qwen2.5-VL-7B-Instruct-GGUF)           | [link](https://huggingface.co/unsloth/Qwen2.5-VL-7B-Instruct-unsloth-bnb-4bit)  |
+|                            | 32 B       | [link](https://huggingface.co/unsloth/Qwen2.5-VL-32B-Instruct-GGUF)          | [link](https://huggingface.co/unsloth/Qwen2.5-VL-32B-Instruct-unsloth-bnb-4bit) |
+|                            | 72 B       | [link](https://huggingface.co/unsloth/Qwen2.5-VL-72B-Instruct-GGUF)          | [link](https://huggingface.co/unsloth/Qwen2.5-VL-72B-Instruct-unsloth-bnb-4bit) |
+| **Qwen 2.5**               | 0.5 B      | —                                                                            | [link](https://huggingface.co/unsloth/Qwen2.5-0.5B-Instruct-bnb-4bit)           |
+|                            | 1.5 B      | —                                                                            | [link](https://huggingface.co/unsloth/Qwen2.5-1.5B-Instruct-bnb-4bit)           |
+|                            | 3 B        | —                                                                            | [link](https://huggingface.co/unsloth/Qwen2.5-3B-Instruct-bnb-4bit)             |
+|                            | 7 B        | —                                                                            | [link](https://huggingface.co/unsloth/Qwen2.5-7B-Instruct-bnb-4bit)             |
+|                            | 14 B       | —                                                                            | [link](https://huggingface.co/unsloth/Qwen2.5-14B-Instruct-bnb-4bit)            |
+|                            | 32 B       | —                                                                            | [link](https://huggingface.co/unsloth/Qwen2.5-32B-Instruct-bnb-4bit)            |
+|                            | 72 B       | —                                                                            | [link](https://huggingface.co/unsloth/Qwen2.5-72B-Instruct-bnb-4bit)            |
+| **Qwen 2.5 Coder (128 K)** | 0.5 B      | [link](https://huggingface.co/unsloth/Qwen2.5-Coder-0.5B-Instruct-128K-GGUF) | [link](https://huggingface.co/unsloth/Qwen2.5-Coder-0.5B-Instruct-bnb-4bit)     |
+|                            | 1.5 B      | [link](https://huggingface.co/unsloth/Qwen2.5-Coder-1.5B-Instruct-128K-GGUF) | [link](https://huggingface.co/unsloth/Qwen2.5-Coder-1.5B-Instruct-bnb-4bit)     |
+|                            | 3 B        | [link](https://huggingface.co/unsloth/Qwen2.5-Coder-3B-Instruct-128K-GGUF)   | [link](https://huggingface.co/unsloth/Qwen2.5-Coder-3B-Instruct-bnb-4bit)       |
+|                            | 7 B        | [link](https://huggingface.co/unsloth/Qwen2.5-Coder-7B-Instruct-128K-GGUF)   | [link](https://huggingface.co/unsloth/Qwen2.5-Coder-7B-Instruct-bnb-4bit)       |
+|                            | 14 B       | [link](https://huggingface.co/unsloth/Qwen2.5-Coder-14B-Instruct-128K-GGUF)  | [link](https://huggingface.co/unsloth/Qwen2.5-Coder-14B-Instruct-bnb-4bit)      |
+|                            | 32 B       | [link](https://huggingface.co/unsloth/Qwen2.5-Coder-32B-Instruct-128K-GGUF)  | [link](https://huggingface.co/unsloth/Qwen2.5-Coder-32B-Instruct-bnb-4bit)      |
+| **QwQ**                    | 32 B       | [link](https://huggingface.co/unsloth/QwQ-32B-GGUF)                          | [link](https://huggingface.co/unsloth/QwQ-32B-unsloth-bnb-4bit)                 |
+| **QVQ (preview)**          | 72 B       | —                                                                            | [link](https://huggingface.co/unsloth/QVQ-72B-Preview-bnb-4bit)                 |
+| **Qwen 2 (chat)**          | 1.5 B      | —                                                                            | [link](https://huggingface.co/unsloth/Qwen2-1.5B-Instruct-bnb-4bit)             |
+|                            | 7 B        | —                                                                            | [link](https://huggingface.co/unsloth/Qwen2-7B-Instruct-bnb-4bit)               |
+|                            | 72 B       | —                                                                            | [link](https://huggingface.co/unsloth/Qwen2-72B-Instruct-bnb-4bit)              |
+| **Qwen 2 VL**              | 2 B        | —                                                                            | [link](https://huggingface.co/unsloth/Qwen2-VL-2B-Instruct-unsloth-bnb-4bit)    |
+|                            | 7 B        | —                                                                            | [link](https://huggingface.co/unsloth/Qwen2-VL-7B-Instruct-unsloth-bnb-4bit)    |
+|                            | 72 B       | —                                                                            | [link](https://huggingface.co/unsloth/Qwen2-VL-72B-Instruct-bnb-4bit)           |
+
+<table><thead><tr><th width="174">Model</th><th>Variant</th><th>GGUF</th><th>Instruct (4-bit)</th></tr></thead><tbody><tr><td><strong>Mistral Small</strong></td><td>3.2-24 B (2506)</td><td><a href="https://huggingface.co/unsloth/Mistral-Small-3.2-24B-Instruct-2506-GGUF">link</a></td><td><a href="https://huggingface.co/unsloth/Mistral-Small-3.2-24B-Instruct-2506-unsloth-bnb-4bit">link</a></td></tr><tr><td></td><td>3.1-24 B (2503)</td><td><a href="https://huggingface.co/unsloth/Mistral-Small-3.1-24B-Instruct-2503-GGUF">link</a></td><td><a href="https://huggingface.co/unsloth/Mistral-Small-3.1-24B-Instruct-2503-unsloth-bnb-4bit">link</a></td></tr><tr><td></td><td>3-24 B (2501)</td><td><a href="https://huggingface.co/unsloth/Mistral-Small-24B-Instruct-2501-GGUF">link</a></td><td><a href="https://huggingface.co/unsloth/Mistral-Small-24B-Instruct-2501-unsloth-bnb-4bit">link</a></td></tr><tr><td><strong>Magistral</strong></td><td>Small-24 B (2506)</td><td><a href="https://huggingface.co/unsloth/Magistral-Small-2506-GGUF">link</a></td><td><a href="https://huggingface.co/unsloth/Magistral-Small-2506-unsloth-bnb-4bit">link</a></td></tr><tr><td><strong>Devstral</strong></td><td>Small-24 B (2507)</td><td><a href="https://huggingface.co/unsloth/Devstral-Small-2507-GGUF">link</a></td><td><a href="https://huggingface.co/unsloth/Devstral-Small-2507-unsloth-bnb-4bit">link</a></td></tr><tr><td></td><td>Small-24 B (2505)</td><td><a href="https://huggingface.co/unsloth/Devstral-Small-2505-GGUF">link</a></td><td><a href="https://huggingface.co/unsloth/Devstral-Small-2505-unsloth-bnb-4bit">link</a></td></tr><tr><td><strong>Pixtral</strong></td><td>12 B (2409)</td><td>—</td><td><a href="https://huggingface.co/unsloth/Pixtral-12B-2409-bnb-4bit">link</a></td></tr><tr><td>Mistral <strong>Small</strong></td><td>2409-22 B</td><td>—</td><td><a href="https://huggingface.co/unsloth/Mistral-Small-Instruct-2409-bnb-4bit">link</a></td></tr><tr><td>Mistral <strong>NeMo</strong></td><td>12 B (2407)</td><td><a href="https://huggingface.co/unsloth/Mistral-Nemo-Instruct-2407-GGUF">link</a></td><td><a href="https://huggingface.co/unsloth/Mistral-Nemo-Instruct-2407-bnb-4bit">link</a></td></tr><tr><td>Mistral <strong>Large</strong></td><td>2407</td><td>—</td><td><a href="https://huggingface.co/unsloth/Mistral-Large-Instruct-2407-bnb-4bit">link</a></td></tr><tr><td><strong>Mistral 7 B</strong></td><td>v0.3</td><td>—</td><td><a href="https://huggingface.co/unsloth/mistral-7b-instruct-v0.3-bnb-4bit">link</a></td></tr><tr><td></td><td>v0.2</td><td>—</td><td><a href="https://huggingface.co/unsloth/mistral-7b-instruct-v0.2-bnb-4bit">link</a></td></tr><tr><td><strong>Mixtral</strong></td><td>8 × 7 B</td><td>—</td><td><a href="https://huggingface.co/unsloth/Mixtral-8x7B-Instruct-v0.1-unsloth-bnb-4bit">link</a></td></tr></tbody></table>
+
+| Model       | Variant          | GGUF                                                             | Instruct (4-bit)                                                             |
+| ----------- | ---------------- | ---------------------------------------------------------------- | ---------------------------------------------------------------------------- |
+| **Phi-4**   | Reasoning-plus   | [link](https://huggingface.co/unsloth/Phi-4-reasoning-plus-GGUF) | [link](https://huggingface.co/unsloth/Phi-4-reasoning-plus-unsloth-bnb-4bit) |
+|             | Reasoning        | [link](https://huggingface.co/unsloth/Phi-4-reasoning-GGUF)      | [link](https://huggingface.co/unsloth/phi-4-reasoning-unsloth-bnb-4bit)      |
+|             | Mini-Reasoning   | [link](https://huggingface.co/unsloth/Phi-4-mini-reasoning-GGUF) | [link](https://huggingface.co/unsloth/Phi-4-mini-reasoning-unsloth-bnb-4bit) |
+|             | Phi-4 (instruct) | [link](https://huggingface.co/unsloth/phi-4-GGUF)                | [link](https://huggingface.co/unsloth/phi-4-unsloth-bnb-4bit)                |
+|             | mini (instruct)  | [link](https://huggingface.co/unsloth/Phi-4-mini-instruct-GGUF)  | [link](https://huggingface.co/unsloth/Phi-4-mini-instruct-unsloth-bnb-4bit)  |
+| **Phi-3.5** | mini             | —                                                                | [link](https://huggingface.co/unsloth/Phi-3.5-mini-instruct-bnb-4bit)        |
+| **Phi-3**   | mini             | —                                                                | [link](https://huggingface.co/unsloth/Phi-3-mini-4k-instruct-bnb-4bit)       |
+|             | medium           | —                                                                | [link](https://huggingface.co/unsloth/Phi-3-medium-4k-instruct-bnb-4bit)     |
+
+### Other (GLM, Orpheus, Smol, Llava etc.) models:
+
+| Model          | Variant           | GGUF                                                                           | Instruct (4-bit)                                                          |
+| -------------- | ----------------- | ------------------------------------------------------------------------------ | ------------------------------------------------------------------------- |
+| GLM            | 4.5-Air           | [link](https://huggingface.co/unsloth/GLM-4.5-Air-GGUF)                        |                                                                           |
+|                | 4.5               | [4.5](https://huggingface.co/unsloth/GLM-4.5-GGUF)                             |                                                                           |
+|                | 4-32B-0414        | [4-32B-0414](https://huggingface.co/unsloth/GLM-4-32B-0414-GGUF)               |                                                                           |
+| Hunyuan        | A13B              | [link](https://huggingface.co/unsloth/Hunyuan-A13B-Instruct-GGUF)              | —                                                                         |
+| Orpheus        | 0.1-ft (3B)       | [link](https://app.gitbook.com/o/HpyELzcNe0topgVLGCZY/s/xhOjnexMCB3dmuQFQ2Zq/) | [link](https://huggingface.co/unsloth/orpheus-3b-0.1-ft-unsloth-bnb-4bit) |
+| **LLava**      | 1.5 (7 B)         | —                                                                              | [link](https://huggingface.co/unsloth/llava-1.5-7b-hf-bnb-4bit)           |
+|                | 1.6 Mistral (7 B) | —                                                                              | [link](https://huggingface.co/unsloth/llava-v1.6-mistral-7b-hf-bnb-4bit)  |
+| **TinyLlama**  | Chat              | —                                                                              | [link](https://huggingface.co/unsloth/tinyllama-chat-bnb-4bit)            |
+| **SmolLM 2**   | 135 M             | [link](https://huggingface.co/unsloth/SmolLM2-135M-Instruct-GGUF)              | [link](https://huggingface.co/unsloth/SmolLM2-135M-Instruct-bnb-4bit)     |
+|                | 360 M             | [link](https://huggingface.co/unsloth/SmolLM2-360M-Instruct-GGUF)              | [link](https://huggingface.co/unsloth/SmolLM2-360M-Instruct-bnb-4bit)     |
+|                | 1.7 B             | [link](https://huggingface.co/unsloth/SmolLM2-1.7B-Instruct-GGUF)              | [link](https://huggingface.co/unsloth/SmolLM2-1.7B-Instruct-bnb-4bit)     |
+| **Zephyr-SFT** | 7 B               | —                                                                              | [link](https://huggingface.co/unsloth/zephyr-sft-bnb-4bit)                |
+| **Yi**         | 6 B (v1.5)        | —                                                                              | [link](https://huggingface.co/unsloth/Yi-1.5-6B-bnb-4bit)                 |
+|                | 6 B (v1.0)        | —                                                                              | [link](https://huggingface.co/unsloth/yi-6b-bnb-4bit)                     |
+|                | 34 B (chat)       | —                                                                              | [link](https://huggingface.co/unsloth/yi-34b-chat-bnb-4bit)               |
+|                | 34 B (base)       | —                                                                              | [link](https://huggingface.co/unsloth/yi-34b-bnb-4bit)                    |
+| {% endtab %}   |                   |                                                                                |                                                                           |
+
+{% tab title="• Instruct 16-bit" %}
+16-bit and 8-bit Instruct models are used for inference or fine-tuning:
+
+| Model                | Variant                | Instruct (16-bit)                                                          |
+| -------------------- | ---------------------- | -------------------------------------------------------------------------- |
+| **gpt-oss** (new)    | 20b                    | [link](https://huggingface.co/unsloth/gpt-oss-20b)                         |
+|                      | 120b                   | [link](https://huggingface.co/unsloth/gpt-oss-120b)                        |
+| **Gemma 3n**         | E2B                    | [link](https://huggingface.co/unsloth/gemma-3n-E4B-it)                     |
+|                      | E4B                    | [link](https://huggingface.co/unsloth/gemma-3n-E2B-it)                     |
+| **DeepSeek-R1-0528** | R1-0528-Qwen3-8B       | [link](https://huggingface.co/unsloth/DeepSeek-R1-0528-Qwen3-8B)           |
+|                      | R1-0528                | [link](https://huggingface.co/unsloth/DeepSeek-R1-0528)                    |
+| **Mistral**          | Small 3.2 24B (2506)   | [link](https://huggingface.co/unsloth/Mistral-Small-3.2-24B-Instruct-2506) |
+|                      | Small 3.1 24B (2503)   | [link](https://huggingface.co/unsloth/Mistral-Small-3.1-24B-Instruct-2503) |
+|                      | Small 3.0 24B (2501)   | [link](https://huggingface.co/unsloth/Mistral-Small-24B-Instruct-2501)     |
+|                      | Magistral Small (2506) | [link](https://huggingface.co/unsloth/Magistral-Small-2506)                |
+| **Qwen 3**           | 0.6 B                  | [link](https://huggingface.co/unsloth/Qwen3-0.6B)                          |
+|                      | 1.7 B                  | [link](https://huggingface.co/unsloth/Qwen3-1.7B)                          |
+|                      | 4 B                    | [link](https://huggingface.co/unsloth/Qwen3-4B)                            |
+|                      | 8 B                    | [link](https://huggingface.co/unsloth/Qwen3-8B)                            |
+|                      | 14 B                   | [link](https://huggingface.co/unsloth/Qwen3-14B)                           |
+|                      | 30B-A3B                | [link](https://huggingface.co/unsloth/Qwen3-30B-A3B)                       |
+|                      | 32 B                   | [link](https://huggingface.co/unsloth/Qwen3-32B)                           |
+|                      | 235B-A22B              | [link](https://huggingface.co/unsloth/Qwen3-235B-A22B)                     |
+| **Llama 4**          | Scout 17B-16E          | [link](https://huggingface.co/unsloth/Llama-4-Scout-17B-16E-Instruct)      |
+|                      | Maverick 17B-128E      | [link](https://huggingface.co/unsloth/Llama-4-Maverick-17B-128E-Instruct)  |
+| **Qwen 2.5 Omni**    | 3 B                    | [link](https://huggingface.co/unsloth/Qwen2.5-Omni-3B)                     |
+|                      | 7 B                    | [link](https://huggingface.co/unsloth/Qwen2.5-Omni-7B)                     |
+| **Phi-4**            | Reasoning-plus         | [link](https://huggingface.co/unsloth/Phi-4-reasoning-plus)                |
+|                      | Reasoning              | [link](https://huggingface.co/unsloth/Phi-4-reasoning)                     |
+
+| Model           | Variant               | Instruct (16-bit)                                                    |
+| --------------- | --------------------- | -------------------------------------------------------------------- |
+| **DeepSeek-V3** | V3-0324               | [link](https://huggingface.co/unsloth/DeepSeek-V3-0324)              |
+|                 | V3                    | [link](https://huggingface.co/unsloth/DeepSeek-V3)                   |
+| **DeepSeek-R1** | R1-0528               | [link](https://huggingface.co/unsloth/DeepSeek-R1-0528)              |
+|                 | R1-0528-Qwen3-8B      | [link](https://huggingface.co/unsloth/DeepSeek-R1-0528-Qwen3-8B)     |
+|                 | R1                    | [link](https://huggingface.co/unsloth/DeepSeek-R1)                   |
+|                 | R1 Zero               | [link](https://huggingface.co/unsloth/DeepSeek-R1-Zero)              |
+|                 | Distill Llama 3 8B    | [link](https://huggingface.co/unsloth/DeepSeek-R1-Distill-Llama-8B)  |
+|                 | Distill Llama 3.3 70B | [link](https://huggingface.co/unsloth/DeepSeek-R1-Distill-Llama-70B) |
+|                 | Distill Qwen 2.5 1.5B | [link](https://huggingface.co/unsloth/DeepSeek-R1-Distill-Qwen-1.5B) |
+|                 | Distill Qwen 2.5 7B   | [link](https://huggingface.co/unsloth/DeepSeek-R1-Distill-Qwen-7B)   |
+|                 | Distill Qwen 2.5 14B  | [link](https://huggingface.co/unsloth/DeepSeek-R1-Distill-Qwen-14B)  |
+|                 | Distill Qwen 2.5 32B  | [link](https://huggingface.co/unsloth/DeepSeek-R1-Distill-Qwen-32B)  |
+
+| Family        | Variant           | Instruct (16-bit)                                                         |
+| ------------- | ----------------- | ------------------------------------------------------------------------- |
+| **Llama 4**   | Scout 17B-16E     | [link](https://huggingface.co/unsloth/Llama-4-Scout-17B-16E-Instruct)     |
+|               | Maverick 17B-128E | [link](https://huggingface.co/unsloth/Llama-4-Maverick-17B-128E-Instruct) |
+| **Llama 3.3** | 70 B              | [link](https://huggingface.co/unsloth/Llama-3.3-70B-Instruct)             |
+| **Llama 3.2** | 1 B               | [link](https://huggingface.co/unsloth/Llama-3.2-1B-Instruct)              |
+|               | 3 B               | [link](https://huggingface.co/unsloth/Llama-3.2-3B-Instruct)              |
+|               | 11 B Vision       | [link](https://huggingface.co/unsloth/Llama-3.2-11B-Vision-Instruct)      |
+|               | 90 B Vision       | [link](https://huggingface.co/unsloth/Llama-3.2-90B-Vision-Instruct)      |
+| **Llama 3.1** | 8 B               | [link](https://huggingface.co/unsloth/Meta-Llama-3.1-8B-Instruct)         |
+|               | 70 B              | [link](https://huggingface.co/unsloth/Meta-Llama-3.1-70B-Instruct)        |
+|               | 405 B             | [link](https://huggingface.co/unsloth/Meta-Llama-3.1-405B-Instruct)       |
+| **Llama 3**   | 8 B               | [link](https://huggingface.co/unsloth/llama-3-8b-Instruct)                |
+|               | 70 B              | [link](https://huggingface.co/unsloth/llama-3-70b-Instruct)               |
+| **Llama 2**   | 7 B               | [link](https://huggingface.co/unsloth/llama-2-7b-chat)                    |
+
+| Model        | Variant | Instruct (16-bit)                                      |
+| ------------ | ------- | ------------------------------------------------------ |
+| **Gemma 3n** | E2B     | [link](https://huggingface.co/unsloth/gemma-3n-E4B-it) |
+|              | E4B     | [link](https://huggingface.co/unsloth/gemma-3n-E2B-it) |
+| **Gemma 3**  | 1 B     | [link](https://huggingface.co/unsloth/gemma-3-1b-it)   |
+|              | 4 B     | [link](https://huggingface.co/unsloth/gemma-3-4b-it)   |
+|              | 12 B    | [link](https://huggingface.co/unsloth/gemma-3-12b-it)  |
+|              | 27 B    | [link](https://huggingface.co/unsloth/gemma-3-27b-it)  |
+| **Gemma 2**  | 2 B     | [link](https://huggingface.co/unsloth/gemma-2b-it)     |
+|              | 9 B     | [link](https://huggingface.co/unsloth/gemma-9b-it)     |
+|              | 27 B    | [link](https://huggingface.co/unsloth/gemma-27b-it)    |
+
+| Family                   | Variant   | Instruct (16-bit)                                                       |
+| ------------------------ | --------- | ----------------------------------------------------------------------- |
+| **Qwen 3**               | 0.6 B     | [link](https://huggingface.co/unsloth/Qwen3-0.6B)                       |
+|                          | 1.7 B     | [link](https://huggingface.co/unsloth/Qwen3-1.7B)                       |
+|                          | 4 B       | [link](https://huggingface.co/unsloth/Qwen3-4B)                         |
+|                          | 8 B       | [link](https://huggingface.co/unsloth/Qwen3-8B)                         |
+|                          | 14 B      | [link](https://huggingface.co/unsloth/Qwen3-14B)                        |
+|                          | 30B-A3B   | [link](https://huggingface.co/unsloth/Qwen3-30B-A3B)                    |
+|                          | 32 B      | [link](https://huggingface.co/unsloth/Qwen3-32B)                        |
+|                          | 235B-A22B | [link](https://huggingface.co/unsloth/Qwen3-235B-A22B)                  |
+| **Qwen 2.5 Omni**        | 3 B       | [link](https://huggingface.co/unsloth/Qwen2.5-Omni-3B)                  |
+|                          | 7 B       | [link](https://huggingface.co/unsloth/Qwen2.5-Omni-7B)                  |
+| **Qwen 2.5 VL**          | 3 B       | [link](https://huggingface.co/unsloth/Qwen2.5-VL-3B-Instruct)           |
+|                          | 7 B       | [link](https://huggingface.co/unsloth/Qwen2.5-VL-7B-Instruct)           |
+|                          | 32 B      | [link](https://huggingface.co/unsloth/Qwen2.5-VL-32B-Instruct)          |
+|                          | 72 B      | [link](https://huggingface.co/unsloth/Qwen2.5-VL-72B-Instruct)          |
+| **Qwen 2.5**             | 0.5 B     | [link](https://huggingface.co/unsloth/Qwen2.5-0.5B-Instruct)            |
+|                          | 1.5 B     | [link](https://huggingface.co/unsloth/Qwen2.5-1.5B-Instruct)            |
+|                          | 3 B       | [link](https://huggingface.co/unsloth/Qwen2.5-3B-Instruct)              |
+|                          | 7 B       | [link](https://huggingface.co/unsloth/Qwen2.5-7B-Instruct)              |
+|                          | 14 B      | [link](https://huggingface.co/unsloth/Qwen2.5-14B-Instruct)             |
+|                          | 32 B      | [link](https://huggingface.co/unsloth/Qwen2.5-32B-Instruct)             |
+|                          | 72 B      | [link](https://huggingface.co/unsloth/Qwen2.5-72B-Instruct)             |
+| **Qwen 2.5 Coder 128 K** | 0.5 B     | [link](https://huggingface.co/unsloth/Qwen2.5-Coder-0.5B-Instruct-128K) |
+|                          | 1.5 B     | [link](https://huggingface.co/unsloth/Qwen2.5-Coder-1.5B-Instruct-128K) |
+|                          | 3 B       | [link](https://huggingface.co/unsloth/Qwen2.5-Coder-3B-Instruct-128K)   |
+|                          | 7 B       | [link](https://huggingface.co/unsloth/Qwen2.5-Coder-7B-Instruct-128K)   |
+|                          | 14 B      | [link](https://huggingface.co/unsloth/Qwen2.5-Coder-14B-Instruct-128K)  |
+|                          | 32 B      | [link](https://huggingface.co/unsloth/Qwen2.5-Coder-32B-Instruct-128K)  |
+| **QwQ**                  | 32 B      | [link](https://huggingface.co/unsloth/QwQ-32B)                          |
+| **QVQ (preview)**        | 72 B      | —                                                                       |
+| **Qwen 2 (Chat)**        | 1.5 B     | [link](https://huggingface.co/unsloth/Qwen2-1.5B-Instruct)              |
+|                          | 7 B       | [link](https://huggingface.co/unsloth/Qwen2-7B-Instruct)                |
+|                          | 72 B      | [link](https://huggingface.co/unsloth/Qwen2-72B-Instruct)               |
+| **Qwen 2 VL**            | 2 B       | [link](https://huggingface.co/unsloth/Qwen2-VL-2B-Instruct)             |
+|                          | 7 B       | [link](https://huggingface.co/unsloth/Qwen2-VL-7B-Instruct)             |
+|                          | 72 B      | [link](https://huggingface.co/unsloth/Qwen2-VL-72B-Instruct)            |
+
+| Model            | Variant        | Instruct (16-bit)                                                  |
+| ---------------- | -------------- | ------------------------------------------------------------------ |
+| **Mistral**      | Small 2409-22B | [link](https://huggingface.co/unsloth/Mistral-Small-Instruct-2409) |
+| **Mistral**      | Large 2407     | [link](https://huggingface.co/unsloth/Mistral-Large-Instruct-2407) |
+| **Mistral**      | 7B v0.3        | [link](https://huggingface.co/unsloth/mistral-7b-instruct-v0.3)    |
+| **Mistral**      | 7B v0.2        | [link](https://huggingface.co/unsloth/mistral-7b-instruct-v0.2)    |
+| **Pixtral**      | 12B 2409       | [link](https://huggingface.co/unsloth/Pixtral-12B-2409)            |
+| **Mixtral**      | 8×7B           | [link](https://huggingface.co/unsloth/Mixtral-8x7B-Instruct-v0.1)  |
+| **Mistral NeMo** | 12B 2407       | [link](https://huggingface.co/unsloth/Mistral-Nemo-Instruct-2407)  |
+| **Devstral**     | Small 2505     | [link](https://huggingface.co/unsloth/Devstral-Small-2505)         |
+
+| Model       | Variant        | Instruct (16-bit)                                               |
+| ----------- | -------------- | --------------------------------------------------------------- |
+| **Phi-4**   | Reasoning-plus | [link](https://huggingface.co/unsloth/Phi-4-reasoning-plus)     |
+|             | Reasoning      | [link](https://huggingface.co/unsloth/Phi-4-reasoning)          |
+|             | Phi-4 (core)   | [link](https://huggingface.co/unsloth/Phi-4)                    |
+|             | Mini-Reasoning | [link](https://huggingface.co/unsloth/Phi-4-mini-reasoning)     |
+|             | Mini           | [link](https://huggingface.co/unsloth/Phi-4-mini)               |
+| **Phi-3.5** | Mini           | [link](https://huggingface.co/unsloth/Phi-3.5-mini-instruct)    |
+| **Phi-3**   | Mini           | [link](https://huggingface.co/unsloth/Phi-3-mini-4k-instruct)   |
+|             | Medium         | [link](https://huggingface.co/unsloth/Phi-3-medium-4k-instruct) |
+
+### Text-to-Speech (TTS) models:
+
+| Model                  | Instruct (16-bit)                                                |
+| ---------------------- | ---------------------------------------------------------------- |
+| Orpheus-3B (v0.1 ft)   | [link](https://huggingface.co/unsloth/orpheus-3b-0.1-ft)         |
+| Orpheus-3B (v0.1 pt)   | [link](https://huggingface.co/unsloth/orpheus-3b-0.1-pretrained) |
+| Sesame-CSM 1B          | [link](https://huggingface.co/unsloth/csm-1b)                    |
+| Whisper Large V3 (STT) | [link](https://huggingface.co/unsloth/whisper-large-v3)          |
+| Llasa-TTS 1B           | [link](https://huggingface.co/unsloth/Llasa-1B)                  |
+| Spark-TTS 0.5B         | [link](https://huggingface.co/unsloth/Spark-TTS-0.5B)            |
+| Oute-TTS 1B            | [link](https://huggingface.co/unsloth/Llama-OuteTTS-1.0-1B)      |
+| {% endtab %}           |                                                                  |
+
+{% tab title="• Base 4 + 16-bit" %}
+Base models are usually used for fine-tuning purposes:
+
+| Model        | Variant           | Base (16-bit)                                                    | Base (4-bit)                                                                           |
+| ------------ | ----------------- | ---------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
+| **Gemma 3n** | E2B               | [link](https://huggingface.co/unsloth/gemma-3n-E2B)              | [link](https://huggingface.co/unsloth/gemma-3n-E2B-unsloth-bnb-4bit)                   |
+|              | E4B               | [link](https://huggingface.co/unsloth/gemma-3n-E4B)              | [link](https://huggingface.co/unsloth/gemma-3n-E4B-unsloth-bnb-4bit)                   |
+| **Qwen 3**   | 0.6 B             | [link](https://huggingface.co/unsloth/Qwen3-0.6B-Base)           | [link](https://huggingface.co/unsloth/Qwen3-0.6B-Base-unsloth-bnb-4bit)                |
+|              | 1.7 B             | [link](https://huggingface.co/unsloth/Qwen3-1.7B-Base)           | [link](https://huggingface.co/unsloth/Qwen3-1.7B-Base-unsloth-bnb-4bit)                |
+|              | 4 B               | [link](https://huggingface.co/unsloth/Qwen3-4B-Base)             | [link](https://huggingface.co/unsloth/Qwen3-4B-Base-unsloth-bnb-4bit)                  |
+|              | 8 B               | [link](https://huggingface.co/unsloth/Qwen3-8B-Base)             | [link](https://huggingface.co/unsloth/Qwen3-8B-Base-unsloth-bnb-4bit)                  |
+|              | 14 B              | [link](https://huggingface.co/unsloth/Qwen3-14B-Base)            | [link](https://huggingface.co/unsloth/Qwen3-14B-Base-unsloth-bnb-4bit)                 |
+|              | 30B-A3B           | [link](https://huggingface.co/unsloth/Qwen3-30B-A3B-Base)        | [link](https://huggingface.co/unsloth/Qwen3-30B-A3B-Base-bnb-4bit)                     |
+| **Llama 4**  | Scout 17B 16E     | [link](https://huggingface.co/unsloth/Llama-4-Scout-17B-16E)     | [link](https://huggingface.co/unsloth/Llama-4-Scout-17B-16E-Instruct-unsloth-bnb-4bit) |
+|              | Maverick 17B 128E | [link](https://huggingface.co/unsloth/Llama-4-Maverick-17B-128E) | —                                                                                      |
+
+### **Llama models:**
+
+| Model         | Variant           | Base (16-bit)                                                    | Base (4-bit)                                                |
+| ------------- | ----------------- | ---------------------------------------------------------------- | ----------------------------------------------------------- |
+| **Llama 4**   | Scout 17B 16E     | [link](https://huggingface.co/unsloth/Llama-4-Scout-17B-16E)     | —                                                           |
+|               | Maverick 17B 128E | [link](https://huggingface.co/unsloth/Llama-4-Maverick-17B-128E) | —                                                           |
+| **Llama 3.3** | 70 B              | [link](https://huggingface.co/unsloth/Llama-3.3-70B)             | —                                                           |
+| **Llama 3.2** | 1 B               | [link](https://huggingface.co/unsloth/Llama-3.2-1B)              | —                                                           |
+|               | 3 B               | [link](https://huggingface.co/unsloth/Llama-3.2-3B)              | —                                                           |
+|               | 11 B Vision       | [link](https://huggingface.co/unsloth/Llama-3.2-11B-Vision)      | —                                                           |
+|               | 90 B Vision       | [link](https://huggingface.co/unsloth/Llama-3.2-90B-Vision)      | —                                                           |
+| **Llama 3.1** | 8 B               | [link](https://huggingface.co/unsloth/Meta-Llama-3.1-8B)         | —                                                           |
+|               | 70 B              | [link](https://huggingface.co/unsloth/Meta-Llama-3.1-70B)        | —                                                           |
+| **Llama 3**   | 8 B               | [link](https://huggingface.co/unsloth/llama-3-8b)                | [link](https://huggingface.co/unsloth/llama-3-8b-bnb-4bit)  |
+| **Llama 2**   | 7 B               | [link](https://huggingface.co/unsloth/llama-2-7b)                | [link](https://huggingface.co/unsloth/llama-2-7b-bnb-4bit)  |
+|               | 13 B              | [link](https://huggingface.co/unsloth/llama-2-13b)               | [link](https://huggingface.co/unsloth/llama-2-13b-bnb-4bit) |
+
+| Model        | Variant | Base (16-bit)                                             | Base (4-bit)                                                               |
+| ------------ | ------- | --------------------------------------------------------- | -------------------------------------------------------------------------- |
+| **Qwen 3**   | 0.6 B   | [link](https://huggingface.co/unsloth/Qwen3-0.6B-Base)    | [link](https://huggingface.co/unsloth/Qwen3-0.6B-Base-unsloth-bnb-4bit)    |
+|              | 1.7 B   | [link](https://huggingface.co/unsloth/Qwen3-1.7B-Base)    | [link](https://huggingface.co/unsloth/Qwen3-1.7B-Base-unsloth-bnb-4bit)    |
+|              | 4 B     | [link](https://huggingface.co/unsloth/Qwen3-4B-Base)      | [link](https://huggingface.co/unsloth/Qwen3-4B-Base-unsloth-bnb-4bit)      |
+|              | 8 B     | [link](https://huggingface.co/unsloth/Qwen3-8B-Base)      | [link](https://huggingface.co/unsloth/Qwen3-8B-Base-unsloth-bnb-4bit)      |
+|              | 14 B    | [link](https://huggingface.co/unsloth/Qwen3-14B-Base)     | [link](https://huggingface.co/unsloth/Qwen3-14B-Base-unsloth-bnb-4bit)     |
+|              | 30B-A3B | [link](https://huggingface.co/unsloth/Qwen3-30B-A3B-Base) | [link](https://huggingface.co/unsloth/Qwen3-30B-A3B-Base-unsloth-bnb-4bit) |
+| **Qwen 2.5** | 0.5 B   | [link](https://huggingface.co/unsloth/Qwen2.5-0.5B)       | [link](https://huggingface.co/unsloth/Qwen2.5-0.5B-bnb-4bit)               |
+|              | 1.5 B   | [link](https://huggingface.co/unsloth/Qwen2.5-1.5B)       | [link](https://huggingface.co/unsloth/Qwen2.5-1.5B-bnb-4bit)               |
+|              | 3 B     | [link](https://huggingface.co/unsloth/Qwen2.5-3B)         | [link](https://huggingface.co/unsloth/Qwen2.5-3B-bnb-4bit)                 |
+|              | 7 B     | [link](https://huggingface.co/unsloth/Qwen2.5-7B)         | [link](https://huggingface.co/unsloth/Qwen2.5-7B-bnb-4bit)                 |
+|              | 14 B    | [link](https://huggingface.co/unsloth/Qwen2.5-14B)        | [link](https://huggingface.co/unsloth/Qwen2.5-14B-bnb-4bit)                |
+|              | 32 B    | [link](https://huggingface.co/unsloth/Qwen2.5-32B)        | [link](https://huggingface.co/unsloth/Qwen2.5-32B-bnb-4bit)                |
+|              | 72 B    | [link](https://huggingface.co/unsloth/Qwen2.5-72B)        | [link](https://huggingface.co/unsloth/Qwen2.5-72B-bnb-4bit)                |
+| **Qwen 2**   | 1.5 B   | [link](https://huggingface.co/unsloth/Qwen2-1.5B)         | [link](https://huggingface.co/unsloth/Qwen2-1.5B-bnb-4bit)                 |
+|              | 7 B     | [link](https://huggingface.co/unsloth/Qwen2-7B)           | [link](https://huggingface.co/unsloth/Qwen2-7B-bnb-4bit)                   |
+
+### **Llama models:**
+
+| Model         | Variant           | Base (16-bit)                                                    | Base (4-bit)                                                |
+| ------------- | ----------------- | ---------------------------------------------------------------- | ----------------------------------------------------------- |
+| **Llama 4**   | Scout 17B 16E     | [link](https://huggingface.co/unsloth/Llama-4-Scout-17B-16E)     | —                                                           |
+|               | Maverick 17B 128E | [link](https://huggingface.co/unsloth/Llama-4-Maverick-17B-128E) | —                                                           |
+| **Llama 3.3** | 70 B              | [link](https://huggingface.co/unsloth/Llama-3.3-70B)             | —                                                           |
+| **Llama 3.2** | 1 B               | [link](https://huggingface.co/unsloth/Llama-3.2-1B)              | —                                                           |
+|               | 3 B               | [link](https://huggingface.co/unsloth/Llama-3.2-3B)              | —                                                           |
+|               | 11 B Vision       | [link](https://huggingface.co/unsloth/Llama-3.2-11B-Vision)      | —                                                           |
+|               | 90 B Vision       | [link](https://huggingface.co/unsloth/Llama-3.2-90B-Vision)      | —                                                           |
+| **Llama 3.1** | 8 B               | [link](https://huggingface.co/unsloth/Meta-Llama-3.1-8B)         | —                                                           |
+|               | 70 B              | [link](https://huggingface.co/unsloth/Meta-Llama-3.1-70B)        | —                                                           |
+| **Llama 3**   | 8 B               | [link](https://huggingface.co/unsloth/llama-3-8b)                | [link](https://huggingface.co/unsloth/llama-3-8b-bnb-4bit)  |
+| **Llama 2**   | 7 B               | [link](https://huggingface.co/unsloth/llama-2-7b)                | [link](https://huggingface.co/unsloth/llama-2-7b-bnb-4bit)  |
+|               | 13 B              | [link](https://huggingface.co/unsloth/llama-2-13b)               | [link](https://huggingface.co/unsloth/llama-2-13b-bnb-4bit) |
+
+| Model       | Variant | Base (16-bit)                                         | Base (4-bit)                                                           |
+| ----------- | ------- | ----------------------------------------------------- | ---------------------------------------------------------------------- |
+| **Gemma 3** | 1 B     | [link](https://huggingface.co/unsloth/gemma-3-1b-pt)  | [link](https://huggingface.co/unsloth/gemma-3-1b-pt-unsloth-bnb-4bit)  |
+|             | 4 B     | [link](https://huggingface.co/unsloth/gemma-3-4b-pt)  | [link](https://huggingface.co/unsloth/gemma-3-4b-pt-unsloth-bnb-4bit)  |
+|             | 12 B    | [link](https://huggingface.co/unsloth/gemma-3-12b-pt) | [link](https://huggingface.co/unsloth/gemma-3-12b-pt-unsloth-bnb-4bit) |
+|             | 27 B    | [link](https://huggingface.co/unsloth/gemma-3-27b-pt) | [link](https://huggingface.co/unsloth/gemma-3-27b-pt-unsloth-bnb-4bit) |
+| **Gemma 2** | 2 B     | [link](https://huggingface.co/unsloth/gemma-2-2b)     | —                                                                      |
+|             | 9 B     | [link](https://huggingface.co/unsloth/gemma-2-9b)     | —                                                                      |
+|             | 27 B    | [link](https://huggingface.co/unsloth/gemma-2-27b)    | —                                                                      |
+
+### **Mistral models:**
+
+| Model       | Variant          | Base (16-bit)                                                      | Base (4-bit)                                                    |
+| ----------- | ---------------- | ------------------------------------------------------------------ | --------------------------------------------------------------- |
+| **Mistral** | Small 24B 2501   | [link](https://huggingface.co/unsloth/Mistral-Small-24B-Base-2501) | —                                                               |
+|             | NeMo 12B 2407    | [link](https://huggingface.co/unsloth/Mistral-Nemo-Base-2407)      | —                                                               |
+|             | 7B v0.3          | [link](https://huggingface.co/unsloth/mistral-7b-v0.3)             | [link](https://huggingface.co/unsloth/mistral-7b-v0.3-bnb-4bit) |
+|             | 7B v0.2          | [link](https://huggingface.co/unsloth/mistral-7b-v0.2)             | [link](https://huggingface.co/unsloth/mistral-7b-v0.2-bnb-4bit) |
+|             | Pixtral 12B 2409 | [link](https://huggingface.co/unsloth/Pixtral-12B-Base-2409)       | —                                                               |
+
+### **Other (TTS, TinyLlama) models:**
+
+| Model          | Variant        | Base (16-bit)                                                    | Base (4-bit)                                                                      |
+| -------------- | -------------- | ---------------------------------------------------------------- | --------------------------------------------------------------------------------- |
+| **TinyLlama**  | 1.1 B (Base)   | [link](https://huggingface.co/unsloth/tinyllama)                 | [link](https://huggingface.co/unsloth/tinyllama-bnb-4bit)                         |
+| **Orpheus-3b** | 0.1-pretrained | [link](https://huggingface.co/unsloth/orpheus-3b-0.1-pretrained) | [link](https://huggingface.co/unsloth/orpheus-3b-0.1-pretrained-unsloth-bnb-4bit) |
+| {% endtab %}   |                |                                                                  |                                                                                   |
+| {% endtabs %}  |                |                                                                  |                                                                                   |
+
+---
+
+## Windows Installation
+
+**URL:** llms-txt#windows-installation
+
+**Contents:**
+- Method #1 - Docker:
+- Method #2 - Windows directly:
+  - **Notes**
+  - **Advanced/Troubleshooting**
+- Method #3 - Windows using PowerShell:
+- Method #4 - Windows via WSL:
+
+See how to install Unsloth on Windows with or without WSL.
+
+For Windows, `pip install unsloth` now works, however you must have Pytorch previously installed.
+
+## Method #1 - Docker:
+
+Docker might be the easiest way for Windows users to get started with Unsloth as there is no setup needed or dependency issues. [**`unsloth/unsloth`**](https://hub.docker.com/r/unsloth/unsloth) is Unsloth's only Docker image. For [Blackwell](https://docs.unsloth.ai/basics/fine-tuning-llms-with-blackwell-rtx-50-series-and-unsloth) and 50-series GPUs, use this same image - no separate image needed.
+
+For installation instructions, please follow our [Docker guide](https://docs.unsloth.ai/new/how-to-fine-tune-llms-with-unsloth-and-docker), otherwise here is a quickstart guide:
+
+{% stepper %}
+{% step %}
+
+#### Install Docker and NVIDIA Container Toolkit.
+
+Install Docker via [Linux](https://docs.docker.com/engine/install/) or [Desktop](https://docs.docker.com/desktop/) (other). Then install [NVIDIA Container Toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html#installation):
+
+<pre class="language-bash"><code class="lang-bash"><strong>export NVIDIA_CONTAINER_TOOLKIT_VERSION=1.17.8-1
+</strong>sudo apt-get update &#x26;&#x26; sudo apt-get install -y \
+  nvidia-container-toolkit=${NVIDIA_CONTAINER_TOOLKIT_VERSION} \
+  nvidia-container-toolkit-base=${NVIDIA_CONTAINER_TOOLKIT_VERSION} \
+  libnvidia-container-tools=${NVIDIA_CONTAINER_TOOLKIT_VERSION} \
+  libnvidia-container1=${NVIDIA_CONTAINER_TOOLKIT_VERSION}
+</code></pre>
+
+#### Run the container.
+
+[**`unsloth/unsloth`**](https://hub.docker.com/r/unsloth/unsloth) is Unsloth's only Docker image.
+
+#### Access Jupyter Lab
+
+Go to [http://localhost:8888](http://localhost:8888/) and open Unsloth. Access the `unsloth-notebooks` tabs to see Unsloth notebooks.
+{% endstep %}
+
+#### Start training with Unsloth
+
+If you're new, follow our step-by-step [Fine-tuning Guide](https://docs.unsloth.ai/get-started/fine-tuning-llms-guide), [RL Guide](https://docs.unsloth.ai/get-started/reinforcement-learning-rl-guide) or just save/copy any of our premade [notebooks](https://docs.unsloth.ai/get-started/unsloth-notebooks).
+{% endstep %}
+{% endstepper %}
+
+## Method #2 - Windows directly:
+
+{% hint style="info" %}
+Python 3.13 now works with Unsloth!
+{% endhint %}
+
+{% stepper %}
+{% step %}
+**Install NVIDIA Video Driver**
+
+You should install the latest version of your GPUs driver. Download drivers here: [NVIDIA GPU Drive](https://www.nvidia.com/Download/index.aspx)
+{% endstep %}
+
+{% step %}
+**Install Visual Studio C++**
+
+You will need Visual Studio, with C++ installed. By default, C++ is not installed with Visual Studio, so make sure you select all of the C++ options. Also select options for Windows 10/11 SDK.
+
+* Launch the Installer here:  [Visual Studio Community Edition](https://visualstudio.microsoft.com/vs/community/)
+* In the installer, navigate to individual components and select all the options listed here:
+  * **.NET Framework 4.8 SDK**
+  * **.NET Framework 4.7.2 targeting pack**
+  * **C# and Visual Basic Roslyn compilers**
+  * **MSBuild**
+  * **MSVC v143 - VS 2022 C++ x64/x86 build tools**
+  * **C++ 2022 Redistributable Update**
+  * **C++ CMake tools for Windows**
+  * **C++/CLI support for v143 build tools (Latest)**
+  * **MSBuild support for LLVM (clang-cl) toolset**
+  * **C++ Clang Compiler for Windows (19.1.1)**
+  * **Windows 11 SDK (10.0.22621.0)**
+  * **Windows Universal CRT SDK**
+  * **C++ 2022 Redistributable MSMs**
+
+**Easier method:** Or you can open an elevated Command Prompt or PowerShell:
+
+* Search for "cmd" or "PowerShell", right-click it, and choose "Run as administrator."
+* Paste and run this command (update the Visual Studio path if necessary):
+
+{% step %}
+**Install Python and CUDA Toolkit**
+
+Follow the instructions to install [CUDA Toolkit](https://developer.nvidia.com/cuda-toolkit-archive).
+
+Then install Miniconda (which has Python) here: [https://www.anaconda.com/docs/getting-started/miniconda/install](https://www.anaconda.com/docs/getting-started/miniconda/install#quickstart-install-instructions)
+{% endstep %}
+
+{% step %}
+**Install PyTorch**
+
+You will need the correct version of PyTorch that is compatible with your CUDA drivers, so make sure to select them carefully. [Install PyTorch](https://pytorch.org/get-started/locally/)
+{% endstep %}
+
+{% step %}
+**Install Unsloth**
+
+Open Conda command prompt or your terminal with Python and run the command:
+
+{% endstep %}
+{% endstepper %}
+
+{% hint style="warning" %}
+If you're using GRPO or plan to use vLLM, currently vLLM does not support Windows directly but only via WSL or Linux.
+{% endhint %}
+
+To run Unsloth directly on Windows:
+
+* Install Triton from this Windows fork and follow the instructions [here](https://github.com/woct0rdho/triton-windows) (be aware that the Windows fork requires PyTorch >= 2.4 and CUDA 12)
+* In the SFTTrainer, set `dataset_num_proc=1` to avoid a crashing issue:
+
+### **Advanced/Troubleshooting**
+
+For **advanced installation instructions** or if you see weird errors during installations:
+
+1. Install `torch` and `triton`. Go to <https://pytorch.org> to install it. For example `pip install torch torchvision torchaudio triton`
+2. Confirm if CUDA is installed correctly. Try `nvcc`. If that fails, you need to install `cudatoolkit` or CUDA drivers.
+3. Install `xformers` manually. You can try installing `vllm` and seeing if `vllm` succeeds. Check if `xformers` succeeded with `python -m xformers.info` Go to <https://github.com/facebookresearch/xformers>. Another option is to install `flash-attn` for Ampere GPUs.
+4. Double check that your versions of Python, CUDA, CUDNN, `torch`, `triton`, and `xformers` are compatible with one another. The [PyTorch Compatibility Matrix](https://github.com/pytorch/pytorch/blob/main/RELEASE.md#release-compatibility-matrix) may be useful.
+5. Finally, install `bitsandbytes` and check it with `python -m bitsandbytes`
+
+## Method #3 - Windows using PowerShell:
+
+#### **Step 1: Install Prerequisites**
+
+1. **Install NVIDIA CUDA Toolkit**:
+   * Download and install the appropriate version of the **NVIDIA CUDA Toolkit** from [CUDA Downloads](https://developer.nvidia.com/cuda-downloads).
+   * Reboot your system after installation if prompted.
+   * **Note**: No additional setup is required after installation for Unsloth.
+2. **Install Microsoft C++ Build Tools**:
+   * Download and install **Microsoft Build Tools for Visual Studio** from the [official website](https://visualstudio.microsoft.com/visual-cpp-build-tools/).
+   * During installation, select the **C++ build tools** workload.\
+     Ensure the **MSVC compiler toolset** is included.
+3. **Set Environment Variables for the C++ Compiler**:
+   * Open the **System Properties** window (search for "Environment Variables" in the Start menu).
+   * Click **"Environment Variables…"**.
+   * Add or update the following under **System variables**:
+     * **CC**:\
+       Path to the `cl.exe` C++ compiler.\
+       Example (adjust if your version differs):
+
+* **CXX**:\
+       Same path as `CC`.
+   * Click **OK** to save changes.
+   * Verify: Open a new terminal and type `cl`. It should show version info.
+4. **Install Conda**
+   1. Download and install **Miniconda** from the [official website](https://docs.anaconda.com/miniconda/install/#quick-command-line-install)
+   2. Follow installation instruction from the website
+   3. To check whether `conda` is already installed, you can test it with `conda` in your PowerShell
+
+#### **Step 2: Run the Unsloth Installation Script**
+
+1. **Download the** [**unsloth\_windows.ps1**](https://github.com/unslothai/notebooks/blob/main/unsloth_windows.ps1) **PowerShell script by going through this link**.
+2. **Open PowerShell as Administrator**:
+   * Right-click Start and select **"Windows PowerShell (Admin)"**.
+3. **Navigate to the script’s location** using `cd`:
+
+4. **Run the script**:
+
+#### **Step 3: Using Unsloth**
+
+Activate the environment after the installation completes:
+
+**Unsloth and its dependencies are now ready!**
+
+## Method #4 - Windows via WSL:
+
+WSL is Window's subsystem for Linux.
+
+1. Install python though [Python's official site](https://www.python.org/downloads/windows/).
+2. Start WSL (Should already be preinstalled). Open command prompt as admin then run:
+
+Optional: If WSL is not preinstalled, go to the Microsoft store and search "Ubuntu" and the app that says Ubuntu will be WSL. Install it and run it and continue from there.
+
+6. Optional: Install Jupyter Notebook to run in a Colab like environment:
+
+7. Launch Jupyter Notebook:
+
+<pre><code><strong>jupyter notebook
+</strong></code></pre>
+
+8. Download any Colab notebook from Unsloth, import it into your Jupyter Notebook, adjust the parameters as needed, and execute the script.
+
+**Examples:**
+
+Example 1 (bash):
+```bash
+docker run -d -e JUPYTER_PASSWORD="mypassword" \
+  -p 8888:8888 -p 2222:22 \
+  -v $(pwd)/work:/workspace/work \
+  --gpus all \
+  unsloth/unsloth
+```
+
+Example 2 (unknown):
+```unknown
+"C:\Program Files (x86)\Microsoft Visual Studio\Installer\vs_installer.exe" modify ^
+--installPath "C:\Program Files\Microsoft Visual Studio\2022\Community" ^
+--add Microsoft.Net.Component.4.8.SDK ^
+--add Microsoft.Net.Component.4.7.2.TargetingPack ^
+--add Microsoft.VisualStudio.Component.Roslyn.Compiler ^
+--add Microsoft.Component.MSBuild ^
+--add Microsoft.VisualStudio.Component.VC.Tools.x86.x64 ^
+--add Microsoft.VisualStudio.Component.VC.Redist.14.Latest ^
+--add Microsoft.VisualStudio.Component.VC.CMake.Project ^
+--add Microsoft.VisualStudio.Component.VC.CLI.Support ^
+--add Microsoft.VisualStudio.Component.VC.Llvm.Clang ^
+--add Microsoft.VisualStudio.ComponentGroup.ClangCL ^
+--add Microsoft.VisualStudio.Component.Windows11SDK.22621 ^
+--add Microsoft.VisualStudio.Component.Windows10SDK.19041 ^
+--add Microsoft.VisualStudio.Component.UniversalCRT.SDK ^
+--add Microsoft.VisualStudio.Component.VC.Redist.MSM
+```
+
+Example 3 (unknown):
+```unknown
+pip install "unsloth[windows] @ git+https://github.com/unslothai/unsloth.git"
+```
+
+Example 4 (python):
+```python
+trainer = SFTTrainer(
+    dataset_num_proc=1,
+    ...
+)
+```
+
+---
+
+## Prepare batched input with your image file
+
+**URL:** llms-txt#prepare-batched-input-with-your-image-file
+
+image_1 = Image.open("path/to/your/image_1.png").convert("RGB")
+image_2 = Image.open("path/to/your/image_2.png").convert("RGB")
+prompt = "<image>\nFree OCR."
+
+model_input = [
+    {
+        "prompt": prompt,
+        "multi_modal_data": {"image": image_1}
+    },
+    {
+        "prompt": prompt,
+        "multi_modal_data": {"image": image_2}
+    }
+]
+
+sampling_param = SamplingParams(
+    temperature=0.0,
+    max_tokens=8192,
+    # ngram logit processor args
+    extra_args=dict(
+        ngram_size=30,
+        window_size=90,
+        whitelist_token_ids={128821, 128822},  # whitelist: <td>, </td>
+    ),
+    skip_special_tokens=False,
+)
+
+---
+
+## DeepSeek-V3-0324: How to Run Locally
+
+**URL:** llms-txt#deepseek-v3-0324:-how-to-run-locally
+
+**Contents:**
+- :gear: Official Recommended Settings
+- 📖 Tutorial: How to Run DeepSeek-V3 in llama.cpp
+
+How to run DeepSeek-V3-0324 locally using our dynamic quants which recovers accuracy
+
+{% hint style="info" %}
+Please see <https://docs.unsloth.ai/basics/deepseek-r1-0528-how-to-run-locally> (May 28th 2025 update) to learn on how to run DeepSeek faster and more efficiently!
+{% endhint %}
+
+DeepSeek is at it again! After releasing V3, R1 Zero and R1 back in December 2024 and January 2025, DeepSeek updated their checkpoints / models for V3, and released a March update!
+
+According to DeepSeek, MMLU-Pro jumped +5.3% to 81.2%. **GPQA +9.3% points**. AIME + 19.8% and LiveCodeBench + 10.0%! They provided a plot showing how they compared to the previous V3 checkpoint and other models like GPT 4.5 and Claude Sonnet 3.7. <mark style="background-color:blue;">**But how do we run a 671 billion parameter model locally?**</mark>
+
+<table data-full-width="true"><thead><tr><th>MoE Bits</th><th>Type</th><th>Disk Size</th><th>Accuracy</th><th>Link</th><th>Details</th></tr></thead><tbody><tr><td>1.78bit</td><td>IQ1_S</td><td><strong>173GB</strong></td><td>Ok</td><td><a href="https://huggingface.co/unsloth/DeepSeek-V3-0324-GGUF/tree/main/UD-IQ1_S">Link</a></td><td>2.06/1.56bit</td></tr><tr><td>1.93bit</td><td>IQ1_M</td><td><strong>183GB</strong></td><td>Fair</td><td><a href="https://huggingface.co/unsloth/DeepSeek-V3-0324-GGUF/tree/main/UD-IQ1_M">Link</a></td><td>2.5/2.06/1.56</td></tr><tr><td>2.42bit</td><td>IQ2_XXS</td><td><strong>203GB</strong></td><td><mark style="background-color:blue;"><strong>Suggested</strong></mark></td><td><a href="https://huggingface.co/unsloth/DeepSeek-V3-0324-GGUF/tree/main/UD-IQ2_XXS">Link</a></td><td>2.5/2.06bit</td></tr><tr><td>2.71bit</td><td>Q2_K_XL</td><td><strong>231GB</strong></td><td><mark style="background-color:purple;"><strong>Suggested</strong></mark></td><td><a href="https://huggingface.co/unsloth/DeepSeek-V3-0324-GGUF/tree/main/UD-Q2_K_XL">Link</a></td><td> 3.5/2.5bit</td></tr><tr><td>3.5bit</td><td>Q3_K_XL</td><td><strong>320GB</strong></td><td>Great</td><td><a href="https://huggingface.co/unsloth/DeepSeek-V3-0324-GGUF/tree/main/UD-Q3_K_XL">Link</a></td><td> 4.5/3.5bit</td></tr><tr><td>4.5bit</td><td>Q4_K_XL</td><td><strong>406GB</strong></td><td>Best</td><td><a href="https://huggingface.co/unsloth/DeepSeek-V3-0324-GGUF/tree/main/UD-Q4_K_XL">Link</a></td><td> 5.5/4.5bit</td></tr></tbody></table>
+
+{% hint style="success" %}
+DeepSeek V3's original upload is in float8, which takes 715GB. Using Q4\_K\_M halves the file size to 404GB or so, and our dynamic 1.78bit quant fits in around 151GB. **We suggest using our 2.7bit quant to balance size and accuracy! The 2.4bit one also works well!**
+{% endhint %}
+
+## :gear: Official Recommended Settings
+
+According to [DeepSeek](https://huggingface.co/deepseek-ai/DeepSeek-V3-0324), these are the recommended settings for inference:
+
+* <mark style="background-color:blue;">**Temperature of 0.3**</mark> (Maybe 0.0 for coding as [seen here](https://api-docs.deepseek.com/quick_start/parameter_settings))
+* Min\_P of 0.00 (optional, but 0.01 works well, llama.cpp default is 0.1)
+* Chat template: `<｜User｜>Create a simple playable Flappy Bird Game in Python. Place the final game inside of a markdown section.<｜Assistant｜>`&#x20;
+* A BOS token of `<｜begin▁of▁sentence｜>` is auto added during tokenization (do NOT add it manually!)&#x20;
+* DeepSeek mentioned using a <mark style="background-color:green;">**system prompt**</mark> as well (optional) - it's in Chinese: `该助手为DeepSeek Chat，由深度求索公司创造。\n今天是3月24日，星期一。` which translates to: `The assistant is DeepSeek Chat, created by DeepSeek.\nToday is Monday, March 24th.`&#x20;
+* <mark style="background-color:orange;">**For KV cache quantization, use 8bit, NOT 4bit - we found it to do noticeably worse.**</mark>
+
+## 📖 Tutorial: How to Run DeepSeek-V3 in llama.cpp
+
+1. Obtain the latest `llama.cpp` on [GitHub here](https://github.com/ggml-org/llama.cpp). You can follow the build instructions below as well. Change `-DGGML_CUDA=ON` to `-DGGML_CUDA=OFF` if you don't have a GPU or just want CPU inference.
+
+{% hint style="warning" %}
+NOTE using `-DGGML_CUDA=ON`  for GPUs might take 5 minutes to compile. CPU only takes 1 minute to compile. You might be interested in llama.cpp's precompiled binaries.
+{% endhint %}
+
+2. Download the model via (after installing `pip install huggingface_hub hf_transfer` ). You can choose `UD-IQ1_S`(dynamic 1.78bit quant) or other quantized versions like `Q4_K_M` . <mark style="background-color:green;">**I recommend using our 2.7bit dynamic quant**</mark><mark style="background-color:green;">**&#x20;**</mark><mark style="background-color:green;">**`UD-Q2_K_XL`**</mark><mark style="background-color:green;">**&#x20;**</mark><mark style="background-color:green;">**to balance size and accuracy**</mark>. More versions at: <https://huggingface.co/unsloth/DeepSeek-V3-0324-GGUF>
+
+{% code overflow="wrap" %}
+
+**Examples:**
+
+Example 1 (bash):
+```bash
+apt-get update
+apt-get install pciutils build-essential cmake curl libcurl4-openssl-dev -y
+git clone https://github.com/ggml-org/llama.cpp
+cmake llama.cpp -B llama.cpp/build \
+    -DBUILD_SHARED_LIBS=OFF -DGGML_CUDA=ON -DLLAMA_CURL=ON
+cmake --build llama.cpp/build --config Release -j --clean-first --target llama-quantize llama-cli llama-gguf-split
+cp llama.cpp/build/bin/llama-* llama.cpp
+```
+
+---
+
+## Quantization-Aware Training (QAT)
+
+**URL:** llms-txt#quantization-aware-training-(qat)
+
+**Contents:**
+  - :books:Quantization
+  - :fire:Smarter Quantization
+  - :mag:Quantization-Aware Training
+  - :sparkles:QAT + LoRA finetuning
+  - :teapot:Exporting QAT models
+
+Quantize models to 4-bit with Unsloth and PyTorch to recover accuracy.
+
+In collaboration with PyTorch, we're introducing QAT (Quantization-Aware Training) in Unsloth to enable **trainable quantization** that recovers as much accuracy as possible. This results in significantly better model quality compared to standard 4-bit naive quantization. QAT can recover up to <mark style="background-color:$success;">**70% of the lost accuracy**</mark> and achieve a <mark style="background-color:$success;">**1–3%**</mark> model performance improvement on benchmarks such as GPQA and MMLU Pro.
+
+> **Try QAT with our free** [**Qwen3 (4B) notebook**](https://colab.research.google.com/github/unslothai/notebooks/blob/main/nb/Qwen3_\(4B\)_Instruct-QAT.ipynb)
+
+### :books:Quantization
+
+{% columns %}
+{% column width="50%" %}
+Naively quantizing a model is called **post-training quantization** (PTQ). For example, assume we want to quantize to 8bit integers:
+
+1. Find `max(abs(W))`
+2. Find `a = 127/max(abs(W))` where a is int8's maximum range which is 127
+3. Quantize via `qW = int8(round(W  * a))`
+   {% endcolumn %}
+
+{% column width="50%" %}
+
+<figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FBRGG7dajyErOS6kUPRCn%2Fquant-freeze.png?alt=media&#x26;token=99013e3d-30cb-43c2-bef2-97f8770a2801" alt=""><figcaption></figcaption></figure>
+{% endcolumn %}
+{% endcolumns %}
+
+Dequantizing back to 16bits simply does the reverse operation by `float16(qW) / a` . Post-training quantization (PTQ) can greatly reduce storage and inference costs, but quite often degrades accuracy when representing high-precision values with fewer bits - especially at 4-bit or lower. One way to solve this to utilize our [**dynamic GGUF quants**](https://docs.unsloth.ai/basics/unsloth-dynamic-2.0-ggufs), which uses a calibration dataset to change the quantization procedure to allocate more importance to important weights. The other way is to make **quantization smarter, by making it trainable or learnable**!
+
+### :fire:Smarter Quantization
+
+<div><figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FD0KA3paC1csL6jM5doqL%2F4bit_QAT_recovery_sideways_clipped75_bigtext_all(1).png?alt=media&#x26;token=93c92a1b-e95f-488f-9289-996ffb309054" alt=""><figcaption></figcaption></figure> <figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FAbhfUEY2QiKzj6ZenxLF%2FQLoRA_QAT_Accuracy_Boosts_v7_bigaxes_nogrid_600dpi.png?alt=media&#x26;token=24f79aff-4261-44a6-8bae-5bf85b247472" alt=""><figcaption></figcaption></figure></div>
+
+To enable smarter quantization, we collaborated with the [TorchAO](https://github.com/pytorch/ao) team to add **Quantization-Aware Training (QAT)** directly inside of Unsloth - so now you can fine-tune models in Unsloth and then export them to 4-bit QAT format directly with accuracy improvements!
+
+In fact, **QAT recovers 66.9%** of Gemma3-4B on GPQA, and increasing the raw accuracy by +1.0%. Gemma3-12B on BBH recovers 45.5%, and **increased the raw accuracy by +2.1%**. QAT has no extra overhead during inference, and uses the same disk and memory usage as normal naive quantization! So you get all the benefits of low-bit quantization, but with much increased accuracy!
+
+### :mag:Quantization-Aware Training
+
+QAT simulates the true quantization procedure by "**fake quantizing**" weights and optionally activations during training, which typically means rounding high precision values to quantized ones (while staying in high precision dtype, e.g. bfloat16) and then immediately dequantizing them.
+
+TorchAO enables QAT by first (1) inserting fake quantize operations into linear layers, and (2) transforms the fake quantize operations to actual quantize and dequantize operations after training to make it inference ready. Step 1 enables us to train a more accurate quantization representation.
+
+<figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FeFX8a2xVMhOqECznE0mR%2Fqat_diagram.png?alt=media&#x26;token=ee740048-7d2a-47fe-a8e6-d080e4fb57c1" alt=""><figcaption></figcaption></figure>
+
+### :sparkles:QAT + LoRA finetuning
+
+QAT in Unsloth can additionally be combined with LoRA fine-tuning to enable the benefits of both worlds: significantly reducing storage and compute requirements during training while mitigating quantization degradation! We support multiple methods via `qat_scheme` including `fp8-int4`, `fp8-fp8`, `int8-int4`, `int4` . We also plan to add custom definitions for QAT in a follow up release!
+
+{% code overflow="wrap" %}
+
+### :teapot:Exporting QAT models
+
+After fine-tuning in Unsloth, you can call `model.save_pretrained_torchao` to save your trained model using TorchAO’s PTQ format. You can also upload these to the HuggingFace hub! We support any config, and we plan to make text based methods as well, and to make the process more simpler for everyone! But first, we have to prepare the QAT model for the final conversion step via:
+
+{% code overflow="wrap" %}
+
+And now we can select which QAT style you want:
+
+{% code overflow="wrap" %}
+
+**Examples:**
+
+Example 1 (python):
+```python
+from unsloth import FastLanguageModel
+model, tokenizer = FastLanguageModel.from_pretrained(
+    model_name = "unsloth/Qwen3-4B-Instruct-2507",
+    max_seq_length = 2048,
+    load_in_16bit = True,
+)
+model = FastLanguageModel.get_peft_model(
+    model,
+    r = 16,
+    target_modules = ["q_proj", "k_proj", "v_proj", "o_proj",
+                      "gate_proj", "up_proj", "down_proj",],
+    lora_alpha = 32,
+    
+    # We support fp8-int4, fp8-fp8, int8-int4, int4
+    qat_scheme = "int4",
+)
+```
+
+Example 2 (python):
+```python
+from torchao.quantization import quantize_
+from torchao.quantization.qat import QATConfig
+quantize_(model, QATConfig(step = "convert"))
+```
+
+---
+
+## Qwen3-2507
+
+**URL:** llms-txt#qwen3-2507
+
+**Contents:**
+- ⚙️Best Practices
+- 📖 Run Qwen3-30B-A3B-2507 Tutorials
+  - Instruct: Qwen3-30B-A3B-Instruct-2507
+
+Run Qwen3-30B-A3B-2507 and 235B-A22B Thinking and Instruct versions locally on your device!
+
+Qwen released 2507 (July 2025) updates for their [Qwen3](https://docs.unsloth.ai/models/qwen3-how-to-run-and-fine-tune) 4B, 30B and 235B models, introducing both "thinking" and "non-thinking" variants. The non-thinking '**Qwen3-30B-A3B-Instruct-2507**' and '**Qwen3-235B-A22B-Instruct-2507'** features a 256K context window, improved instruction following, multilingual capabilities and alignment.
+
+The thinking models '**Qwen3-30B-A3B-Thinking-2507**' and '**Qwen3-235B-A22B-Thinking-2507**' excel at reasoning, with the 235B achieving SOTA results in logic, math, science, coding, and advanced academic tasks.
+
+[Unsloth](https://github.com/unslothai/unsloth) also now supports fine-tuning and [Reinforcement Learning (RL)](https://docs.unsloth.ai/get-started/reinforcement-learning-rl-guide) of Qwen3-2507 models — 2x faster, with 70% less VRAM, and 8x longer context lengths
+
+<a href="#run-qwen3-30b-a3b-2507-tutorials" class="button secondary">Run 30B-A3B</a><a href="#run-qwen3-235b-a22b-thinking-2507" class="button secondary">Run 235B-A22B</a><a href="#fine-tuning-qwen3-2507-with-unsloth" class="button secondary">Fine-tune Qwen3-2507</a>
+
+**Unsloth** [**Dynamic 2.0**](https://docs.unsloth.ai/basics/unsloth-dynamic-2.0-ggufs) **GGUFs:**
+
+| Model                    | GGUFs to run:                                                                                                                                                 |
+| ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Qwen3-**4B-2507**        | [Instruct](https://huggingface.co/unsloth/Qwen3-4B-Instruct-2507-GGUF) • [Thinking ](https://huggingface.co/unsloth/Qwen3-4B-Thinking-2507-GGUF)              |
+| Qwen3-**30B-A3B**-2507   | [Instruct](#llama.cpp-run-qwen3-30b-a3b-instruct-2507-tutorial) • [Thinking](https://huggingface.co/unsloth/Qwen3-30B-A3B-Thinking-2507-GGUF)                 |
+| Qwen3-**235B-A22B**-2507 | [Instruct](https://huggingface.co/unsloth/Qwen3-235B-A22B-Instruct-2507-GGUF) • [Thinking](https://huggingface.co/unsloth/Qwen3-235B-A22B-Thinking-2507-GGUF) |
+
+{% hint style="success" %}
+The settings for the Thinking and Instruct model are different.\
+The thinking model uses temperature = 0.6, but the instruct model uses temperature = 0.7\
+The thinking model uses top\_p = 0.95, but the instruct model uses top\_p = 0.8
+{% endhint %}
+
+To achieve optimal performance, Qwen recommends these settings:
+
+| Instruct Model Settings:                                                                                      | Thinking Model Settings:                                                                                      |
+| ------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| <mark style="background-color:blue;">`Temperature = 0.7`</mark>                                               | <mark style="background-color:blue;">`Temperature = 0.6`</mark>                                               |
+| `Min_P = 0.00`  (llama.cpp's default is 0.1)                                                                  | `Min_P = 0.00` (llama.cpp's default is 0.1)                                                                   |
+| `Top_P = 0.80`                                                                                                | `Top_P = 0.95`                                                                                                |
+| `TopK = 20`                                                                                                   | `TopK = 20`                                                                                                   |
+| `presence_penalty = 0.0 to 2.0` (llama.cpp default turns it off, but to reduce repetitions, you can use this) | `presence_penalty = 0.0 to 2.0` (llama.cpp default turns it off, but to reduce repetitions, you can use this) |
+
+**Adequate Output Length**: Use an output length of `32,768` tokens for most queries, which is adequate for most queries.
+
+Chat template for both Thinking (thinking has `<think></think>`) and Instruct is below:
+
+## 📖 Run Qwen3-30B-A3B-2507 Tutorials
+
+Below are guides for the [Thinking](#thinking-qwen3-30b-a3b-thinking-2507) and [Instruct](#instruct-qwen3-30b-a3b-instruct-2507) versions of the model.
+
+### Instruct: Qwen3-30B-A3B-Instruct-2507
+
+Given that this is a non thinking model, there is no need to set `thinking=False` and the model does not generate `<think> </think>` blocks.
+
+#### ⚙️Best Practices
+
+To achieve optimal performance, Qwen recommends the following settings:
+
+* &#x20;We suggest using `temperature=0.7, top_p=0.8, top_k=20, and min_p=0.0` `presence_penalty` between 0 and 2 if the framework supports to reduce endless repetitions.
+* <mark style="background-color:$success;">**`temperature = 0.7`**</mark>
+* `top_k = 20`
+* `min_p = 0.00` (llama.cpp's default is 0.1)
+* **`top_p = 0.80`**
+* `presence_penalty = 0.0 to 2.0` (llama.cpp default turns it off, but to reduce repetitions, you can use this) Try 1.0 for example.
+* Supports up to `262,144` context natively but you can set it to `32,768` tokens for less RAM use
+
+#### 🦙 Ollama: Run Qwen3-30B-A3B-Instruct-2507 Tutorial
+
+1. Install `ollama` if you haven't already! You can only run models up to 32B in size.
+
+2. Run the model! Note you can call `ollama serve`in another terminal if it fails! We include all our fixes and suggested parameters (temperature etc) in `params` in our Hugging Face upload!
+
+#### :sparkles: Llama.cpp: Run Qwen3-30B-A3B-Instruct-2507 Tutorial
+
+1. Obtain the latest `llama.cpp` on [GitHub here](https://github.com/ggml-org/llama.cpp). You can follow the build instructions below as well. Change `-DGGML_CUDA=ON` to `-DGGML_CUDA=OFF` if you don't have a GPU or just want CPU inference.
+
+2. You can directly pull from HuggingFace via:
+
+3. Download the model via (after installing `pip install huggingface_hub hf_transfer` ). You can choose UD\_Q4\_K\_XL or other quantized versions.
+
+**Examples:**
+
+Example 1 (unknown):
+```unknown
+<|im_start|>user
+Hey there!<|im_end|>
+<|im_start|>assistant
+What is 1+1?<|im_end|>
+<|im_start|>user
+2<|im_end|>
+<|im_start|>assistant
+```
+
+Example 2 (bash):
+```bash
+apt-get update
+apt-get install pciutils -y
+curl -fsSL https://ollama.com/install.sh | sh
+```
+
+Example 3 (bash):
+```bash
+ollama run hf.co/unsloth/Qwen3-30B-A3B-Instruct-2507-GGUF:UD-Q4_K_XL
+```
+
+Example 4 (bash):
+```bash
+apt-get update
+apt-get install pciutils build-essential cmake curl libcurl4-openssl-dev -y
+git clone https://github.com/ggml-org/llama.cpp
+cmake llama.cpp -B llama.cpp/build \
+    -DBUILD_SHARED_LIBS=OFF -DGGML_CUDA=ON -DLLAMA_CURL=ON
+cmake --build llama.cpp/build --config Release -j --clean-first --target llama-cli llama-gguf-split
+cp llama.cpp/build/bin/llama-* llama.cpp
+```
+
+---
+
+## Constants:
+
+**URL:** llms-txt#constants:
+
+WIDTH, HEIGHT =456 ,702   #
+BACKGROUND_COLOR_LIGHTS=['lightskyblue']
+GAP_SIZE=189           #
+
+BIRD_RADIUS=3.  
+PIPE_SPEED=- ( )    ? 
+class Game():
+def __init__(self):
+        self.screen_size=( )
+
+def reset_game_vars():
+    global current_scor e
+   # set to zero and other initial states.
+
+---
+
+## tokenizer.push_to_hub("your_name/lora_model", token = "...") # Online saving
+
+**URL:** llms-txt#tokenizer.push_to_hub("your_name/lora_model",-token-=-"...")-#-online-saving
+
+**Contents:**
+  - Fine-tuning Voice models vs. Zero-shot voice cloning
+
+This saves the model weights (for LoRA, it might save only adapter weights if the base is not fully fine-tuned). If you used `--push_model` in CLI or `trainer.push_to_hub()`, you could upload it to Hugging Face Hub directly.
+
+Now you should have a fine-tuned TTS model in the directory. The next step is to test it out and if supported, you can use llama.cpp to convert it into a GGUF file.
+
+### Fine-tuning Voice models vs. Zero-shot voice cloning
+
+People say you can clone a voice with just 30 seconds of audio using models like XTTS - no training required. That’s technically true, but it misses the point.
+
+Zero-shot voice cloning, which is also available in models like Orpheus and CSM, is an approximation. It captures the general **tone and timbre** of a speaker’s voice, but it doesn’t reproduce the full expressive range. You lose details like speaking speed, phrasing, vocal quirks, and the subtleties of prosody - things that give a voice its **personality and uniqueness**.
+
+If you just want a different voice and are fine with the same delivery patterns, zero-shot is usually good enough. But the speech will still follow the **model’s style**, not the speaker’s.
+
+For anything more personalized or expressive, you need training with methods like LoRA to truly capture how someone speaks.
+
+---
+
+## Use the public key in docker run
+
+**URL:** llms-txt#use-the-public-key-in-docker-run
+
+-e "SSH_KEY=$(cat ~/.ssh/container_key.pub)"
+
+---
+
+## Set CUDA environment variables
+
+**URL:** llms-txt#set-cuda-environment-variables
+
+ENV CUDA_HOME=/usr/local/cuda-13.0/
+ENV CUDA_PATH=$CUDA_HOME
+ENV PATH=$CUDA_HOME/bin:$PATH
+ENV LD_LIBRARY_PATH=$CUDA_HOME/lib64:$LD_LIBRARY_PATH
+ENV C_INCLUDE_PATH=$CUDA_HOME/include:$C_INCLUDE_PATH
+ENV CPLUS_INCLUDE_PATH=$CUDA_HOME/include:$CPLUS_INCLUDE_PATH
+
+---
+
+## Generate SSH key pair
+
+**URL:** llms-txt#generate-ssh-key-pair
+
+ssh-keygen -t rsa -b 4096 -f ~/.ssh/container_key
+
+---
+
+## LoRA Hot Swapping Guide
+
+**URL:** llms-txt#lora-hot-swapping-guide
+
+**Contents:**
+  - :shaved\_ice: vLLM LoRA Hot Swapping / Dynamic LoRAs
+
+### :shaved\_ice: vLLM LoRA Hot Swapping / Dynamic LoRAs
+
+To enable LoRA serving for at most 4 LoRAs at 1 time (these are hot swapped / changed), first set the environment flag to allow hot swapping:
+
+Then, serve it with LoRA support:
+
+To load a LoRA dynamically (set the lora name as well), do:
+
+To remove it from the pool:
+
+**Examples:**
+
+Example 1 (bash):
+```bash
+export VLLM_ALLOW_RUNTIME_LORA_UPDATING=True
+```
+
+Example 2 (bash):
+```bash
+export VLLM_ALLOW_RUNTIME_LORA_UPDATING=True
+vllm serve unsloth/Llama-3.3-70B-Instruct \
+    --quantization fp8 \
+    --kv-cache-dtype fp8
+    --gpu-memory-utilization 0.97 \
+    --max-model-len 65536 \
+    --enable-lora \
+    --max-loras 4 \
+    --max-lora-rank 64
+```
+
+Example 3 (bash):
+```bash
+curl -X POST http://localhost:8000/v1/load_lora_adapter \
+    -H "Content-Type: application/json" \
+    -d '{
+        "lora_name": "LORA_NAME",
+        "lora_path": "/path/to/LORA"
+    }'
+```
+
+Example 4 (bash):
+```bash
+curl -X POST http://localhost:8000/v1/unload_lora_adapter \
+    -H "Content-Type: application/json" \
+    -d '{
+        "lora_name": "LORA_NAME"
+    }'
+```
+
+---
+
+## What Model Should I Use?
+
+**URL:** llms-txt#what-model-should-i-use?
+
+**Contents:**
+- Llama, Qwen, Mistral, Phi or?
+- Instruct or Base Model?
+  - Instruct Models
+  - **Base Models**
+  - Should I Choose Instruct or Base?
+- Fine-tuning models with Unsloth
+  - Experimentation is Key
+
+## Llama, Qwen, Mistral, Phi or?
+
+When preparing for fine-tuning, one of the first decisions you'll face is selecting the right model. Here's a step-by-step guide to help you choose:
+
+{% stepper %}
+{% step %}
+
+#### Choose a model that aligns with your usecase
+
+* E.g. For image-based training, select a vision model such as *Llama 3.2 Vision*. For code datasets, opt for a specialized model like *Qwen Coder 2.5*.
+* **Licensing and Requirements**: Different models may have specific licensing terms and [system requirements](https://docs.unsloth.ai/beginner-start-here/unsloth-requirements#system-requirements). Be sure to review these carefully to avoid compatibility issues.
+  {% endstep %}
+
+#### **Assess your storage, compute capacity and dataset**
+
+* Use our [VRAM guideline](https://docs.unsloth.ai/beginner-start-here/unsloth-requirements#approximate-vram-requirements-based-on-model-parameters) to determine the VRAM requirements for the model you’re considering.
+* Your dataset will reflect the type of model you will use and amount of time it will take to train
+  {% endstep %}
+
+#### **Select a Model and Parameters**
+
+* We recommend using the latest model for the best performance and capabilities. For instance, as of January 2025, the leading 70B model is *Llama 3.3*.
+* You can stay up to date by exploring our [model catalog](https://docs.unsloth.ai/get-started/all-our-models) to find the newest and relevant options.
+  {% endstep %}
+
+#### **Choose Between Base and Instruct Models**
+
+Further details below:
+{% endstep %}
+{% endstepper %}
+
+## Instruct or Base Model?
+
+When preparing for fine-tuning, one of the first decisions you'll face is whether to use an instruct model or a base model.
+
+Instruct models are pre-trained with built-in instructions, making them ready to use without any fine-tuning. These models, including GGUFs and others commonly available, are optimized for direct usage and respond effectively to prompts right out of the box. Instruct models work with conversational chat templates like ChatML or ShareGPT.
+
+Base models, on the other hand, are the original pre-trained versions without instruction fine-tuning. These are specifically designed for customization through fine-tuning, allowing you to adapt them to your unique needs. Base models are compatible with instruction-style templates like [Alpaca or Vicuna](https://docs.unsloth.ai/basics/chat-templates), but they generally do not support conversational chat templates out of the box.
+
+### Should I Choose Instruct or Base?
+
+The decision often depends on the quantity, quality, and type of your data:
+
+* **1,000+ Rows of Data**: If you have a large dataset with over 1,000 rows, it's generally best to fine-tune the base model.
+* **300–1,000 Rows of High-Quality Data**: With a medium-sized, high-quality dataset, fine-tuning the base or instruct model are both viable options.
+* **Less than 300 Rows**: For smaller datasets, the instruct model is typically the better choice. Fine-tuning the instruct model enables it to align with specific needs while preserving its built-in instructional capabilities. This ensures it can follow general instructions without additional input unless you intend to significantly alter its functionality.
+* For information how how big your dataset should be, [see here](https://docs.unsloth.ai/get-started/datasets-guide#how-big-should-my-dataset-be)
+
+## Fine-tuning models with Unsloth
+
+You can change the model name to whichever model you like by matching it with model's name on Hugging Face e.g. 'unsloth/llama-3.1-8b-unsloth-bnb-4bit'.
+
+We recommend starting with **Instruct models**, as they allow direct fine-tuning using conversational chat templates (ChatML, ShareGPT etc.) and require less data compared to **Base models** (which uses Alpaca, Vicuna etc). Learn more about the differences between [instruct and base models here](#instruct-or-base-model).
+
+* Model names ending in **`unsloth-bnb-4bit`** indicate they are [**Unsloth dynamic 4-bit**](https://unsloth.ai/blog/dynamic-4bit) **quants**. These models consume slightly more VRAM than standard BitsAndBytes 4-bit models but offer significantly higher accuracy.
+* If a model name ends with just **`bnb-4bit`**, without "unsloth", it refers to a standard BitsAndBytes 4-bit quantization.
+* Models with **no suffix** are in their original **16-bit or 8-bit formats**. While they are the original models from the official model creators, we sometimes include important fixes - such as chat template or tokenizer fixes. So it's recommended to use our versions when available.
+
+### Experimentation is Key
+
+{% hint style="info" %}
+We recommend experimenting with both models when possible. Fine-tune each one and evaluate the outputs to see which aligns better with your goals.
+{% endhint %}
+
+---
+
+## Install unsloth and other dependencies
+
+**URL:** llms-txt#install-unsloth-and-other-dependencies
+
+RUN pip install unsloth unsloth_zoo bitsandbytes==0.48.0 transformers==4.56.2 trl==0.22.2
+
+---
+
+## Tutorials: How To Fine-tune & Run LLMs
+
+**URL:** llms-txt#tutorials:-how-to-fine-tune-&-run-llms
+
+Learn how to run and fine-tune models for optimal performance 100% locally with Unsloth.
+
+<table data-view="cards"><thead><tr><th></th><th data-hidden data-card-cover data-type="image">Cover image</th><th data-hidden data-card-target data-type="content-ref"></th></tr></thead><tbody><tr><td><a href="../new/deepseek-ocr-how-to-run-and-fine-tune">DeepSeek-OCR</a></td><td><a href="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FP6V5vkGfGPBdRlkpB35Q%2Fdeepseek%20ocr%20logo.png?alt=media&#x26;token=43a73901-37a9-4cb9-a25c-fa01cf03baea">deepseek ocr logo.png</a></td><td><a href="../new/deepseek-ocr-how-to-run-and-fine-tune">deepseek-ocr-how-to-run-and-fine-tune</a></td></tr><tr><td><a href="qwen3-vl-how-to-run-and-fine-tune">Qwen3-VL</a></td><td><a href="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FXrFygtnLnqHhVmEIidg3%2Fqwen3-vl%20promo.png?alt=media&#x26;token=82f58481-4e0c-4977-af26-2ea08a227ad2">qwen3-vl promo.png</a></td><td><a href="qwen3-vl-how-to-run-and-fine-tune">qwen3-vl-how-to-run-and-fine-tune</a></td></tr><tr><td><a href="../new/vision-reinforcement-learning-vlm-rl">Vision Reinforcement Learning</a></td><td><a href="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FPOHnYqLRCh4d9TvBRNlY%2Fvision%20rl%20site.png?alt=media&#x26;token=26f859e5-53e5-444b-bf90-7f1901a9058a">vision rl site.png</a></td><td><a href="../new/vision-reinforcement-learning-vlm-rl">vision-reinforcement-learning-vlm-rl</a></td></tr><tr><td><a href="deepseek-v3.1-how-to-run-locally">DeepSeek-V3.1</a> Terminus</td><td><a href="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FOFWy2bZ6L6qr12m9fbEM%2Fdeepseek%20v3.1%20logo.png?alt=media&#x26;token=dd75f159-9266-4208-995f-b71d8e2ed4d3">deepseek v3.1 logo.png</a></td><td><a href="deepseek-v3.1-how-to-run-locally">deepseek-v3.1-how-to-run-locally</a></td></tr><tr><td><a href="gpt-oss-how-to-run-and-fine-tune">Run gpt-oss</a></td><td><a href="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FX0pJKFv8zDMf4TJomAts%2Fgpt-oss%20image.png?alt=media&#x26;token=60c73c0d-cf83-4269-9619-f4b71e25767a">gpt-oss image.png</a></td><td><a href="gpt-oss-how-to-run-and-fine-tune">gpt-oss-how-to-run-and-fine-tune</a></td></tr><tr><td><a href="qwen3-coder-how-to-run-locally">Qwen3 Coder</a></td><td><a href="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FeDz30Gy6kQ8zzdMaxr5m%2Fqwen3-coder%201920.png?alt=media&#x26;token=efad8f53-6d06-48bd-98e6-96bde543702d">qwen3-coder 1920.png</a></td><td><a href="qwen3-coder-how-to-run-locally">qwen3-coder-how-to-run-locally</a></td></tr><tr><td><a href="gpt-oss-how-to-run-and-fine-tune/tutorial-how-to-fine-tune-gpt-oss">Fine-tune gpt-oss</a></td><td><a href="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FdUKxTDoQUFZPpOixP1Cx%2Fsloth%20with%20comp.png?alt=media&#x26;token=16fbc4a3-3d03-4e6c-bc74-75cf1121c797">sloth with comp.png</a></td><td><a href="gpt-oss-how-to-run-and-fine-tune/tutorial-how-to-fine-tune-gpt-oss">tutorial-how-to-fine-tune-gpt-oss</a></td></tr><tr><td><a href="tutorials-how-to-fine-tune-and-run-llms/magistral-how-to-run-and-fine-tune">Magistral 1.2</a></td><td><a href="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FWjXaYZOxk8LMoq1gyVFS%2Fmagistral%20center.png?alt=media&#x26;token=337b3f36-87f1-4f62-b0b4-f1471e664f34">magistral center.png</a></td><td><a href="tutorials-how-to-fine-tune-and-run-llms/magistral-how-to-run-and-fine-tune">magistral-how-to-run-and-fine-tune</a></td></tr><tr><td><a href="gemma-3-how-to-run-and-fine-tune/gemma-3n-how-to-run-and-fine-tune">Gemma 3n</a></td><td><a href="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FBszehKqh4ex9879rI5jv%2FGemma%203%20text%20only.png?alt=media&#x26;token=b66212ab-409b-4603-80fa-337bea439531">Gemma 3 text only.png</a></td><td><a href="gemma-3-how-to-run-and-fine-tune/gemma-3n-how-to-run-and-fine-tune">gemma-3n-how-to-run-and-fine-tune</a></td></tr><tr><td><a href="qwen3-how-to-run-and-fine-tune/qwen3-2507"><strong>Qwen3-2507</strong></a></td><td><a href="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FEj2zfXu3PPd39PvAmQtx%2Fqwen3-2507.png?alt=media&#x26;token=c070db7b-bfe9-4a7f-9e75-bbd0b0a01a4d">qwen3-2507.png</a></td><td><a href="qwen3-how-to-run-and-fine-tune/qwen3-2507">qwen3-2507</a></td></tr><tr><td><a href="tutorials-how-to-fine-tune-and-run-llms/deepseek-r1-0528-how-to-run-locally">DeepSeek-R1-0528</a></td><td><a href="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FNSt3ekVji7Uk7G6PFd1G%2Fdeepseek%20r1-0528.png?alt=media&#x26;token=9e1472ad-731f-44bf-845d-d4ae89989266">deepseek r1-0528.png</a></td><td><a href="tutorials-how-to-fine-tune-and-run-llms/deepseek-r1-0528-how-to-run-locally">deepseek-r1-0528-how-to-run-locally</a></td></tr><tr><td><a href="tutorials-how-to-fine-tune-and-run-llms/kimi-k2-how-to-run-locally">Kimi K2</a></td><td><a href="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FY0FqiyRvzwRiBOIWEPj6%2Fkimik2%20landcsape.png?alt=media&#x26;token=35aca81f-684b-4abc-a60b-632055b0aeaa">kimik2 landcsape.png</a></td><td><a href="tutorials-how-to-fine-tune-and-run-llms/kimi-k2-how-to-run-locally">kimi-k2-how-to-run-locally</a></td></tr><tr><td><a href="tutorials-how-to-fine-tune-and-run-llms/devstral-how-to-run-and-fine-tune">Devstral 2507</a></td><td><a href="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FFp4c2fMEzTezm1B5oEaM%2Fdevstral%20logo.png?alt=media&#x26;token=59f165fe-0d50-4b1a-88cf-a4617865aaa9">devstral logo.png</a></td><td><a href="tutorials-how-to-fine-tune-and-run-llms/devstral-how-to-run-and-fine-tune">devstral-how-to-run-and-fine-tune</a></td></tr><tr><td><a href="../basics/fine-tuning-llms-with-blackwell-rtx-50-series-and-unsloth">Fine-tune on Blackwell &#x26; RTX 50 GPUs</a></td><td><a href="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FlbVLSdgDVeTdrzqIqWSy%2Fnvidia-logo-white%20background.png?alt=media&#x26;token=91fec0de-66af-457e-a5eb-16e134bca0e3">nvidia-logo-white background.png</a></td><td><a href="../basics/fine-tuning-llms-with-blackwell-rtx-50-series-and-unsloth">fine-tuning-llms-with-blackwell-rtx-50-series-and-unsloth</a></td></tr><tr><td><a href="../basics/text-to-speech-tts-fine-tuning">TTS Fine-tuning</a></td><td><a href="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FjnEy1VXc85HX4nCqeAAy%2Ftts%20finetuning%20landscape.png?alt=media&#x26;token=24aaf75b-c6ee-4dbb-817d-f9aaa7c9a7ff">tts finetuning landscape.png</a></td><td><a href="../basics/text-to-speech-tts-fine-tuning">text-to-speech-tts-fine-tuning</a></td></tr><tr><td><a href="qwen3-how-to-run-and-fine-tune">Qwen3</a></td><td><a href="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2Fz30qbVABdBlqEnKatTf1%2Fqwen3.png?alt=media&#x26;token=efd4bb30-4926-4272-b15d-91c0a0fc5ac5">qwen3.png</a></td><td><a href="qwen3-how-to-run-and-fine-tune">qwen3-how-to-run-and-fine-tune</a></td></tr><tr><td><a href="tutorials-how-to-fine-tune-and-run-llms/phi-4-reasoning-how-to-run-and-fine-tune">Phi-4 reasoning</a></td><td><a href="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FLDayziE4Q7Gc52BMQfd4%2Fphi4%20reasoning2.png?alt=media&#x26;token=f3db5f93-dde0-49c3-97ed-cbf596d8d437">phi4 reasoning2.png</a></td><td><a href="tutorials-how-to-fine-tune-and-run-llms/phi-4-reasoning-how-to-run-and-fine-tune">phi-4-reasoning-how-to-run-and-fine-tune</a></td></tr><tr><td><a href="../basics/unsloth-dynamic-2.0-ggufs">Dynamic 2.0 GGUFs</a></td><td><a href="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FdiwpvMM4VA4oZqaANJOE%2Fdynamic%20v2%20with%20unsloth.png?alt=media&#x26;token=adc64cb6-2b52-4565-a44e-ac4acbd4247d">dynamic v2 with unsloth.png</a></td><td><a href="../basics/unsloth-dynamic-2.0-ggufs">unsloth-dynamic-2.0-ggufs</a></td></tr><tr><td><a href="tutorials-how-to-fine-tune-and-run-llms/llama-4-how-to-run-and-fine-tune">Llama 4</a></td><td><a href="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2F8RZoiqWL4cXqTFwTAbg8%2Fllama%204%20only.png?alt=media&#x26;token=c6b0dd0e-b817-482b-9b8e-05d017a72319">llama 4 only.png</a></td><td><a href="tutorials-how-to-fine-tune-and-run-llms/llama-4-how-to-run-and-fine-tune">llama-4-how-to-run-and-fine-tune</a></td></tr><tr><td><a href="tutorials-how-to-fine-tune-and-run-llms/deepseek-v3-0324-how-to-run-locally">DeepSeek-V3-0324</a></td><td><a href="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FuvkQHGJWBVejGmQDLMkz%2Fv30324.png?alt=media&#x26;token=941a8bdd-c5af-4144-9126-fa656335aba2">v30324.png</a></td><td><a href="tutorials-how-to-fine-tune-and-run-llms/deepseek-v3-0324-how-to-run-locally">deepseek-v3-0324-how-to-run-locally</a></td></tr><tr><td><a href="tutorials-how-to-fine-tune-and-run-llms/grok-2">Grok 2</a></td><td><a href="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FvSsBLbk5dF9Fnzvn4qMF%2Fgrok%202%20logo.png?alt=media&#x26;token=ae67f692-d7d6-462c-aabb-a4de8af1ea92">grok 2 logo.png</a></td><td><a href="tutorials-how-to-fine-tune-and-run-llms/grok-2">grok-2</a></td></tr><tr><td><a href="gemma-3-how-to-run-and-fine-tune">Gemma 3</a></td><td><a href="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FML1v35ELOxO0AxBpXWCn%2Fgemma%203%20logo.png?alt=media&#x26;token=04fefb63-973d-4b36-a2f6-77414ddf8003">gemma 3 logo.png</a></td><td><a href="gemma-3-how-to-run-and-fine-tune">gemma-3-how-to-run-and-fine-tune</a></td></tr><tr><td><a href="tutorials-how-to-fine-tune-and-run-llms/qwq-32b-how-to-run-effectively">QwQ-32B</a></td><td><a href="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FhE7P8M1nQaMEkrLiaRj6%2Fqwq%20logo%20only.png?alt=media&#x26;token=c42d1143-dbf8-425e-b1e2-7d9700c02816">qwq logo only.png</a></td><td><a href="tutorials-how-to-fine-tune-and-run-llms/qwq-32b-how-to-run-effectively">qwq-32b-how-to-run-effectively</a></td></tr><tr><td><a href="tutorials-how-to-fine-tune-and-run-llms/deepseek-r1-how-to-run-locally">DeepSeek-R1</a></td><td><a href="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FEDGoGKoQdMunfGToescN%2Fdeepseek%20r1.png?alt=media&#x26;token=f2bafaeb-9cd3-4f9d-8c09-b645e72d7fe7">deepseek r1.png</a></td><td><a href="tutorials-how-to-fine-tune-and-run-llms/deepseek-r1-how-to-run-locally">deepseek-r1-how-to-run-locally</a></td></tr><tr><td><a href="../get-started/reinforcement-learning-rl-guide">Reinforcement Learning (RL)</a></td><td><a href="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FDYDeJW7oBTYtXBqsVmPA%2Frl%20guide%20new.png?alt=media&#x26;token=78d922fe-09d5-4b5f-8ff5-10f573d59234">rl guide new.png</a></td><td><a href="../get-started/reinforcement-learning-rl-guide/tutorial-train-your-own-reasoning-model-with-grpo">tutorial-train-your-own-reasoning-model-with-grpo</a></td></tr><tr><td><a href="https://www.unsloth.ai/blog/mistral-small-3.1">Mistral Small 3.1</a></td><td><a href="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2Fyr9mvoFQqL47zSAE574d%2Fmistral%20small%203.1.png?alt=media&#x26;token=e882995f-931e-4af2-a086-d0cefbf23635">mistral small 3.1.png</a></td><td><a href="https://www.unsloth.ai/blog/mistral-small-3.1">https://www.unsloth.ai/blog/mistral-small-3.1</a></td></tr><tr><td><a href="../get-started/fine-tuning-llms-guide/tutorial-how-to-finetune-llama-3-and-use-in-ollama">Llama 3</a></td><td><a href="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FeLYVuPYGC1Giu97E8zWi%2Fllama%203logo.png?alt=media&#x26;token=2127b873-32cb-4a4a-9593-92a179b46c3b">llama 3logo.png</a></td><td><a href="../get-started/fine-tuning-llms-guide/tutorial-how-to-finetune-llama-3-and-use-in-ollama">tutorial-how-to-finetune-llama-3-and-use-in-ollama</a></td></tr><tr><td><a href="../basics/vision-fine-tuning">Vision Fine-tuning</a></td><td><a href="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2F5KEw7Kdq4FF1owcZH5GU%2Fllama_3.2_vision_large_rectangle_jPUNULJrVe5O4AvDDWO1M.webp?alt=media&#x26;token=efafc3d6-e763-4e51-83d1-4199fbbf3b53">llama_3.2_vision_large_rectangle_jPUNULJrVe5O4AvDDWO1M.webp</a></td><td><a href="../basics/vision-fine-tuning">vision-fine-tuning</a></td></tr><tr><td><a href="../basics/continued-pretraining">Continued Pretraining</a></td><td><a href="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FchkkXzhFudLPVKhnXiPR%2Fcontinued_pretraining_just_graph_HC0ALBypfCXyUUXClYPiN.webp?alt=media&#x26;token=61995f90-d6f3-4216-9ddd-0ed5f7342e57">continued_pretraining_just_graph_HC0ALBypfCXyUUXClYPiN.webp</a></td><td><a href="../basics/continued-pretraining">continued-pretraining</a></td></tr><tr><td><a href="https://unsloth.ai/blog/llama3-3">Llama 3.3</a></td><td><a href="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FQzD8cVunL79qfLTr3RfN%2Fllama_3.3_website_9hQURhj6KfZ7EnBRaKbiu.webp?alt=media&#x26;token=57ae3812-0dd6-4254-b4d8-8b591be3608c">llama_3.3_website_9hQURhj6KfZ7EnBRaKbiu.webp</a></td><td><a href="https://unsloth.ai/blog/llama3-3">https://unsloth.ai/blog/llama3-3</a></td></tr><tr><td><a href="https://unsloth.ai/blog/gemma2">Gemma 2</a></td><td><a href="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FTMjv4ruy6rjJoAmpEcq2%2Fgemma_2_long_OKsRGiTB8vrcIyXNWdgMw.avif?alt=media&#x26;token=accf6e7e-0cfa-4484-a671-f9bf93c84cc5">gemma_2_long_OKsRGiTB8vrcIyXNWdgMw.avif</a></td><td><a href="https://unsloth.ai/blog/gemma2">https://unsloth.ai/blog/gemma2</a></td></tr><tr><td><a href="https://unsloth.ai/blog/phi3">Phi-3</a></td><td><a href="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FrVYkfNhNa1nHacttNFHt%2Fphi3_unsloth_ynBY7FG3NTjIbS11ozN_g.webp?alt=media&#x26;token=cdac7cdd-0b9b-49a5-93cb-5434874e679d">phi3_unsloth_ynBY7FG3NTjIbS11ozN_g.webp</a></td><td><a href="https://unsloth.ai/blog/phi3">https://unsloth.ai/blog/phi3</a></td></tr></tbody></table>
+
+---
+
+## Create model instance
+
+**URL:** llms-txt#create-model-instance
+
+llm = LLM(
+    model="unsloth/DeepSeek-OCR",
+    enable_prefix_caching=False,
+    mm_processor_cache_gb=0,
+    logits_processors=[NGramPerReqLogitsProcessor]
+)
+
+---
+
+## (3) Adding an evaluation loop / OOMs
+
+**URL:** llms-txt#(3)-adding-an-evaluation-loop-/-ooms
+
+---
+
+## Multi-GPU Training with Unsloth
+
+**URL:** llms-txt#multi-gpu-training-with-unsloth
+
+Learn how to fine-tune LLMs on multiple GPUs and parallelism with Unsloth.
+
+Unsloth currently supports multi-GPU setups through libraries like Accelerate and DeepSpeed. This means you can already leverage parallelism methods such as **FSDP** and **DDP** with Unsloth.
+
+* You can use our [Magistral-2509 Kaggle notebook](https://docs.unsloth.ai/models/tutorials-how-to-fine-tune-and-run-llms/magistral-how-to-run-and-fine-tune#fine-tuning-magistral-with-unsloth) as an example which utilizes multi-GPU Unsloth to fit the 24B parameter model
+
+However, we know that the process can be complex and requires manual setup. We’re working hard to make multi-GPU support much simpler and more user-friendly, and we’ll be announcing official multi-GPU support for Unsloth soon.
+
+**In the meantime**, to enable multi GPU for DDP, do the following:
+
+1. Save your training script to `train.py` and set in `SFTConfig` or `TrainingArguments` the flag `ddp_find_unused_parameters = False`
+2. Run `accelerate launch train.py` or `torchrun --nproc_per_node N_GPUS -m train.py` where N\_GPUS is the number of GPUs you have.
+
+**Pipeline / model splitting loading** is also allowed, so if you do not have enough VRAM for 1 GPU to load say Llama 70B, no worries - we will split the model for you on each GPU! To enable this, use the `device_map = "balanced"` flag:
+
+Also several contributors have created repos to enable or improve multi-GPU support with Unsloth, including:
+
+* [unsloth-5090-multiple](https://github.com/thad0ctor/unsloth-5090-multiple): A fork enabling Unsloth to run efficiently on multi-GPU systems, particularly for the NVIDIA [RTX 5090](https://docs.unsloth.ai/basics/fine-tuning-llms-with-blackwell-rtx-50-series-and-unsloth) and similar setups.
+* [opensloth](https://github.com/anhvth/opensloth): Unsloth with support for multi-GPU training including experimental features.
+
+**Stay tuned for our official announcement!**\
+For more details, check out our ongoing [Pull Request](https://github.com/unslothai/unsloth/issues/2435) discussing multi-GPU support.
+
+**Examples:**
+
+Example 1 (python):
+```python
+from unsloth import FastLanguageModel
+model, tokenizer = FastLanguageModel.from_pretrained(
+    "unsloth/Llama-3.3-70B-Instruct",
+    load_in_4bit = True,
+    device_map = "balanced",
+)
+```
+
+---
+
+## (4) Customized chat templates
+
+**URL:** llms-txt#(4)-customized-chat-templates
+
+---
+
+## Beginner? Start here!
+
+**URL:** llms-txt#beginner?-start-here!
+
+If you're a beginner, here might be the first questions you'll ask before your first fine-tune. You can also always ask our community by joining our [Reddit page](https://www.reddit.com/r/unsloth/).
+
+<table data-view="cards"><thead><tr><th data-type="content-ref"></th><th></th><th></th><th data-hidden data-card-target data-type="content-ref"></th></tr></thead><tbody><tr><td><a href="fine-tuning-llms-guide">fine-tuning-llms-guide</a></td><td>Step-by-step on how to fine-tune!</td><td>Learn the core basics of training.</td><td><a href="fine-tuning-llms-guide">fine-tuning-llms-guide</a></td></tr><tr><td><a href="fine-tuning-llms-guide/what-model-should-i-use">what-model-should-i-use</a></td><td>Instruct or Base Model?</td><td>How big should my dataset be?</td><td><a href="fine-tuning-llms-guide/what-model-should-i-use">what-model-should-i-use</a></td></tr><tr><td><a href="../models/tutorials-how-to-fine-tune-and-run-llms">tutorials-how-to-fine-tune-and-run-llms</a></td><td>How to Run &#x26; Fine-tune DeepSeek?</td><td>What settings should I set when running Gemma 3?</td><td><a href="../models/tutorials-how-to-fine-tune-and-run-llms">tutorials-how-to-fine-tune-and-run-llms</a></td></tr><tr><td><a href="beginner-start-here/faq-+-is-fine-tuning-right-for-me">faq-+-is-fine-tuning-right-for-me</a></td><td>What can fine-tuning do for me?</td><td>RAG vs. Fine-tuning?</td><td><a href="beginner-start-here/faq-+-is-fine-tuning-right-for-me">faq-+-is-fine-tuning-right-for-me</a></td></tr><tr><td><a href="install-and-update">install-and-update</a></td><td>How do I install Unsloth locally?</td><td>How to update Unsloth?</td><td><a href="install-and-update">install-and-update</a></td></tr><tr><td><a href="fine-tuning-llms-guide/datasets-guide">datasets-guide</a></td><td>How do I structure/prepare my dataset?</td><td>How do I collect data?</td><td></td></tr><tr><td><a href="beginner-start-here/unsloth-requirements">unsloth-requirements</a></td><td>Does Unsloth work on my GPU?</td><td>How much VRAM will I need?</td><td><a href="beginner-start-here/unsloth-requirements">unsloth-requirements</a></td></tr><tr><td><a href="../basics/running-and-saving-models">running-and-saving-models</a></td><td>How do I save my model locally?</td><td>How do I run my model via Ollama or vLLM?</td><td><a href="../basics/running-and-saving-models">running-and-saving-models</a></td></tr><tr><td><a href="fine-tuning-llms-guide/lora-hyperparameters-guide">lora-hyperparameters-guide</a></td><td>What happens when I change a parameter?</td><td>What parameters should I change?</td><td></td></tr></tbody></table>
+
+<figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FjT759hR4zq8ygzg1oEwI%2FLarge%20sloth%20Question%20mark.png?alt=media&#x26;token=ca8d2f56-889a-4da8-8106-da88d22e69d2" alt="" width="188"><figcaption></figcaption></figure>
+
+---
+
+## Until v0.11.1 release, you need to install vLLM from nightly build
+
+**URL:** llms-txt#until-v0.11.1-release,-you-need-to-install-vllm-from-nightly-build
+
+uv pip install -U vllm --pre --extra-index-url https://wheels.vllm.ai/nightly
+python
+from vllm import LLM, SamplingParams
+from vllm.model_executor.models.deepseek_ocr import NGramPerReqLogitsProcessor
+from PIL import Image
+
+**Examples:**
+
+Example 1 (unknown):
+```unknown
+2. Then run the following code:
+
+{% code overflow="wrap" %}
+```
+
+---
+
+## Finetuning from Last Checkpoint
+
+**URL:** llms-txt#finetuning-from-last-checkpoint
+
+**Contents:**
+  - Wandb Integration
+
+Checkpointing allows you to save your finetuning progress so you can pause it and then continue.
+
+You must edit the `Trainer` first to add `save_strategy` and `save_steps`. Below saves a checkpoint every 50 steps to the folder `outputs`.
+
+Then in the trainer do:
+
+Which will start from the latest checkpoint and continue training.
+
+### Wandb Integration
+
+**Examples:**
+
+Example 1 (python):
+```python
+trainer = SFTTrainer(
+    ....
+    args = TrainingArguments(
+        ....
+        output_dir = "outputs",
+        save_strategy = "steps",
+        save_steps = 50,
+    ),
+)
+```
+
+Example 2 (python):
+```python
+trainer_stats = trainer.train(resume_from_checkpoint = True)
+```
+
+---
+
+## import os # Optional for faster downloading
+
+**URL:** llms-txt#import-os-#-optional-for-faster-downloading
+
+---
+
+## Unsloth Inference
+
+**URL:** llms-txt#unsloth-inference
+
+Learn how to run your finetuned model with Unsloth's faster inference.
+
+Unsloth supports natively 2x faster inference. For our inference only notebook, click [here](https://colab.research.google.com/drive/1aqlNQi7MMJbynFDyOQteD2t0yVfjb9Zh?usp=sharing).
+
+All QLoRA, LoRA and non LoRA inference paths are 2x faster. This requires no change of code or any new dependencies.
+
+<pre class="language-python"><code class="lang-python"><strong>from unsloth import FastLanguageModel
+</strong>model, tokenizer = FastLanguageModel.from_pretrained(
+    model_name = "lora_model", # YOUR MODEL YOU USED FOR TRAINING
+    max_seq_length = max_seq_length,
+    dtype = dtype,
+    load_in_4bit = load_in_4bit,
+)
+FastLanguageModel.for_inference(model) # Enable native 2x faster inference
+text_streamer = TextStreamer(tokenizer)
+_ = model.generate(**inputs, streamer = text_streamer, max_new_tokens = 64)
+</code></pre>
+
+#### NotImplementedError: A UTF-8 locale is required. Got ANSI
+
+Sometimes when you execute a cell [this error](https://github.com/googlecolab/colabtools/issues/3409) can appear. To solve this, in a new cell, run the below:
+
+**Examples:**
+
+Example 1 (python):
+```python
+import locale
+locale.getpreferredencoding = lambda: "UTF-8"
+```
+
+---
+
+## DeepSeek-R1: How to Run Locally
+
+**URL:** llms-txt#deepseek-r1:-how-to-run-locally
+
+**Contents:**
+- Using llama.cpp (recommended)
+
+A guide on how you can run our 1.58-bit Dynamic Quants for DeepSeek-R1 using llama.cpp.
+
+{% hint style="success" %}
+Please see <https://docs.unsloth.ai/basics/deepseek-r1-0528-how-to-run-locally> for an updated DeepSeek R1-0528 (May 28th 2025 version)
+{% endhint %}
+
+## Using llama.cpp (recommended)
+
+1. Do not forget about `<｜User｜>` and `<｜Assistant｜>` tokens! - Or use a chat template formatter
+2. Obtain the latest `llama.cpp` at: [github.com/ggerganov/llama.cpp](https://github.com/ggerganov/llama.cpp). You can follow the build instructions below as well:
+
+3. It's best to use `--min-p 0.05` to counteract very rare token predictions - I found this to work well especially for the 1.58bit model.
+4. Download the model via:
+
+**Examples:**
+
+Example 1 (bash):
+```bash
+apt-get update
+apt-get install pciutils build-essential cmake curl libcurl4-openssl-dev -y
+git clone https://github.com/ggerganov/llama.cpp
+cmake llama.cpp -B llama.cpp/build \
+    -DBUILD_SHARED_LIBS=ON -DGGML_CUDA=ON -DLLAMA_CURL=ON
+cmake --build llama.cpp/build --config Release -j --clean-first --target llama-quantize llama-cli llama-gguf-split
+cp llama.cpp/build/bin/llama-* llama.cpp
+```
+
+---
+
+## Memory Efficient RL
+
+**URL:** llms-txt#memory-efficient-rl
+
+**Contents:**
+- :sparkles:How to enable optimizations
+- :mortar\_board:No more `gpu_memory_utilization`!
+- :interrobang:Why does RL use so much memory?
+- 🦥Unsloth Standby
+- 🧪Performance Experiments
+  - H100 Experiments
+  - Previous A100 40GB experiments
+- :tada:Other optimizations
+- :books:GRPO Notebooks
+
+We're excited to introduce more efficient reinforcement learning (RL) in Unsloth with multiple algorithmic advancements:
+
+* **1.2 to 1.7x increased context lengths** with no slowdown and no extra memory usage!
+* **10% faster RL training runs** with revamped kernels and async data movements
+* **2x faster `torch.compile` times** during model loading
+
+Unsloth **already** increases RL training speed, context window and reduces VRAM usage by 50–90% vs. all other setups with FA2, but now [**Unsloth's Standby**](#unsloth-standby) improves this even further.  Our Standby feature uniquely limits speed degradation compared to other implementations and sometimes makes training even faster!
+
+Now, Qwen3-32B LoRA 16-bit can attain 6,144 context lengths vs 3,600 (**1.7x longer**) before on 1xH100 80GB GPU. Llama-3.1-8B QLoRA 4bit can attain 47,500 lengths vs 42,000 before (1.13x longer).
+
+We made RL runs 10% faster through various kernel optimizations, and removed the LoRA communication channel between the CPU and GPU when switching from training to inference mode. Finally, we used custom `torch.compile` flags to make vLLM's rollout faster by 10%, and reduced compilation time by 2x.
+
+## :sparkles:How to enable optimizations
+
+To enable **Unsloth's Standby** feature, set the environment variable `UNSLOTH_VLLM_STANDBY` before any Unsloth import. Then set `gpu_memory_utilization = 0.95`  and that's it!
+
+## :mortar\_board:No more `gpu_memory_utilization`!
+
+With Unsloth's new RL improvements, you NEVER have to worry about tuning or setting `gpu_memory_utilization` ever again - simply set it to 90% or 95% of GPU utilization - 100% sadly won't work since some space is needed for small tensors. Previously one had to tune it from 30% to 95% - no more now! Set it to the maximum and Unsloth will handle the rest!
+
+## :interrobang:Why does RL use so much memory?
+
+GRPO (and many RL variants) rely heavily on generation which is primarily powered by vLLM. But this comes comes with a steep cost since it requires constant **GPU memory for weights, activations, and the KV Cache**.
+
+{% columns %}
+{% column width="41.66666666666667%" %}
+Inference takes a lot of VRAM
+
+<figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FumvGGfls63zqeYBEDc6b%2Fimage.png?alt=media&#x26;token=a0c7488c-cf08-4b82-a3fd-fb66683e1cc7" alt=""><figcaption></figcaption></figure>
+{% endcolumn %}
+
+{% column width="58.33333333333333%" %}
+Whilst Training also uses VRAM!
+
+<figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FfP3mRsZNQLzXRJ9aV8au%2Ffig6-2.avif?alt=media&#x26;token=66d9fc0a-dbc6-4961-b483-d7b3da298e0c" alt=""><figcaption></figcaption></figure>
+{% endcolumn %}
+{% endcolumns %}
+
+This means RL needs to keep 2 sets of VRAM / memory on the GPU at the same time:
+
+1. Inference engine (has model weights, KV cache)
+2. Training engine (has model weights, activations, gradients, optimizer states)
+
+Current RL frameworks have to split 50/50 for a 80GB GPU with 50% for inference and 50% for training. And moving weights from training mode to inference mode can take quite some time.
+
+<table><thead><tr><th width="251.51666259765625">80GB GPU</th><th>Inference Engine (50%)</th><th>Training Engine (50%)</th></tr></thead><tbody><tr><td>Model Weights</td><td>16GB</td><td>16GB</td></tr><tr><td>KV Cache</td><td>24GB</td><td></td></tr><tr><td>Activations, Gradients, Optimizer States</td><td></td><td>24GB</td></tr></tbody></table>
+
+Previous Unsloth versions already smartly optimizes the above, as we **share vLLM's weight space directly which removes the double memory usage of the model weights**. This frees up 16GB of space for example which can be used to increase context length or the speed of generation. Also, we don't need to do memory movements, which makes training faster.
+
+| 80GB GPU                                 | Inference Engine (50%)                                               | Training Engine (50%)                                               |
+| ---------------------------------------- | -------------------------------------------------------------------- | ------------------------------------------------------------------- |
+| Model Weights                            | <mark style="background-color:$success;">**16GB SHARED**</mark>      | <mark style="background-color:$success;">**<<< SHARED**</mark>      |
+| KV Cache                                 | 24GB + 8GB= <mark style="background-color:$success;">**32GB**</mark> |                                                                     |
+| Activations, Gradients, Optimizer States |                                                                      | 24GB + 8GB=<mark style="background-color:$success;">**32GB**</mark> |
+
+But we can go further - we first note RL does inference then training then inference then training etc.
+
+<figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2F0gTALcg01JbV9A9BVWxz%2F5b957843-eb58-4778-8b90-f25767c51495.png?alt=media&#x26;token=a502e83a-3179-4f5b-97c3-4daa7890affd" alt=""><figcaption></figcaption></figure>
+
+This means the memory space for inference and training can in theory be re-used, since inference and training are separate modes - this is where [vLLM's sleep mode feature](https://docs.vllm.ai/en/latest/features/sleep_mode.html#rlhf-weight-updates) comes in, which has 2 options:
+
+1. `level = 1` copies weights to the CPU and deletes KV cache
+2. `level = 2` deletes weights and deletes KV cache
+
+But reminder in Unsloth we share vLLM's memory space for the weights - this means we need a new way to delete the KV cache, and ignore deletion of the weights, and we call this Unsloth Standby.
+
+| 80GB GPU                                                                                                                                                            | Inference Engine                                                | Training Engine                                                |
+| ------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------- | -------------------------------------------------------------- |
+| Model Weights                                                                                                                                                       | <mark style="background-color:$success;">**16GB SHARED**</mark> | <mark style="background-color:$success;">**<<< SHARED**</mark> |
+| <p><mark style="background-color:purple;"><strong>Multi-purpose</strong></mark></p><p><mark style="background-color:purple;"><strong>64GB space</strong></mark></p> | KV Cache                                                        | Activations, Gradients, Optimizer States                       |
+
+To enable this, simply add the below to all RL / GRPO training runs before any Unsloth import:
+
+## 🧪Performance Experiments
+
+Here you will find out how we benchmarked memory usage and context length for GRPO. Note that we do **2 generations per prompt because for GRPO to work**, we need at least 2 generations for which to calculate the sample mean and variance. **Without 2 generations, the standard deviation of one sample is 0**. This causes the advantages which uses this: (reward - mean)/std **to be undefined**.
+
+$$
+Z=\frac{r\_i - \mu}{\sqrt{\frac{1}{n}\sum(r\_i-\mu)^2}} \\
+Z\_{n=1}=\frac{r\_1 - \mu}{\sqrt{\frac{1}{1}\sum(r\_1-\mu)^2}}=\frac{0}{0}=\text{undefined}
+$$
+
+This means for GRPO specifically, a maximum context length of 6,144 for Qwen-3 32B is actually 6,144 multiplied by 2 generations ie 12,288 in length.
+
+We provide experiments for Llama-3.1 8B on both LoRA (16bit) and QLoRA (4bit) below:
+
+<figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FSheFuQuWSMXNXvKouF0O%2Foutput%20(10).png?alt=media&#x26;token=10f33092-137a-4d60-b652-377b5105af45" alt="" width="563"><figcaption></figcaption></figure>
+
+**If you notice any training time differences, it isn’t much**. In our apples to apples comparison we noticed <1% training time slowdowns or even speedups which can be attributed to margin of error.
+
+We also theorize speedups are possible due to reduced memory pressure, so there might be less memory cleanup on the CUDA memory allocator side.
+
+<figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FGABhMF8RjsTh8q8AFXEt%2Fgpu%20mem%20cofigure.png?alt=media&#x26;token=4c4ed00b-ea84-4eba-aba8-71f697f953ae" alt=""><figcaption></figcaption></figure>
+
+In the above image, you see the difference between baseline and standby mode on a single T4 GPU for Qwen 3 4B. <mark style="background-color:green;">**We can stretch the vllm's**</mark><mark style="background-color:green;">**&#x20;**</mark><mark style="background-color:green;">**`gpu_memory_utilisation`**</mark><mark style="background-color:green;">**&#x20;**</mark><mark style="background-color:green;">**to as high as 0.95 without worrying that it'd affect training**</mark>. This means you can fit higher context length sequences and more sequences can be processed. In the first case, for example, we have enough memory to fit and process 32K length sequences provided training allows where as previously, any inputs longer than 2K would potentially not fit in and end up causing OOMs (out of memory).
+
+<table data-full-width="true"><thead><tr><th>Experiments</th><th>Config</th><th>Status</th><th>GPU Memory usage</th><th>Comments</th></tr></thead><tbody><tr><td><ol><li><a href="https://colab.research.google.com/drive/18CssBY5C0mStnLvu2Hlt4aFLoPugRG0K?usp=sharing">u0.95gen2ga1s Qwen3_(4B)-GRPO.ipynb</a></li></ol></td><td><p><code>standby True</code></p><p><code>vllm_gpu_util 0.95</code></p><p><code>num_gen 2</code></p><p><code>grad_acc_steps 2</code></p></td><td>Runs for 40 steps/ 40 minutes</td><td><p>14.5 GiB (set by vllm_gpu_util)</p><p><br></p></td><td>Enough to fit in 32K KVCache with chunk of 2-4K or say 16K KVCache + 16K chunks</td></tr><tr><td><ol start="2"><li><a href="https://colab.research.google.com/drive/1q0TOUychygfreI2wKpg51sqnRhs5cYnX?usp=sharing">u9ge2ga2s Qwen3_(4B)-GRPO.ipynb</a></li></ol></td><td><p><code>standby True</code></p><p><code>vllm_gpu_util 0.9</code></p><p><code>num_gen 2</code></p><p><code>grad_acc_steps 2</code></p></td><td>Runs 32 steps in 40 m</td><td>13.8 GiB (set by…)</td><td>Approx enough to fit in ~28K KVCache with chunk of 2-4K or say 15K KVCache + 15K chunks</td></tr><tr><td><ol start="3"><li><a href="https://colab.research.google.com/drive/12Uw8y5beLzPtx11mCWCYyh9Z_PEHHdId?usp=sharing">u9ge2ga2ns Qwen3_(4B)-GRPO.ipynb</a></li></ol></td><td><p><code>standby False</code></p><p><code>vllm_gpu_util 0.9</code></p><p><code>num_gen 2</code></p><p><code>grad_acc_steps 2</code></p></td><td>model loads but can’t train because even batch size of 1 doesn’t fit</td><td>OOM</td><td><br></td></tr><tr><td><ol start="4"><li><a href="https://colab.research.google.com/drive/1GwTlaP5CLsW-BcE1LqZWkz6S8VTWYdJ2?usp=sharing">u8ge2ga2ns Qwen3_(4B)-GRPO.ipynb</a></li></ol></td><td><p><code>standby False</code></p><p><code>vllm_gpu_util 0.8</code></p><p><code>num_gen 2</code></p><p><code>grad_acc_steps 2</code></p></td><td>model loads but can’t train because even batch size of 1 doesn’t fit</td><td>OOM</td><td><br></td></tr><tr><td><ol start="5"><li><a href="https://colab.research.google.com/drive/1IuSUNzEBTiURK-vbTQuRDuUl0Ya2pz2t?usp=sharing">u7ge2ga2ns Qwen3_(4B)-GRPO.ipynb</a></li></ol></td><td><p><code>standby False</code></p><p><code>vllm_gpu_util 0.7</code> </p><p><code>num_gen 2</code></p><p><code>grad_acc_steps 2</code></p></td><td><p>Trains fine</p><p>28 steps take 39min</p></td><td>~15.1GiB</td><td>any input slightly longer will result in OOM on colab</td></tr><tr><td><ol start="6"><li><a href="https://colab.research.google.com/drive/1RY7HwpZ0luJT70OyLJ6zXKZQ2COdT9QJ?usp=sharing">u7gen2ga2s Qwen3_(4B)-GRPO.ipynb</a></li></ol></td><td><p><code>standby True</code></p><p><code>vllm_gpu_util 0.7</code></p><p><code>num_gen 2</code></p><p><code>grad_acc_steps 2</code></p></td><td><p>Trains fine</p><p>29 steps take 40min</p></td><td>13GiB but most of the time around 10-11GB</td><td>At the same config, we save 2GiB aka 15% memory here.<br>Can be higher for longer sequences</td></tr></tbody></table>
+
+| Model                | GPU                   | Seq Len | Num Generations | Grad Acc Steps |
+| -------------------- | --------------------- | ------- | --------------- | -------------- |
+| Qwen2.5-14B-Instruct | NVIDIA H100 80GB PCIe | 32,768  | 8               | 4              |
+
+In our collapsible results below, you can see there is a 9GiB difference in the peak memory used (note that 90% of the time, the GPU memory usage is equal to the peak memory in our case). **To put things into perspective, using TRL and LoRA we were able to only fine-tune an 8B parameter model with a context length of 1024 at max (32x less).** Anything with higher sequence length (with similar configuration) results in the process failing with OOM.
+
+<summary>Click for Unsloth Standby Mode vs. no Standby Benchmarks</summary>
+
+The image below shows how standby compares against non standby training with Unsloth. It is averaged over 3 runs to make sure the metrics aren’t noisy. In fact, if you zoom in close enough, you’d see that enabling standby makes it faster as well, probably due to less memory pressure as discussed before.
+
+<figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FLn0GXTYJvay21vPuGgRV%2Ftrainglobalstep.png?alt=media&#x26;token=2b532c3f-ab12-4d69-9258-f89b4f7a4261" alt=""><figcaption></figcaption></figure>
+
+### Previous A100 40GB experiments
+
+In our previous experiments on A100 40GB GPU with Qwen-2.5-3b-instruct and 8 generations per sample, we observed that without standby, the GRPO training (model loaded in 16bit, LoRA, only weights trainable), we could only fit 6K sequence lengths. With our standby feature, we were able to fit 10K and beyond! **For comparison TRL can only give you context lengths of up to 1K while holding the same batch size.**
+
+<figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FInuI53Sf50kXcxfW1YCz%2Fqwen3%20gpu%20mem.png?alt=media&#x26;token=0c2b62ad-d31c-40b5-ab8c-55accfc88c65" alt="" width="563"><figcaption></figcaption></figure>
+
+## :tada:Other optimizations
+
+We now select better compilation flags and reduce compile times by 50% or more. We also managed to dynamically patch any vLLM version to handle `gc.collect` better for backwards compatibility reasons, as inspired from this [vLLM pull request](https://github.com/vllm-project/vllm/pull/21146). This reduces compilation times from 2 minutes to under 40 seconds.
+
+We also optimized `torch.compile` flags and tried turning on some flags - unfortunately `combo_kernels` and `multi_kernel` could not function correctly on vLLM 0.10 and Torch 2.8/2.9 nightly and `coordinate_descent_tuning` made autotuning all kernels dramatically slower. It used to compile in under a minute, but enabling it took over 13 minutes and more, with minimal performance gains.
+
+## :books:GRPO Notebooks
+
+All our GRPO notebooks have Unsloth Standby on by default and all optimizations! See <https://docs.unsloth.ai/get-started/unsloth-notebooks> for all our GRPO notebooks, or try the below:
+
+* [**Qwen3 (4B)**](https://colab.research.google.com/github/unslothai/notebooks/blob/main/nb/Qwen3_\(4B\)-GRPO.ipynb) **-** Advanced GRPO LoRA
+* [**DeepSeek-R1-0528-Qwen3 (8B)**](https://colab.research.google.com/github/unslothai/notebooks/blob/main/nb/DeepSeek_R1_0528_Qwen3_\(8B\)_GRPO.ipynb) (for multilingual usecases)
+* [Gemma 3 (1B)](https://colab.research.google.com/github/unslothai/notebooks/blob/main/nb/Gemma3_\(1B\)-GRPO.ipynb)
+* [Llama 3.2 (3B)](https://colab.research.google.com/github/unslothai/notebooks/blob/main/nb/Advanced_Llama3_2_\(3B\)_GRPO_LoRA.ipynb) - Advanced GRPO LoRA
+* [Llama 3.1 (8B)](https://colab.research.google.com/github/unslothai/notebooks/blob/main/nb/Llama3.1_\(8B\)-GRPO.ipynb)
+* [Phi-4 (14B)](https://colab.research.google.com/github/unslothai/notebooks/blob/main/nb/Phi_4_\(14B\)-GRPO.ipynb)
+* [Mistral v0.3 (7B)](https://colab.research.google.com/github/unslothai/notebooks/blob/main/nb/Mistral_v0.3_\(7B\)-GRPO.ipynb)
+* [Qwen2.5 (3B)](https://colab.research.google.com/github/unslothai/notebooks/blob/main/nb/Qwen2.5_\(3B\)-GRPO.ipynb)
+
+**Examples:**
+
+Example 1 (python):
+```python
+import os
+os.environ["UNSLOTH_VLLM_STANDBY"] = "1"
+
+from unsloth import FastLanguageModel
+import torch
+model, tokenizer = FastLanguageModel.from_pretrained(
+    model_name = "unsloth/Qwen3-8B-Base",
+    max_seq_length = 2048, # Can increase for longer reasoning traces
+    load_in_4bit = False, # False for LoRA 16bit
+    fast_inference = True,
+    max_lora_rank = 32, # Larger rank = smarter, but slower
+    gpu_memory_utilization = 0.95,
+)
+```
+
+Example 2 (python):
+```python
+import os
+os.environ["UNSLOTH_VLLM_STANDBY"] = "1"
+```
+
+Example 3 (unknown):
+```unknown
+Standy mode enabled:
+
+|===========================================================================|
+|                  PyTorch CUDA memory summary, device ID 0                 |
+|---------------------------------------------------------------------------|
+|            CUDA OOMs: 0            |        cudaMalloc retries: 0         |
+|===========================================================================|
+|        Metric         | Cur Usage  | Peak Usage | Tot Alloc  | Tot Freed  |
+|---------------------------------------------------------------------------|
+| Allocated memory      |  32249 MiB |  43042 MiB | 128336 GiB | 128305 GiB |
+|       from large pool |  31415 MiB |  42165 MiB | 127204 GiB | 127173 GiB |
+|       from small pool |    834 MiB |   1184 MiB |   1132 GiB |   1131 GiB |
+|---------------------------------------------------------------------------|
+| Active memory         |  32249 MiB |  43042 MiB | 128336 GiB | 128305 GiB |
+|       from large pool |  31415 MiB |  42165 MiB | 127204 GiB | 127173 GiB |
+|       from small pool |    834 MiB |   1184 MiB |   1132 GiB |   1131 GiB |
+|---------------------------------------------------------------------------|
+| Requested memory      |  32199 MiB |  42987 MiB | 128176 GiB | 128145 GiB |
+|       from large pool |  31364 MiB |  42110 MiB | 127047 GiB | 127016 GiB |
+|       from small pool |    834 MiB |   1184 MiB |   1129 GiB |   1128 GiB |
+|---------------------------------------------------------------------------|
+| GPU reserved memory   |  37644 MiB |  47504 MiB | 705806 MiB | 668162 MiB |
+|       from large pool |  36376 MiB |  46588 MiB | 682818 MiB | 646442 MiB |
+|       from small pool |   1268 MiB |   1284 MiB |  22988 MiB |  21720 MiB |
+|---------------------------------------------------------------------------|
+| Non-releasable memory | 713142 KiB |   4633 MiB | 103206 GiB | 103205 GiB |
+|       from large pool | 525312 KiB |   4594 MiB | 101923 GiB | 101922 GiB |
+|       from small pool | 187830 KiB |    250 MiB |   1283 GiB |   1283 GiB |
+|---------------------------------------------------------------------------|
+| Allocations           |    3460    |    4809    |   15606 K  |   15603 K  |
+|       from large pool |     395    |     563    |    2812 K  |    2811 K  |
+|       from small pool |    3065    |    4270    |   12794 K  |   12791 K  |
+|---------------------------------------------------------------------------|
+| Active allocs         |    3460    |    4809    |   15606 K  |   15603 K  |
+|       from large pool |     395    |     563    |    2812 K  |    2811 K  |
+|       from small pool |    3065    |    4270    |   12794 K  |   12791 K  |
+|---------------------------------------------------------------------------|
+| GPU reserved segments |     913    |     920    |   13260    |   12347    |
+|       from large pool |     279    |     305    |    1766    |    1487    |
+|       from small pool |     634    |     642    |   11494    |   10860    |
+|---------------------------------------------------------------------------|
+| Non-releasable allocs |     422    |     628    |    4766 K  |    4765 K  |
+|       from large pool |      66    |      92    |    1290 K  |    1289 K  |
+|       from small pool |     356    |     555    |    3476 K  |    3475 K  |
+|---------------------------------------------------------------------------|
+| Oversize allocations  |       0    |       0    |       0    |       0    |
+|---------------------------------------------------------------------------|
+| Oversize GPU segments |       0    |       0    |       0    |       0    |
+|===========================================================================|
+
+
+Without Standby:
+
+|===========================================================================|
+|                  PyTorch CUDA memory summary, device ID 0                 |
+|---------------------------------------------------------------------------|
+|            CUDA OOMs: 0            |        cudaMalloc retries: 0         |
+|===========================================================================|
+|        Metric         | Cur Usage  | Peak Usage | Tot Alloc  | Tot Freed  |
+|---------------------------------------------------------------------------|
+| Allocated memory      |  32711 MiB |  52084 MiB | 142756 GiB | 142724 GiB |
+|       from large pool |  31877 MiB |  51207 MiB | 141499 GiB | 141467 GiB |
+|       from small pool |    834 MiB |   1184 MiB |   1257 GiB |   1256 GiB |
+|---------------------------------------------------------------------------|
+| Active memory         |  32711 MiB |  52084 MiB | 142756 GiB | 142724 GiB |
+|       from large pool |  31877 MiB |  51207 MiB | 141499 GiB | 141467 GiB |
+|       from small pool |    834 MiB |   1184 MiB |   1257 GiB |   1256 GiB |
+|---------------------------------------------------------------------------|
+| Requested memory      |  32572 MiB |  51658 MiB | 141898 GiB | 141866 GiB |
+|       from large pool |  31738 MiB |  50780 MiB | 140644 GiB | 140613 GiB |
+|       from small pool |    833 MiB |   1184 MiB |   1253 GiB |   1252 GiB |
+|---------------------------------------------------------------------------|
+| GPU reserved memory   |  49552 MiB |  52188 MiB |  86354 MiB |  36802 MiB |
+|       from large pool |  48320 MiB |  51300 MiB |  84740 MiB |  36420 MiB |
+|       from small pool |   1232 MiB |   1232 MiB |   1614 MiB |    382 MiB |
+|---------------------------------------------------------------------------|
+| Non-releasable memory |      0 B   |      0 B   |      0 B   |      0 B   |
+|       from large pool |      0 B   |      0 B   |      0 B   |      0 B   |
+|       from small pool |      0 B   |      0 B   |      0 B   |      0 B   |
+|---------------------------------------------------------------------------|
+| Allocations           |    3460    |    4809    |   17440 K  |   17437 K  |
+|       from large pool |     395    |     564    |    2742 K  |    2741 K  |
+|       from small pool |    3065    |    4270    |   14698 K  |   14695 K  |
+|---------------------------------------------------------------------------|
+| Active allocs         |    3460    |    4809    |   17440 K  |   17437 K  |
+|       from large pool |     395    |     564    |    2742 K  |    2741 K  |
+|       from small pool |    3065    |    4270    |   14698 K  |   14695 K  |
+|---------------------------------------------------------------------------|
+| GPU reserved segments |       0    |       0    |       0    |       0    |
+|       from large pool |       0    |       0    |       0    |       0    |
+|       from small pool |       0    |       0    |       0    |       0    |
+|---------------------------------------------------------------------------|
+| Non-releasable allocs |       0    |       0    |       0    |       0    |
+|       from large pool |       0    |       0    |       0    |       0    |
+|       from small pool |       0    |       0    |       0    |       0    |
+|---------------------------------------------------------------------------|
+| Oversize allocations  |       0    |       0    |       0    |       0    |
+|---------------------------------------------------------------------------|
+| Oversize GPU segments |       0    |       0    |       0    |       0    |
+|===========================================================================|
+```
+
+---
+
+## or:
+
+**URL:** llms-txt#or:
+
+**Contents:**
+  - Run & Evaluate your model
+  - Save your model
+
+mask_truncated_completions=True,
+python
+
+**Examples:**
+
+Example 1 (unknown):
+```unknown
+{% endhint %}
+
+You should see the reward increase overtime. We would recommend you train for at least 300 steps which may take 30 mins however, for optimal results, you should train for longer.
+
+{% hint style="warning" %}
+If you're having issues with your GRPO model not learning, we'd highly recommend to use our [Advanced GRPO notebooks](https://docs.unsloth.ai/unsloth-notebooks#grpo-reasoning-notebooks) as it has a much better reward function and you should see results much faster and frequently.
+{% endhint %}
+
+You will also see sample answers which allows you to see how the model is learning. Some may have steps, XML tags, attempts etc. and the idea is as trains it's going to get better and better because it's going to get scored higher and higher until we get the outputs we desire with long reasoning chains of answers.
+
+<figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FyRmUGe8laUKIl0RKwlE6%2Fimage.png?alt=media&#x26;token=3ff931cc-0d2b-4a9c-bbe1-b6289b22d157" alt="" width="563"><figcaption></figcaption></figure>
+{% endstep %}
+
+{% step %}
+
+### Run & Evaluate your model
+
+Run your model by clicking the play button. In the first example, there is usually no reasoning in the answer and in order to see the reasoning, we need to first save the LoRA weights we just trained with GRPO first using:
+
+<pre><code><strong>model.save_lora("grpo_saved_lora")
+</strong></code></pre>
+
+<figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FkLHdlRVKN58tM7SGKp3O%2Fimage.png?alt=media&#x26;token=b43a8164-7eae-4ec4-bf59-976078f9be31" alt=""><figcaption><p>The first inference example run has no reasoning. You must load the LoRA and test it to reveal the reasoning.</p></figcaption></figure>
+
+Then we load the LoRA and test it. Our reasoning model is much better - it's not always correct, since we only trained it for an hour or so - it'll be better if we extend the sequence length and train for longer!
+
+You can then save your model to GGUF, Ollama etc. by following our [guide here](https://docs.unsloth.ai/fine-tuning-llms-guide#id-7.-running--saving-the-model).
+
+<figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FYdz5ch20Ig8JlumBesle%2Fimage.png?alt=media&#x26;token=8aea2867-b8a8-470a-aa4b-a7b9cdd64c3c" alt=""><figcaption></figcaption></figure>
+
+If you are still not getting any reasoning, you may have either trained for too less steps or your reward function/verifier was not optimal.
+{% endstep %}
+
+{% step %}
+
+### Save your model
+
+We have multiple options for saving your fine-tuned model, but we’ll focus on the easiest and most popular approaches which you can read more about [here](https://docs.unsloth.ai/basics/running-and-saving-models)
+
+**Saving in 16-bit Precision**
+
+You can save the model with 16-bit precision using the following command:
+```
+
+---
+
+## AMD
+
+**URL:** llms-txt#amd
+
+**Contents:**
+  - :1234:Reinforcement Learning on AMD GPUs
+- ### :tools:Troubleshooting
+
+Fine-tune with Unsloth on AMD GPUs.
+
+Unsloth supports Radeon RX, MI300X's (192GB) GPUs and more.
+
+{% stepper %}
+{% step %}
+**Make a new isolated environment (Optional)**
+
+To not break any system packages, you can make an isolated pip environment. Reminder to check what Python version you have! It might be `pip3`, `pip3.13`, `python3`, `python.3.13` etc.
+
+{% code overflow="wrap" %}
+
+{% endcode %}
+{% endstep %}
+
+{% step %}
+**Install PyTorch**&#x20;
+
+Install the latest PyTorch, TorchAO, Xformers from <https://pytorch.org/>
+
+{% code overflow="wrap" %}
+
+{% endcode %}
+{% endstep %}
+
+{% step %}
+**Install Unsloth**
+
+Install Unsloth's dedicated AMD branch
+
+{% code overflow="wrap" %}
+
+{% endcode %}
+{% endstep %}
+{% endstepper %}
+
+And that's it! Try some examples in our [**Unsloth Notebooks**](https://docs.unsloth.ai/get-started/unsloth-notebooks) page!
+
+### :1234:Reinforcement Learning on AMD GPUs
+
+You can use our :ledger:[gpt-oss RL auto win 2048](https://github.com/unslothai/notebooks/blob/main/nb/gpt_oss_\(20B\)_Reinforcement_Learning_2048_Game_BF16.ipynb) example on a MI300X (192GB) GPU. The goal is to play the 2048 game automatically and win it with RL. The LLM (gpt-oss 20b) auto devises a strategy to win the 2048 game, and we calculate a high reward for winning strategies, and low rewards for failing strategies.
+
+{% columns %}
+{% column %}
+
+<figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2F3cqEjPI58MRK7lCI2P3P%2Fimage.png?alt=media&#x26;token=93b830a0-1320-4847-8680-ec1fbeb55aea" alt=""><figcaption></figcaption></figure>
+{% endcolumn %}
+
+{% column %}
+The reward over time is increasing after around 300 steps or so!
+
+The goal for RL is to maximize the average reward to win the 2048 game.
+
+<figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FN4724OhBlNOHB3jK9ypX%2F2048%20Auto%20Win%20Game%20Reward.png?alt=media&#x26;token=8f06f8f5-d0eb-4e67-8b7a-e1b29973396b" alt=""><figcaption></figcaption></figure>
+
+{% endcolumn %}
+{% endcolumns %}
+
+We used an AMD MI300X machine (192GB) to run the 2048 RL example with Unsloth, and it worked well!
+
+<div><figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FWcmwbQ5DrowIz9kqqFbc%2FScreenshot%202025-10-17%20052504.png?alt=media&#x26;token=d342ccba-be20-4a6a-9019-abe6a0136d21" alt=""><figcaption></figcaption></figure> <figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FR6afzG4nF80nEFXsQLTX%2FScreenshot%202025-10-17%20052641.png?alt=media&#x26;token=7adb460e-ba82-4eb6-baaf-507c38c03bb4" alt=""><figcaption></figcaption></figure></div>
+
+You can also use our :ledger:[automatic kernel gen RL notebook](https://github.com/unslothai/notebooks/blob/main/nb/gpt_oss_\(20B\)_GRPO_BF16.ipynb) also with gpt-oss to auto create matrix multiplication kernels in Python. The notebook also devices multiple methods to counteract reward hacking.
+
+{% columns %}
+{% column width="50%" %}
+The RL process learns for example how to apply the Strassen algorithm for faster matrix multiplication inside of Python.
+
+The prompt we used to auto create these kernels was:
+
+{% code overflow="wrap" %}
+
+python
+def matmul(A, B):
+    return ...
+`
+
+{% endcode %}
+{% endcolumn %}
+
+{% column width="50%" %}
+
+<figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FCD7o66Vche1KzKZSiiPZ%2Fimage.png?alt=media&#x26;token=95b5a135-5fea-4c9c-956b-2b6aa4643e10" alt=""><figcaption></figcaption></figure>
+{% endcolumn %}
+{% endcolumns %}
+
+### :tools:Troubleshooting
+
+**As of October 2025, bitsandbytes in AMD is under development** - you might get `HSA_STATUS_ERROR_EXCEPTION: An HSAIL operation resulted in a hardware exception` errors. We disabled bitsandbytes internally in Unsloth automatically until a fix is provided for versions `0.48.2.dev0` and above. This means `load_in_4bit = True` will instead use 16bit LoRA. Full finetuning also works via `full_finetuning = True`&#x20;
+
+To force 4bit, you need to specify the actual model name like `unsloth/gemma-3-4b-it-unsloth-bnb-4bit` and set `use_exact_model_name = True` as an extra argument within `FastLanguageModel.from_pretrained` etc.
+
+AMD GPUs also need the bitsandbytes `blocksize` to be 128 and not 64 - this also means our pre-quantized models (for example [unsloth/Llama-3.2-1B-Instruct-unsloth-bnb-4bit](https://huggingface.co/unsloth/Llama-3.2-1B-Instruct-bnb-4bit)) from [HuggingFace](https://huggingface.co/unsloth) for now will not work - we auto switch to downloading the full BF16 weights, then quantize on the fly if we detect an AMD GPU.
+
+**Examples:**
+
+Example 1 (bash):
+```bash
+apt install python3.10-venv python3.11-venv python3.12-venv python3.13-venv -y
+
+python -m venv unsloth_env
+source unsloth_env/bin/activate
+```
+
+Example 2 (bash):
+```bash
+pip install --upgrade torch==2.8.0 pytorch-triton-rocm torchvision torchaudio torchao==0.13.0 xformers --index-url https://download.pytorch.org/whl/rocm6.4
+```
+
+Example 3 (bash):
+```bash
+pip install --no-deps unsloth unsloth-zoo
+pip install --no-deps git+https://github.com/unslothai/unsloth-zoo.git
+pip install "unsloth[amd] @ git+https://github.com/unslothai/unsloth"
+```
+
+Example 4 (unknown):
+```unknown
+Create a new fast matrix multiplication function using only native Python code.
+You are given a list of list of numbers.
+Output your new function in backticks using the format below:
+```
+
+---
+
+## Game constants
+
+**URL:** llms-txt#game-constants
+
+GRAVITY = 0.5
+PIPE_SPEED = 5
+BIRD_SIZE = 30
+LAND_HEIGHT = 50
+PIPE_WIDTH = 50
+PIPE_GAP = 150
+
+class Bird:
+    def __init__(self):
+        self.x = WIDTH // 2
+        self.y = HEIGHT // 2
+        self.velocity = 0
+        self.shape = random.choice(['square', 'circle', 'triangle'])
+        self.color = (random.randint(0, 100), random.randint(0, 100), random.randint(0, 100))
+        self.rect = pygame.Rect(self.x - BIRD_SIZE//2, self.y - BIRD_SIZE//2, BIRD_SIZE, BIRD_SIZE)
+    
+    def update(self):
+        self.velocity += GRAVITY
+        self.y += self.velocity
+        self.rect.y = self.y - BIRD_SIZE//2
+        self.rect.x = self.x - BIRD_SIZE//2  # Keep x centered
+    
+    def draw(self):
+        if self.shape == 'square':
+            pygame.draw.rect(screen, self.color, self.rect)
+        elif self.shape == 'circle':
+            pygame.draw.circle(screen, self.color, (self.rect.centerx, self.rect.centery), BIRD_SIZE//2)
+        elif self.shape == 'triangle':
+            points = [
+                (self.rect.centerx, self.rect.top),
+                (self.rect.left, self.rect.bottom),
+                (self.rect.right, self.rect.bottom)
+            ]
+            pygame.draw.polygon(screen, self.color, points)
+
+def spawn_pipe():
+    pipe_x = WIDTH
+    top_height = random.randint(50, HEIGHT - PIPE_GAP - LAND_HEIGHT)
+    rect_top = pygame.Rect(pipe_x, 0, PIPE_WIDTH, top_height)
+    bottom_y = top_height + PIPE_GAP
+    bottom_height = (HEIGHT - LAND_HEIGHT) - bottom_y
+    rect_bottom = pygame.Rect(pipe_x, bottom_y, PIPE_WIDTH, bottom_height)
+    color = random.choice(pipe_colors)
+    return {
+        'rect_top': rect_top,
+        'rect_bottom': rect_bottom,
+        'color': color,
+        'scored': False
+    }
+
+def main():
+    best_score = 0
+    current_score = 0
+    game_over = False
+    pipes = []
+    first_time = True  # Track first game play
+
+# Initial setup
+    background_color = (173, 216, 230)  # Light blue initially
+    land_color = random.choice(land_colors)
+    bird = Bird()
+
+while True:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_ESCAPE or event.key == pygame.K_q:
+                    pygame.quit()
+                    sys.exit()
+                if event.key == pygame.K_SPACE:
+                    if game_over:
+                        # Reset the game
+                        bird = Bird()
+                        pipes.clear()
+                        current_score = 0
+                        if first_time:
+                            # First restart after initial game over
+                            background_color = (random.randint(200, 255), random.randint(200, 255), random.randint(200, 255))
+                            first_time = False
+                        else:
+                            background_color = (random.randint(200, 255), random.randint(200, 255), random.randint(200, 255))
+                        land_color = random.choice(land_colors)
+                        game_over = False
+                    else:
+                        # Jump the bird
+                        bird.velocity = -15  # Initial upward velocity
+
+if not game_over:
+            # Update bird and pipes
+            bird.update()
+
+# Move pipes left
+            remove_pipes = []
+            for pipe in pipes:
+                pipe['rect_top'].x -= PIPE_SPEED
+                pipe['rect_bottom'].x -= PIPE_SPEED
+                # Check if bird passed the pipe
+                if not pipe['scored'] and bird.rect.x > pipe['rect_top'].right:
+                    current_score += 1
+                    pipe['scored'] = True
+                # Check if pipe is offscreen
+                if pipe['rect_top'].right < 0:
+                    remove_pipes.append(pipe)
+            # Remove offscreen pipes
+            for p in remove_pipes:
+                pipes.remove(p)
+
+# Spawn new pipe if needed
+            if not pipes or pipes[-1]['rect_top'].x < WIDTH - 200:
+                pipes.append(spawn_pipe())
+
+# Check collisions
+            land_rect = pygame.Rect(0, HEIGHT - LAND_HEIGHT, WIDTH, LAND_HEIGHT)
+            bird_rect = bird.rect
+            # Check pipes
+            for pipe in pipes:
+                if bird_rect.colliderect(pipe['rect_top']) or bird_rect.colliderect(pipe['rect_bottom']):
+                    game_over = True
+                    break
+            # Check land and top
+            if bird_rect.bottom >= land_rect.top or bird_rect.top <= 0:
+                game_over = True
+
+if game_over:
+                if current_score > best_score:
+                    best_score = current_score
+
+# Drawing
+        screen.fill(background_color)
+        # Draw pipes
+        for pipe in pipes:
+            pygame.draw.rect(screen, pipe['color'], pipe['rect_top'])
+            pygame.draw.rect(screen, pipe['color'], pipe['rect_bottom'])
+        # Draw land
+        pygame.draw.rect(screen, land_color, (0, HEIGHT - LAND_HEIGHT, WIDTH, LAND_HEIGHT))
+        # Draw bird
+        bird.draw()
+        # Draw score
+        font = pygame.font.SysFont(None, 36)
+        score_text = font.render(f'Score: {current_score}', True, (0, 0, 0))
+        screen.blit(score_text, (WIDTH - 150, 10))
+        # Game over screen
+        if game_over:
+            over_text = font.render('Game Over!', True, (255, 0, 0))
+            best_text = font.render(f'Best: {best_score}', True, (255, 0, 0))
+            restart_text = font.render('Press SPACE to restart', True, (255, 0, 0))
+            screen.blit(over_text, (WIDTH//2 - 70, HEIGHT//2 - 30))
+            screen.blit(best_text, (WIDTH//2 - 50, HEIGHT//2 + 10))
+            screen.blit(restart_text, (WIDTH//2 - 100, HEIGHT//2 + 50))
+        
+        pygame.display.flip()
+        clock.tick(60)
+
+if __name__ == "__main__":
+    main()
+bash
+./llama.cpp/llama-cli \
+    --model unsloth-QwQ-32B-GGUF/QwQ-32B-Q4_K_M.gguf \
+    --threads 32 \
+    --ctx-size 16384 \
+    --n-gpu-layers 99 \
+    --seed 3407 \
+    --prio 2 \
+    --temp 0.6 \
+    --repeat-penalty 1.1 \
+    --dry-multiplier 0.5 \
+    --min-p 0.01 \
+    --top-k 40 \
+    --top-p 0.95 \
+    -no-cnv \
+    --prompt "<|im_start|>user\nCreate a Flappy Bird game in Python. You must include these things:\n1. You must use pygame.\n2. The background color should be randomly chosen and is a light shade. Start with a light blue color.\n3. Pressing SPACE multiple times will accelerate the bird.\n4. The bird's shape should be randomly chosen as a square, circle or triangle. The color should be randomly chosen as a dark color.\n5. Place on the bottom some land colored as dark brown or yellow chosen randomly.\n6. Make a score shown on the top right side. Increment if you pass pipes and don't hit them.\n7. Make randomly spaced pipes with enough space. Color them randomly as dark green or light brown or a dark gray shade.\n8. When you lose, show the best score. Make the text inside the screen. Pressing q or Esc will quit the game. Restarting is pressing SPACE again.\nThe final game should be inside a markdown section in Python. Check your code for errors and fix them before the final markdown section.<|im_end|>\n<|im_start|>assistant\n<think>\n"  \
+        2>&1 | tee Q4_K_M_no_samplers.txt
+python
+import pygame
+import random
+
+**Examples:**
+
+Example 1 (unknown):
+```unknown
+{% endcode %}
+
+</details>
+
+6. When running it, we get a runnable game!
+
+<figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2F7qQoA6yrMWUVrwIhLbGu%2Fimage.png?alt=media&#x26;token=6d99c8ce-567a-4144-bd7e-fa57e96b5284" alt=""><figcaption></figcaption></figure>
+
+7. Now try the same without our fixes! So remove `--samplers "top_k;top_p;min_p;temperature;dry;typ_p;xtc"`  This will save the output to `Q4_K_M_no_samplers.txt`
+```
+
+Example 2 (unknown):
+```unknown
+You will get some looping, but **problematically incorrect Python syntax** and many other issues. For example the below looks correct, but is wrong! Ie line 39 `pipes.clear() ### <<< NameError: name 'pipes' is not defined. Did you forget to import 'pipes'?`
+
+{% code overflow="wrap" lineNumbers="true" %}
+```
+
+---
+
+## Launch the shell
+
+**URL:** llms-txt#launch-the-shell
+
+**Contents:**
+  - Unified Memory Usage
+  - Video Tutorials
+
+CMD ["/bin/bash"]
+bash
+docker run -it \
+    --gpus=all \
+    --net=host \
+    --ipc=host \
+    --ulimit memlock=-1 \
+    --ulimit stack=67108864 \
+    -v $(pwd):$(pwd) \
+    -v $HOME/.cache/huggingface:/root/.cache/huggingface \
+    -w $(pwd) \
+    unsloth-dgx-spark
+bash
+NOTEBOOK_URL="https://raw.githubusercontent.com/unslothai/notebooks/refs/heads/main/nb/gpt_oss_(20B)_Reinforcement_Learning_2048_Game_DGX_Spark.ipynb"
+wget -O "gpt_oss_20B_RL_2048_Game.ipynb" "$NOTEBOOK_URL"
+
+jupyter notebook --ip=0.0.0.0 --port=8888 --no-browser --allow-root
+```
+
+<figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2F0rz5KRdEx6IPBOlEy6Vj%2Fdgx6.png?alt=media&#x26;token=9df06512-143e-447e-99fe-83466d2a3703" alt="" width="563"><figcaption></figcaption></figure>
+
+Don't forget Unsloth also allows you to [save and run](https://docs.unsloth.ai/basics/running-and-saving-models) your models after fine-tuning so you can locally deploy them directly on your DGX Spark after.
+{% endstep %}
+{% endstepper %}
+
+Many thanks to [Lakshmi Ramesh](https://www.linkedin.com/in/rlakshmi24/) and [Barath Anandan](https://www.linkedin.com/in/barathsa/) from NVIDIA for helping Unsloth’s DGX Spark launch and building the Docker image.
+
+### Unified Memory Usage
+
+gpt-oss-120b QLoRA 4-bit fine-tuning will use around **68GB** of unified memory. How your unified memory usage should look **before** (left) and **after** (right) training:
+
+<div><figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2F4jXOLrycoFzr4uVnCap0%2Fdgx7.png?alt=media&#x26;token=d6e2c2ac-fae0-4ee6-9cd3-972af33d43a5" alt=""><figcaption></figcaption></figure> <figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FKOSKQeZ7ZtfRHzFaSGFI%2Fdgx8.png?alt=media&#x26;token=0be758e7-bae5-4e28-89a7-cc2ba75c346b" alt=""><figcaption></figcaption></figure></div>
+
+And that's it! Have fun training and running LLMs completely locally on your NVIDIA DGX Spark!
+
+Thanks to Tim from [AnythingLLM](https://github.com/Mintplex-Labs/anything-llm) for providing a great fine-tuning tutorial with Unsloth on DGX Spark:
+
+{% embed url="<https://www.youtube.com/watch?t=962s&v=zs-J9sKxvoM>" %}
+
+**Examples:**
+
+Example 1 (unknown):
+```unknown
+</details>
+{% endstep %}
+
+{% step %}
+
+#### Launch container <a href="#docs-internal-guid-98e78e94-7fff-9d37-504b-0b8ffb3169b3" id="docs-internal-guid-98e78e94-7fff-9d37-504b-0b8ffb3169b3"></a>
+
+Launch the training container with GPU access and volume mounts:
+```
+
+Example 2 (unknown):
+```unknown
+<div><figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FxUJYSy5eJggn26wGJzAT%2Fdgx3.png?alt=media&#x26;token=0445fa4f-67dd-41a4-a5f4-19df5a05d86d" alt=""><figcaption></figcaption></figure> <figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2Fckhbs6k6vk0ov856ym8h%2Fdgx5.png?alt=media&#x26;token=37f9f6d9-1712-4a9b-a8d4-485944105b38" alt=""><figcaption></figcaption></figure></div>
+{% endstep %}
+
+{% step %}
+
+#### Start Jupyter and Run Notebooks <a href="#docs-internal-guid-98e78e94-7fff-9d37-504b-0b8ffb3169b3" id="docs-internal-guid-98e78e94-7fff-9d37-504b-0b8ffb3169b3"></a>
+
+Inside the container, start Jupyter and run the required notebook. You can use the Reinforcement Learning gpt-oss 20b to win 2048 [notebook here](https://github.com/unslothai/notebooks/blob/main/nb/gpt_oss_\(20B\)_Reinforcement_Learning_2048_Game_DGX_Spark.ipynb). In fact all [Unsloth notebooks](https://docs.unsloth.ai/get-started/unsloth-notebooks) work in DGX Spark including the **120b** notebook! Just remove the installation cells.
+
+<figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FjgfO6NvzOLLtw5xVQEHs%2FNotebooks%20on%20dgx.png?alt=media&#x26;token=88a067a5-c16c-4c73-b073-4b4917551069" alt="" width="563"><figcaption></figcaption></figure>
+
+The below commands can be used to run the RL notebook as well. After Jupyter Notebook is launched, open up the “`gpt_oss_20B_RL_2048_Game.ipynb`”
+```
+
+---
+
+## 4bit pre quantized models we support for 4x faster downloading + no OOMs.
+
+**URL:** llms-txt#4bit-pre-quantized-models-we-support-for-4x-faster-downloading-+-no-ooms.
+
+**Contents:**
+  - Fine-tuning Hyperparameters (LoRA)
+  - Data Preparation
+  - Train the model
+  - Inference: Run Your Trained Model
+  - Save and Export Your Model
+  - :sparkles: Saving to Llama.cpp
+  - 🏁 And that's it!&#x20;
+- ❓FAQ (Frequently Asked Questions)
+
+fourbit_models = [
+    "unsloth/gpt-oss-20b-unsloth-bnb-4bit", # 20B model using bitsandbytes 4bit quantization
+<strong>    "unsloth/gpt-oss-120b-unsloth-bnb-4bit",
+</strong>    "unsloth/gpt-oss-20b", # 20B model using MXFP4 format
+    "unsloth/gpt-oss-120b",
+] # More models at https://huggingface.co/unsloth
+
+model, tokenizer = FastLanguageModel.from_pretrained(
+    model_name = "unsloth/gpt-oss-20b",
+    dtype = dtype, # None for auto detection
+    max_seq_length = max_seq_length, # Choose any for long context!
+    load_in_4bit = True,  # 4 bit quantization to reduce memory
+    full_finetuning = False, # [NEW!] We have full finetuning now!
+    # token = "hf_...", # use one if using gated models
+)
+</code></pre>
+
+You should see output similar to the example below. Note: We explicitly change the `dtype` to `float32` to ensure correct training behavior.
+{% endstep %}
+
+### Fine-tuning Hyperparameters (LoRA)
+
+Now it's time to adjust your training hyperparameters. For a deeper dive into how, when, and what to tune, check out our [detailed hyperparameters guide](https://docs.unsloth.ai/get-started/fine-tuning-llms-guide/lora-hyperparameters-guide).
+
+{% hint style="info" %}
+To avoid [overfitting](https://docs.unsloth.ai/get-started/fine-tuning-llms-guide/lora-hyperparameters-guide#avoiding-overfitting-and-underfitting), monitor your training loss and avoid setting these values too high.&#x20;
+{% endhint %}
+
+This step adds LoRA adapters for parameter-efficient fine-tuning. Only about 1% of the model’s parameters are trained, which makes the process significantly more efficient.
+
+For this example, we will use the [`HuggingFaceH4/Multilingual-Thinking`](https://huggingface.co/datasets/HuggingFaceH4/Multilingual-Thinking). This dataset contains chain-of-thought reasoning examples derived from user questions translated from English into four additional languages.&#x20;
+
+This is the same dataset referenced in OpenAI's fine-tuning cookbook. The goal of using a multilingual dataset is to help the model learn and generalize reasoning patterns across multiple languages.
+
+gpt-oss introduces a reasoning effort system that controls how much reasoning the model performs. By default, the reasoning effort is set to `low`, but you can change it by setting the `reasoning_effort` parameter to `low`, `medium` or `high`.
+
+To format the dataset, we apply a customized version of the gpt-oss prompt:
+
+Let's inspect the dataset by printing the first example:
+
+<figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FvXrJGLlHZxgAazLFreMh%2Fimage.png?alt=media&#x26;token=9ddd4b8f-a884-4243-931d-39bd29274ffd" alt="" width="563"><figcaption></figcaption></figure>
+
+One unique feature of gpt-oss is its use of the [**OpenAI Harmony format**](https://github.com/openai/harmony)**,** which supports structured conversations, reasoning output, and tool calling. This format includes tags such as `<|start|>` , `<|message|>` , and `<|return|>` .&#x20;
+
+{% hint style="info" %}
+🦥 Unsloth fixes the chat template to ensure it is correct. See this [tweet](https://x.com/danielhanchen/status/1953901104150065544) for technical details on our template fix.
+{% endhint %}
+
+Feel free to adapt the prompt and structure to suit your own dataset or use-case. For more guidance, refer to our [dataset guide](https://docs.unsloth.ai/get-started/fine-tuning-llms-guide/datasets-guide).
+{% endstep %}
+
+We've pre-selected training hyperparameters for optimal results. However, you can modify them based on your specific use case. Refer to our [hyperparameters guide](https://docs.unsloth.ai/get-started/fine-tuning-llms-guide/lora-hyperparameters-guide).&#x20;
+
+In this example, we train for 60 steps to speed up the process. For a full training run, set `num_train_epochs=1` and disable the step limiting by setting `max_steps=None`.
+
+During training, monitor the loss to ensure that it is decreasing over time. This confirms that the training process is functioning correctly.
+
+<figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FmcHwJsR2kzTpab4gTgUY%2Fimage.png?alt=media&#x26;token=03b873b3-8e1c-42ee-826e-d62feab7d703" alt=""><figcaption></figcaption></figure>
+{% endstep %}
+
+### Inference: Run Your Trained Model
+
+Now it's time to run inference with your fine-tuned model. You can modify the instruction and input, but leave the output blank.
+
+In this example, we test the model's ability to reason in French by adding a specific instruction to the system prompt, following the same structure used in our dataset.
+
+This should produce an output similar to:
+
+<figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FqPoBw62CGTVsjOmGliqi%2Fimage.png?alt=media&#x26;token=a5a73e2e-53f6-4e5b-a694-eca648019542" alt=""><figcaption></figcaption></figure>
+{% endstep %}
+
+### Save and Export Your Model
+
+To save your fine-tuned model, it can be exported in the Safetensors format with our new **on-demand dequantization of MXFP4** base models (like gpt-oss) during the LoRA merge process. This makes it possible to **export your fine-tuned model in bf16 format**.
+
+{% hint style="success" %}
+New: Saving or merging QLoRA fine-tuned models to GGUF is now supported for use in other frameworks (e.g. Hugging Face, llama.cpp with GGUF).
+{% endhint %}
+
+After fine-tuning your gpt-oss model, you can merge it into 16-bit format with:
+
+If you prefer to merge the model and push to the hugging-face hub directly:
+
+### :sparkles: Saving to Llama.cpp
+
+1. Obtain the latest `llama.cpp` on [GitHub here](https://github.com/ggml-org/llama.cpp). You can follow the build instructions below as well. Change `-DGGML_CUDA=ON` to `-DGGML_CUDA=OFF` if you don't have a GPU or just want CPU inference.
+
+2. Convert and quantize the merged model:
+
+3. Run inference on the quantized model:
+
+{% endstep %}
+{% endstepper %}
+
+### 🏁 And that's it!&#x20;
+
+You've fine-tuned gpt-oss with Unsloth. We're currently working on RL and GRPO implementations, as well as improved model saving and running, so stay tuned.
+
+As always, feel free to drop by our [Discord](https://discord.com/invite/unsloth) or [Reddit](https://www.reddit.com/r/unsloth/) if you need any help.
+
+## ❓FAQ (Frequently Asked Questions)
+
+#### 1. Can I export my model to use in Hugging Face, llama.cpp GGUF or vLLM later?
+
+Yes you can now [save/export your gpt-oss fine-tuned](https://docs.unsloth.ai/models/long-context-gpt-oss-training#new-saving-to-gguf-vllm-after-gpt-oss-training) model using Unsloth's new update!
+
+#### 2. Can I do fp4 or MXFP4 training with gpt-oss?
+
+No, currently no framework supports fp4 or MXFP4 training. Unsloth however is the only framework to support QLoRA 4-bit fine-tuning for the model, enabling more than 4x less VRAM use.
+
+#### 3. Can I export my model to MXFP4 format after training?
+
+No, currently no library or framework supports this.
+
+#### 4. Can I do Reinforcement Learning (RL) or GRPO with gpt-oss?
+
+Yes! Unsloth now supports RL for gpt-oss with GRPO/GSPO. We made it work on a free Kaggle notebook and achieved the fastest inference for RL. [Read more here](https://docs.unsloth.ai/new/gpt-oss-reinforcement-learning)
+
+***Acknowledgements:** A huge thank you to* [*Eyera*](https://huggingface.co/Orenguteng) *for contributing to this guide!*
+
+**Examples:**
+
+Example 1 (python):
+```python
+model = FastLanguageModel.get_peft_model(
+    model,
+    r = 8, # Choose any number > 0 ! Suggested 8, 16, 32, 64, 128
+    target_modules = ["q_proj", "k_proj", "v_proj", "o_proj",
+                      "gate_proj", "up_proj", "down_proj",],
+    lora_alpha = 16,
+    lora_dropout = 0, # Supports any, but = 0 is optimized
+    bias = "none",    # Supports any, but = "none" is optimized
+    # [NEW] "unsloth" uses 30% less VRAM, fits 2x larger batch sizes!
+    use_gradient_checkpointing = "unsloth", # True or "unsloth" for very long context
+    random_state = 3407,
+    use_rslora = False,  # We support rank stabilized LoRA
+    loftq_config = None, # And LoftQ
+)
+```
+
+Example 2 (python):
+```python
+def formatting_prompts_func(examples):
+    convos = examples["messages"]
+    texts = [tokenizer.apply_chat_template(convo, tokenize = False, add_generation_prompt = False) for convo in convos]
+    return { "text" : texts, }
+pass
+
+from datasets import load_dataset
+
+dataset = load_dataset("HuggingFaceH4/Multilingual-Thinking", split="train")
+dataset
+```
+
+Example 3 (python):
+```python
+tokenizer.apply_chat_template(
+    text, 
+    tokenize = False, 
+    add_generation_prompt = False,
+    reasoning_effort = "medium",
+)
+```
+
+Example 4 (python):
+```python
+from unsloth.chat_templates import standardize_sharegpt
+dataset = standardize_sharegpt(dataset)
+dataset = dataset.map(formatting_prompts_func, batched = True,)
+```
+
+---
+
+## Continued Pretraining
+
+**URL:** llms-txt#continued-pretraining
+
+**Contents:**
+- What is Continued Pretraining?
+- Advanced Features:
+  - Loading LoRA adapters for continued finetuning
+  - Continued Pretraining & Finetuning the `lm_head` and `embed_tokens` matrices
+
+AKA as Continued Finetuning. Unsloth allows you to continually pretrain so a model can learn a new language.
+
+* The [text completion notebook](https://colab.research.google.com/github/unslothai/notebooks/blob/main/nb/Mistral_\(7B\)-Text_Completion.ipynb) is for continued pretraining/raw text.
+* The [continued pretraining notebook](https://colab.research.google.com/github/unslothai/notebooks/blob/main/nb/Mistral_v0.3_\(7B\)-CPT.ipynb) is for learning another language.
+
+You can read more about continued pretraining and our release in our [blog post](https://unsloth.ai/blog/contpretraining).
+
+## What is Continued Pretraining?
+
+Continued or continual pretraining (CPT) is necessary to “steer” the language model to understand new domains of knowledge, or out of distribution domains. Base models like Llama-3 8b or Mistral 7b are first pretrained on gigantic datasets of trillions of tokens (Llama-3 for e.g. is 15 trillion).
+
+But sometimes these models have not been well trained on other languages, or text specific domains, like law, medicine or other areas. So continued pretraining (CPT) is necessary to make the language model learn new tokens or datasets.
+
+## Advanced Features:
+
+### Loading LoRA adapters for continued finetuning
+
+If you saved a LoRA adapter through Unsloth, you can also continue training using your LoRA weights. The optimizer state will be reset as well. To load even optimizer states to continue finetuning, see the next section.
+
+### Continued Pretraining & Finetuning the `lm_head` and `embed_tokens` matrices
+
+Add `lm_head` and `embed_tokens`. For Colab, sometimes you will go out of memory for Llama-3 8b. If so, just add `lm_head`.
+
+Then use 2 different learning rates - a 2-10x smaller one for the `lm_head` or `embed_tokens` like so:
+
+**Examples:**
+
+Example 1 (python):
+```python
+from unsloth import FastLanguageModel
+model, tokenizer = FastLanguageModel.from_pretrained(
+    model_name = "LORA_MODEL_NAME",
+    max_seq_length = max_seq_length,
+    dtype = dtype,
+    load_in_4bit = load_in_4bit,
+)
+trainer = Trainer(...)
+trainer.train()
+```
+
+Example 2 (python):
+```python
+model = FastLanguageModel.get_peft_model(
+    model,
+    r = 16,
+    target_modules = ["q_proj", "k_proj", "v_proj", "o_proj",
+                      "gate_proj", "up_proj", "down_proj",
+                      "lm_head", "embed_tokens",],
+    lora_alpha = 16,
+)
+```
+
+Example 3 (python):
+```python
+from unsloth import UnslothTrainer, UnslothTrainingArguments
+
+trainer = UnslothTrainer(
+    ....
+    args = UnslothTrainingArguments(
+        ....
+        learning_rate = 5e-5,
+        embedding_learning_rate = 5e-6, # 2-10x smaller than learning_rate
+    ),
+)
+```
+
+---
+
+## Colors for the balls
+
+**URL:** llms-txt#colors-for-the-balls
+
+**Contents:**
+- :detective: Extra Findings & Tips
+
+BALL_COLORS = [
+    '#f8b862', '#f6ad49', '#f39800', '#f08300', '#ec6d51',
+    '#ee7948', '#ed6d3d', '#ec6800', '#ec6800', '#ee7800',
+    '#eb6238', '#ea5506', '#ea5506', '#eb6101', '#e49e61',
+    '#e45e32', '#e17b34', '#dd7a56', '#db8449', '#d66a35'
+]
+
+@dataclass
+class Ball:
+    x: float
+    y: float
+    vx: float
+    vy: float
+    radius: float
+    color: str
+    number: int
+    spin: float = 0.0
+
+def move(self):
+        self.x += self.vx
+        self.y += self.vy
+        self.vy += GRAVITY
+        self.vx *= FRICTION
+        self.vy *= FRICTION
+        self.spin *= SPIN_FRICTION
+
+def collide_with_ball(self, other: 'Ball'):
+        dx = other.x - self.x
+        dy = other.y - self.y
+        distance = math.hypot(dx, dy)
+        
+        if distance < self.radius + other.radius:
+            # Calculate collision normal
+            nx = dx / distance
+            ny = dy / distance
+            
+            # Calculate relative velocity
+            dvx = other.vx - self.vx
+            dvy = other.vy - self.vy
+            
+            # Calculate impulse
+            impulse = 2 * (dvx * nx + dvy * ny) / (1/self.radius + 1/other.radius)
+            
+            # Apply impulse
+            self.vx += impulse * nx / self.radius
+            self.vy += impulse * ny / self.radius
+            other.vx -= impulse * nx / other.radius
+            other.vy -= impulse * ny / other.radius
+            
+            # Separate balls to prevent sticking
+            overlap = (self.radius + other.radius - distance) / 2
+            self.x -= overlap * nx
+            self.y -= overlap * ny
+            other.x += overlap * nx
+            other.y += overlap * ny
+            
+            # Transfer some spin
+            transfer = impulse * 0.01
+            self.spin -= transfer
+            other.spin += transfer
+
+class HeptagonBounceSimulator:
+    def __init__(self, root):
+        self.root = root
+        self.canvas = tk.Canvas(root, width=WIDTH, height=HEIGHT, bg='white')
+        self.canvas.pack()
+        
+        self.balls = self.create_balls()
+        self.heptagon_angle = 0
+        self.last_time = 0
+        self.running = True
+        
+        self.root.bind('<space>', self.toggle_pause)
+        self.root.bind('<Escape>', lambda e: root.destroy())
+        
+        self.last_time = self.root.after(0, self.update)
+    
+    def create_balls(self) -> List[Ball]:
+        balls = []
+        for i in range(20):
+            # Start all balls at center with small random velocity
+            angle = np.random.uniform(0, 2 * math.pi)
+            speed = np.random.uniform(0.5, 2)
+            vx = math.cos(angle) * speed
+            vy = math.sin(angle) * speed
+            
+            balls.append(Ball(
+                x=CENTER_X,
+                y=CENTER_Y,
+                vx=vx,
+                vy=vy,
+                radius=BALL_RADIUS,
+                color=BALL_COLORS[i],
+                number=i+1,
+                spin=np.random.uniform(-2, 2)
+            ))
+        return balls
+    
+    def toggle_pause(self, event):
+        self.running = not self.running
+        if self.running:
+            self.last_time = self.root.after(0, self.update)
+    
+    def get_heptagon_vertices(self) -> List[Tuple[float, float]]:
+        vertices = []
+        for i in range(7):
+            angle = math.radians(self.heptagon_angle + i * 360 / 7)
+            x = CENTER_X + HEPTAGON_RADIUS * math.cos(angle)
+            y = CENTER_Y + HEPTAGON_RADIUS * math.sin(angle)
+            vertices.append((x, y))
+        return vertices
+    
+    def check_ball_heptagon_collision(self, ball: Ball):
+        vertices = self.get_heptagon_vertices()
+        closest_dist = float('inf')
+        closest_normal = (0, 0)
+        closest_edge = None
+        
+        # Check collision with each edge of the heptagon
+        for i in range(len(vertices)):
+            p1 = vertices[i]
+            p2 = vertices[(i + 1) % len(vertices)]
+            
+            # Vector from p1 to p2
+            edge_x = p2[0] - p1[0]
+            edge_y = p2[1] - p1[1]
+            edge_length = math.hypot(edge_x, edge_y)
+            
+            # Normalize edge vector
+            edge_x /= edge_length
+            edge_y /= edge_length
+            
+            # Normal vector (perpendicular to edge, pointing inward)
+            nx = -edge_y
+            ny = edge_x
+            
+            # Vector from p1 to ball
+            ball_to_p1_x = ball.x - p1[0]
+            ball_to_p1_y = ball.y - p1[1]
+            
+            # Project ball onto edge normal
+            projection = ball_to_p1_x * nx + ball_to_p1_y * ny
+            
+            # If projection is negative, ball is outside the heptagon
+            if projection < ball.radius:
+                # Find closest point on edge to ball
+                edge_proj = ball_to_p1_x * edge_x + ball_to_p1_y * edge_y
+                edge_proj = max(0, min(edge_length, edge_proj))
+                closest_x = p1[0] + edge_proj * edge_x
+                closest_y = p1[1] + edge_proj * edge_y
+                
+                # Distance from ball to closest point on edge
+                dist = math.hypot(ball.x - closest_x, ball.y - closest_y)
+                
+                if dist < closest_dist:
+                    closest_dist = dist
+                    closest_normal = (nx, ny)
+                    closest_edge = (p1, p2)
+        
+        if closest_dist < ball.radius:
+            # Calculate bounce response
+            dot_product = ball.vx * closest_normal[0] + ball.vy * closest_normal[1]
+            
+            # Apply bounce with elasticity
+            ball.vx -= (1 + ELASTICITY) * dot_product * closest_normal[0]
+            ball.vy -= (1 + ELASTICITY) * dot_product * closest_normal[1]
+            
+            # Add some spin based on impact
+            edge_vec = (closest_edge[1][0] - closest_edge[0][0], 
+                        closest_edge[1][1] - closest_edge[0][1])
+            edge_length = math.hypot(edge_vec[0], edge_vec[1])
+            if edge_length > 0:
+                edge_vec = (edge_vec[0]/edge_length, edge_vec[1]/edge_length)
+                # Cross product of velocity and edge direction
+                spin_effect = (ball.vx * edge_vec[1] - ball.vy * edge_vec[0]) * 0.1
+                ball.spin += spin_effect
+            
+            # Move ball outside the heptagon to prevent sticking
+            penetration = ball.radius - closest_dist
+            ball.x += penetration * closest_normal[0]
+            ball.y += penetration * closest_normal[1]
+    
+    def update(self):
+        if not self.running:
+            return
+        
+        # Clear canvas
+        self.canvas.delete('all')
+        
+        # Update heptagon rotation
+        self.heptagon_angle += ROTATION_SPEED / 60  # Assuming ~60 FPS
+        
+        # Draw heptagon
+        vertices = self.get_heptagon_vertices()
+        self.canvas.create_polygon(vertices, outline='black', fill='', width=2)
+        
+        # Update and draw balls
+        for i, ball in enumerate(self.balls):
+            # Move ball
+            ball.move()
+            
+            # Check collisions with heptagon
+            self.check_ball_heptagon_collision(ball)
+            
+            # Draw ball
+            self.canvas.create_oval(
+                ball.x - ball.radius, ball.y - ball.radius,
+                ball.x + ball.radius, ball.y + ball.radius,
+                fill=ball.color, outline='black'
+            )
+            
+            # Draw number with rotation based on spin
+            angle = ball.spin * 10  # Scale spin for visible rotation
+            self.canvas.create_text(
+                ball.x, ball.y,
+                text=str(ball.number),
+                font=('Arial', 10, 'bold'),
+                angle=angle
+            )
+        
+        # Check ball-ball collisions
+        for i in range(len(self.balls)):
+            for j in range(i + 1, len(self.balls)):
+                self.balls[i].collide_with_ball(self.balls[j])
+        
+        # Schedule next update
+        self.last_time = self.root.after(16, self.update)  # ~60 FPS
+
+if __name__ == '__main__':
+    root = tk.Tk()
+    root.title('Bouncing Balls in a Spinning Heptagon')
+    simulator = HeptagonBounceSimulator(root)
+    root.mainloop()
+```
+
+## :detective: Extra Findings & Tips
+
+1. We find using lower KV cache quantization (4bit) seems to degrade generation quality via empirical tests - more tests need to be done, but we suggest using `q8_0` cache quantization. The goal of quantization is to support longer context lengths since the KV cache uses quite a bit of memory.
+2. We found the `down_proj` in this model to be extremely sensitive to quantitation. We had to redo some of our dynamic quants which used 2bits for `down_proj` and now we use 3bits as the minimum for all these matrices.
+3. Using `llama.cpp` 's Flash Attention backend does result in somewhat faster decoding speeds. Use `-DGGML_CUDA_FA_ALL_QUANTS=ON` when compiling. Note it's also best to set your CUDA architecture as found in <https://developer.nvidia.com/cuda-gpus> to reduce compilation times, then set it via `-DCMAKE_CUDA_ARCHITECTURES="80"`&#x20;
+4. Using a `min_p=0.01`is probably enough. `llama.cpp`defaults to 0.1, which is probably not necessary. Since a temperature of 0.3 is used anyways, we most likely will very unlikely sample low probability tokens, so removing very unlikely tokens is a good idea. DeepSeek recommends 0.0 temperature for coding tasks.
+
+[^1]: MUST USE 8bit - not 4bit
+
+[^2]: CPU threads your machine has
+
+[^3]: &#x20;Approx 2 for 24GB GPU. Approx 18 for 80GB GPU.
+
+---
+
+## Kimi K2: How to Run Locally
+
+**URL:** llms-txt#kimi-k2:-how-to-run-locally
+
+**Contents:**
+- :gear: Recommended Settings
+  - 🌙 Official Recommended Settings:
+- :1234: Chat template and prompt format
+- :floppy\_disk: Model uploads
+- :turtle:Run Kimi K2 Tutorials
+  - ✨ Run in llama.cpp
+
+Guide on running Kimi K2 and Kimi-K2-Instruct-0905 on your own local device!
+
+Kimi-K2-Instruct-0905 the new version of K2 achieves SOTA performance in knowledge, reasoning, coding, and agentic tasks. The full 1T parameter model from Moonshot AI requires 1.09TB of disk space, while the quantized **Unsloth Dynamic 1.8-bit** version reduces this to just 245GB (-80% size)**:** [**Kimi-K2-GGUF**](https://huggingface.co/unsloth/Kimi-K2-Instruct-GGUF)
+
+You can now run **Kimi-K2-Instruct-0905** with our new GGUFs. Use our same settings below but ensure you change the model name from 'Kimi-K2-Instruct' to 'Kimi-K2-Instruct-0905': [K2-0905 GGUFs](https://huggingface.co/unsloth/Kimi-K2-Instruct-0905-GGUF)
+
+All uploads use Unsloth [Dynamic 2.0](https://docs.unsloth.ai/basics/unsloth-dynamic-2.0-ggufs) for SOTA 5-shot MMLU and KL Divergence performance, meaning you can run quantized LLMs with minimal accuracy loss.
+
+<a href="https://docs.unsloth.ai/basics/kimi-k2-how-to-run-locally#run-kimi-k2-tutorials" class="button primary">Run in llama.cpp</a>
+
+## :gear: Recommended Settings
+
+{% hint style="success" %}
+You need **250GB of disk space** at least to run the 1bit quant!
+
+The only requirement is **`disk space + RAM + VRAM ≥ 250GB`**. That means you do not need to have that much RAM or VRAM (GPU) to run the model, but it will just be slower.
+{% endhint %}
+
+The 1.8-bit (UD-TQ1\_0) quant will fit in a 1x 24GB GPU (with all MoE layers offloaded to system RAM or a fast disk). Expect around 5 tokens/s with this setup if you have bonus 256GB RAM as well. The full Kimi K2 Q8 quant is 1.09TB in size and will need at least 8 x H200 GPUs.
+
+For optimal performance you will need at least **250GB unified memory or 250GB combined RAM+VRAM** for 5+ tokens/s. If you have less than 250GB combined RAM+VRAM, then the speed of the model will definitely take a hit.
+
+**If you do not have 250GB of RAM+VRAM, no worries!** llama.cpp inherently has **disk offloading**, so through mmaping, it'll still work, just be slower - for example before you might get 5 to 10 tokens / second, now it's under 1 token.
+
+We suggest using our **UD-Q2\_K\_XL (381GB)** quant to balance size and accuracy!
+
+{% hint style="success" %}
+For the best performance, have your VRAM + RAM combined = the size of the quant you're downloading. If not, it'll still work via disk offloading, just it'll be slower!
+{% endhint %}
+
+### 🌙 Official Recommended Settings:
+
+According to [Moonshot AI](https://huggingface.co/moonshotai/Kimi-K2-Instruct), these are the recommended settings for Kimi K2 inference:
+
+* Set the <mark style="background-color:green;">**temperature 0.6**</mark> to reduce repetition and incoherence.
+* Original default system prompt is:
+
+* (Optional) Moonshot also suggests the below for the system prompt:
+
+{% hint style="success" %}
+We recommend setting <mark style="background-color:green;">**min\_p to 0.01**</mark> to suppress the occurrence of unlikely tokens with low probabilities.
+{% endhint %}
+
+## :1234: Chat template and prompt format
+
+Kimi Chat does use a BOS (beginning of sentence token). The system, user and assistant roles are all enclosed with `<|im_middle|>` which is interesting, and each get their own respective token `<|im_system|>, <|im_user|>, <|im_assistant|>`.
+
+{% code overflow="wrap" %}
+
+To separate the conversational boundaries (you must remove each new line), we get:
+
+{% code overflow="wrap" %}
+
+## :floppy\_disk: Model uploads
+
+**ALL our uploads** - including those that are not imatrix-based or dynamic, utilize our calibration dataset, which is specifically optimized for conversational, coding, and reasoning tasks.
+
+<table data-full-width="false"><thead><tr><th>MoE Bits</th><th>Type + Link</th><th>Disk Size</th><th>Details</th></tr></thead><tbody><tr><td>1.66bit</td><td><a href="https://huggingface.co/unsloth/Kimi-K2-Instruct-GGUF/tree/main/UD-TQ1_0">UD-TQ1_0</a></td><td><strong>245GB</strong></td><td>1.92/1.56bit</td></tr><tr><td>1.78bit</td><td><a href="https://huggingface.co/unsloth/Kimi-K2-Instruct-GGUF/tree/main/UD-IQ1_S">UD-IQ1_S</a></td><td><strong>281GB</strong></td><td>2.06/1.56bit</td></tr><tr><td>1.93bit</td><td><a href="https://huggingface.co/unsloth/Kimi-K2-Instruct-GGUF/tree/main/UD-IQ1_M">UD-IQ1_M</a></td><td><strong>304GB</strong></td><td>2.5/2.06/1.56</td></tr><tr><td>2.42bit</td><td><a href="https://huggingface.co/unsloth/Kimi-K2-Instruct-GGUF/tree/main/UD-IQ2_XXS">UD-IQ2_XXS</a></td><td><strong>343GB</strong></td><td>2.5/2.06bit</td></tr><tr><td>2.71bit</td><td><a href="https://huggingface.co/unsloth/Kimi-K2-Instruct-GGUF/tree/main/UD-Q2_K_XL">UD-Q2_K_XL</a></td><td><strong>381GB</strong></td><td> 3.5/2.5bit</td></tr><tr><td>3.12bit</td><td><a href="https://huggingface.co/unsloth/Kimi-K2-Instruct-GGUF/tree/main/UD-IQ3_XXS">UD-IQ3_XXS</a></td><td><strong>417GB</strong></td><td> 3.5/2.06bit</td></tr><tr><td>3.5bit</td><td><a href="https://huggingface.co/unsloth/Kimi-K2-Instruct-GGUF/tree/main/UD-Q3_K_XL">UD-Q3_K_XL</a></td><td><strong>452GB</strong></td><td> 4.5/3.5bit</td></tr><tr><td>4.5bit</td><td><a href="https://huggingface.co/unsloth/Kimi-K2-Instruct-GGUF/tree/main/UD-Q4_K_XL">UD-Q4_K_XL</a></td><td><strong>588GB</strong></td><td> 5.5/4.5bit</td></tr><tr><td>5.5bit</td><td><a href="https://huggingface.co/unsloth/Kimi-K2-Instruct-GGUF/tree/main/UD-Q5_K_XL">UD-Q5_K_XL</a></td><td><strong>732GB</strong></td><td>6.5/5.5bit</td></tr></tbody></table>
+
+We've also uploaded versions in [BF16 format](https://huggingface.co/unsloth/Kimi-K2-Instruct-BF16).
+
+## :turtle:Run Kimi K2 Tutorials
+
+{% hint style="success" %}
+You can now use the latest update of [llama.cpp](https://github.com/ggml-org/llama.cpp) to run the model:
+{% endhint %}
+
+### ✨ Run in llama.cpp
+
+1. Obtain the latest `llama.cpp` on [GitHub here](https://github.com/ggml-org/llama.cpp). You can follow the build instructions below as well. Change `-DGGML_CUDA=ON` to `-DGGML_CUDA=OFF` if you don't have a GPU or just want CPU inference.
+
+2. If you want to use `llama.cpp` directly to load models, you can do the below: (:UD-IQ1\_S) is the quantization type. You can also download via Hugging Face (point 3). This is similar to `ollama run` . Use `export LLAMA_CACHE="folder"` to force `llama.cpp` to save to a specific location.\ <mark style="background-color:green;">**To run the new September 2025 update for the model, change the model name from 'Kimi-K2-Instruct' to 'Kimi-K2-Instruct-0905'.**</mark>
+
+{% hint style="info" %}
+Please try out `-ot ".ffn_.*_exps.=CPU"` to offload all MoE layers to the CPU! This effectively allows you to fit all non MoE layers on 1 GPU, improving generation speeds. You can customize the regex expression to fit more layers if you have more GPU capacity.
+
+If you have a bit more GPU memory, try `-ot ".ffn_(up|down)_exps.=CPU"` This offloads up and down projection MoE layers.
+
+Try `-ot ".ffn_(up)_exps.=CPU"` if you have even more GPU memory. This offloads only up projection MoE layers.
+
+And finally offload all layers via `-ot ".ffn_.*_exps.=CPU"` This uses the least VRAM.
+
+You can also customize the regex, for example `-ot "\.(6|7|8|9|[0-9][0-9]|[0-9][0-9][0-9])\.ffn_(gate|up|down)_exps.=CPU"` means to offload gate, up and down MoE layers but only from the 6th layer onwards.
+{% endhint %}
+
+3. Download the model via (after installing `pip install huggingface_hub hf_transfer` ). You can choose `UD-TQ1_0`(dynamic 1.8bit quant) or other quantized versions like `Q2_K_XL` . We <mark style="background-color:green;">**recommend using our 2bit dynamic quant**</mark><mark style="background-color:green;">**&#x20;**</mark><mark style="background-color:green;">**`UD-Q2_K_XL`**</mark><mark style="background-color:green;">**&#x20;**</mark><mark style="background-color:green;">**to balance size and accuracy**</mark>. More versions at: [huggingface.co/unsloth/Kimi-K2-Instruct-GGUF](https://huggingface.co/unsloth/Kimi-K2-Instruct-GGUF)
+
+{% code overflow="wrap" %}
+
+**Examples:**
+
+Example 1 (unknown):
+```unknown
+You are a helpful assistant
+```
+
+Example 2 (unknown):
+```unknown
+You are Kimi, an AI assistant created by Moonshot AI.
+```
+
+Example 3 (python):
+```python
+<|im_system|>system<|im_middle|>You are a helpful assistant<|im_end|><|im_user|>user<|im_middle|>What is 1+1?<|im_end|><|im_assistant|>assistant<|im_middle|>2<|im_end|>
+```
+
+Example 4 (unknown):
+```unknown
+<|im_system|>system<|im_middle|>You are a helpful assistant<|im_end|>
+<|im_user|>user<|im_middle|>What is 1+1?<|im_end|>
+<|im_assistant|>assistant<|im_middle|>2<|im_end|>
+```
+
+---
+
+## Unsloth Notebooks
+
+**URL:** llms-txt#unsloth-notebooks
+
+**Contents:**
+  - Colab notebooks
+  - Kaggle notebooks
+
+Explore our catalog of Unsloth notebooks:
+
+Also see our GitHub repo for our notebooks: [github.com/unslothai/notebooks](https://github.com/unslothai/notebooks/)
+
+<a href="#grpo-reasoning-rl-notebooks" class="button secondary">GRPO (RL)</a><a href="#text-to-speech-tts-notebooks" class="button secondary">Text-to-speech</a><a href="#vision-multimodal-notebooks" class="button secondary">Vision</a><a href="#other-important-notebooks" class="button secondary">Use-case</a><a href="#kaggle-notebooks" class="button secondary">Kaggle</a>
+
+#### Standard notebooks:
+
+* [**gpt-oss (20b)**](https://colab.research.google.com/github/unslothai/notebooks/blob/main/nb/gpt-oss-\(20B\)-Fine-tuning.ipynb) • [Inference](https://colab.research.google.com/github/unslothai/notebooks/blob/main/nb/GPT_OSS_MXFP4_\(20B\)-Inference.ipynb) • [Fine-tuning](https://colab.research.google.com/github/unslothai/notebooks/blob/main/nb/gpt-oss-\(20B\)-Fine-tuning.ipynb)
+* [**DeepSeek-OCR**](https://colab.research.google.com/github/unslothai/notebooks/blob/main/nb/Deepseek_OCR_\(3B\).ipynb) **- new**
+* [Qwen3 (14B)](https://colab.research.google.com/github/unslothai/notebooks/blob/main/nb/Qwen3_\(14B\)-Reasoning-Conversational.ipynb) • [**Qwen3-VL (8B)**](https://colab.research.google.com/github/unslothai/notebooks/blob/main/nb/Qwen3_VL_\(8B\)-Vision.ipynb) **- new**
+* [**Qwen3-2507-4B**](https://docs.unsloth.ai/models/qwen3-how-to-run-and-fine-tune/qwen3-2507) • [Thinking](https://colab.research.google.com/github/unslothai/notebooks/blob/main/nb/Qwen3_\(4B\)-Thinking.ipynb) • [Instruct](https://colab.research.google.com/github/unslothai/notebooks/blob/main/nb/Qwen3_\(4B\)-Instruct.ipynb)
+* [Gemma 3n (E4B)](https://colab.research.google.com/github/unslothai/notebooks/blob/main/nb/Gemma3N_\(4B\)-Conversational.ipynb) • [Text](https://colab.research.google.com/github/unslothai/notebooks/blob/main/nb/Gemma3N_\(4B\)-Conversational.ipynb) • [Vision](https://colab.research.google.com/github/unslothai/notebooks/blob/main/nb/Gemma3N_\(4B\)-Vision.ipynb) • [Audio](https://colab.research.google.com/github/unslothai/notebooks/blob/main/nb/Gemma3N_\(4B\)-Audio.ipynb)
+* [IBM Granite-4.0-H](https://colab.research.google.com/github/unslothai/notebooks/blob/main/nb/Granite4.0.ipynb) - new
+* [Gemma 3 (4B)](https://colab.research.google.com/github/unslothai/notebooks/blob/main/nb/Gemma3_\(4B\).ipynb) • [Text](https://colab.research.google.com/github/unslothai/notebooks/blob/main/nb/Gemma3_\(4B\).ipynb) • [Vision](https://colab.research.google.com/github/unslothai/notebooks/blob/main/nb/Gemma3_\(4B\)-Vision.ipynb) • [270M](https://colab.research.google.com/github/unslothai/notebooks/blob/main/nb/Gemma3_\(270M\).ipynb) - new
+* [Phi-4 (14B)](https://colab.research.google.com/github/unslothai/notebooks/blob/main/nb/Phi_4-Conversational.ipynb)&#x20;
+* [Llama 3.1 (8B)](https://colab.research.google.com/github/unslothai/notebooks/blob/main/nb/Llama3.1_\(8B\)-Alpaca.ipynb) • [Llama 3.2 (1B + 3B)](https://colab.research.google.com/github/unslothai/notebooks/blob/main/nb/Llama3.2_\(1B_and_3B\)-Conversational.ipynb)
+
+#### GRPO (Reasoning RL) notebooks:
+
+* [**gpt-oss-20b**](https://colab.research.google.com/github/unslothai/notebooks/blob/main/nb/gpt-oss-\(20B\)-GRPO.ipynb) (automatic kernels creation) - new
+* [**gpt-oss-20b**](https://colab.research.google.com/github/unslothai/notebooks/blob/main/nb/gpt_oss_\(20B\)_Reinforcement_Learning_2048_Game.ipynb) (auto win 2048 game) - new
+* [**Qwen3-VL (8B)**](https://colab.research.google.com/github/unslothai/notebooks/blob/main/nb/Qwen3_VL_\(8B\)-Vision-GRPO.ipynb) - Vision **GSPO** - new
+* [Qwen3 (4B)](https://colab.research.google.com/github/unslothai/notebooks/blob/main/nb/Qwen3_\(4B\)-GRPO.ipynb) **-** Advanced GRPO LoRA
+* [Gemma 3 (4B)](https://colab.research.google.com/github/unslothai/notebooks/blob/main/nb/Gemma3_\(4B\)-Vision-GRPO.ipynb) - Vision GSPO - new
+* [**DeepSeek-R1-0528-Qwen3 (8B)**](https://colab.research.google.com/github/unslothai/notebooks/blob/main/nb/DeepSeek_R1_0528_Qwen3_\(8B\)_GRPO.ipynb) (for multilingual usecase)
+* [Gemma 3 (1B)](https://colab.research.google.com/github/unslothai/notebooks/blob/main/nb/Gemma3_\(1B\)-GRPO.ipynb)
+* [Llama 3.2 (3B)](https://colab.research.google.com/github/unslothai/notebooks/blob/main/nb/Advanced_Llama3_2_\(3B\)_GRPO_LoRA.ipynb) - Advanced GRPO LoRA
+* [Llama 3.1 (8B)](https://colab.research.google.com/github/unslothai/notebooks/blob/main/nb/Llama3.1_\(8B\)-GRPO.ipynb)
+* [Phi-4 (14B)](https://colab.research.google.com/github/unslothai/notebooks/blob/main/nb/Phi_4_\(14B\)-GRPO.ipynb)&#x20;
+* [Mistral v0.3 (7B)](https://colab.research.google.com/github/unslothai/notebooks/blob/main/nb/Mistral_v0.3_\(7B\)-GRPO.ipynb)
+
+#### Text-to-Speech (TTS) notebooks:
+
+* [Sesame-CSM (1B)](https://colab.research.google.com/github/unslothai/notebooks/blob/main/nb/Sesame_CSM_\(1B\)-TTS.ipynb) - new
+* [Orpheus-TTS (3B)](https://colab.research.google.com/github/unslothai/notebooks/blob/main/nb/Orpheus_\(3B\)-TTS.ipynb)
+* [Whisper Large V3](https://colab.research.google.com/github/unslothai/notebooks/blob/main/nb/Whisper.ipynb) - Speech-to-Text (STT)
+* [Llasa-TTS (1B)](https://colab.research.google.com/github/unslothai/notebooks/blob/main/nb/Llasa_TTS_\(1B\).ipynb)
+* [Spark-TTS (0.5B)](https://colab.research.google.com/github/unslothai/notebooks/blob/main/nb/Spark_TTS_\(0_5B\).ipynb)
+* [Oute-TTS (1B)](https://colab.research.google.com/github/unslothai/notebooks/blob/main/nb/Oute_TTS_\(1B\).ipynb)
+
+**Speech-to-Text (SST) notebooks:**
+
+* [Whisper-Large-V3](https://colab.research.google.com/github/unslothai/notebooks/blob/main/nb/Whisper.ipynb)
+* [Gemma 3n (E4B)](https://colab.research.google.com/github/unslothai/notebooks/blob/main/nb/Gemma3N_\(4B\)-Audio.ipynb) - Audio
+
+#### Vision (Multimodal) notebooks:
+
+* [**Qwen3-VL (8B)**](https://colab.research.google.com/github/unslothai/notebooks/blob/main/nb/Qwen3_VL_\(8B\)-Vision.ipynb) **- new**
+* [**DeepSeek-OCR**](https://colab.research.google.com/github/unslothai/notebooks/blob/main/nb/Deepseek_OCR_\(3B\).ipynb) **- new**
+* [Gemma 3 (4B)](https://colab.research.google.com/github/unslothai/notebooks/blob/main/nb/Gemma3_\(4B\)-Vision.ipynb) - vision
+* [Gemma 3n (E4B)](https://colab.research.google.com/github/unslothai/notebooks/blob/main/nb/Gemma3N_\(4B\)-Conversational.ipynb) - vision
+* [Llama 3.2 Vision (11B)](https://colab.research.google.com/github/unslothai/notebooks/blob/main/nb/Llama3.2_\(11B\)-Vision.ipynb)
+* [Qwen2.5-VL (7B)](https://colab.research.google.com/github/unslothai/notebooks/blob/main/nb/Qwen2.5_VL_\(7B\)-Vision.ipynb)
+* [Pixtral (12B) 2409](https://colab.research.google.com/github/unslothai/notebooks/blob/main/nb/Pixtral_\(12B\)-Vision.ipynb)
+* [Qwen3-VL](https://colab.research.google.com/github/unslothai/notebooks/blob/main/nb/Qwen3_VL_\(8B\)-Vision-GRPO.ipynb) - Vision GSPO - new
+* [Qwen2.5-VL](https://colab.research.google.com/github/unslothai/notebooks/blob/main/nb/Qwen2_5_7B_VL_GRPO.ipynb) - Vision GSPO
+* [Gemma 3 (4B)](https://colab.research.google.com/github/unslothai/notebooks/blob/main/nb/Gemma3_\(4B\)-Vision-GRPO.ipynb) - Vision GSPO - new
+
+#### Large LLM notebooks:
+
+**Notebooks for large models:** These exceed Colab’s free 15 GB VRAM tier. With Colab’s new 80 GB GPUs, you can fine-tune 120B parameter models.
+
+{% hint style="info" %}
+Colab subscription or credits are required. We **don't** earn anything from these notebooks.
+{% endhint %}
+
+* [gpt-oss-120b ](https://colab.research.google.com/github/unslothai/notebooks/blob/main/nb/gpt-oss-\(120B\)_A100-Fine-tuning.ipynb)- new
+* [Qwen3 (32B)](https://colab.research.google.com/github/unslothai/notebooks/blob/main/nb/Qwen3_\(32B\)_A100-Reasoning-Conversational.ipynb) - new
+* [Llama 3.3 (70B)](https://colab.research.google.com/github/unslothai/notebooks/blob/main/nb/Llama3.3_\(70B\)_A100-Conversational.ipynb) - new
+* [Gemma 3 (27B)](https://colab.research.google.com/github/unslothai/notebooks/blob/main/nb/Gemma3_\(27B\)_A100-Conversational.ipynb) - new
+
+#### Other important notebooks:
+
+* [**Customer support agent**](https://colab.research.google.com/github/unslothai/notebooks/blob/main/nb/Granite4.0.ipynb) **- new**
+* [**Automatic Kernel Creation**](https://colab.research.google.com/github/unslothai/notebooks/blob/main/nb/gpt-oss-\(20B\)-GRPO.ipynb) with RL **- new**
+* [**ModernBERT-large**](https://colab.research.google.com/github/unslothai/notebooks/blob/main/nb/bert_classification.ipynb) **- new** as of Aug 19
+* [**Synthetic Data Generation Llama 3.2 (3B)**](https://colab.research.google.com/github/unslothai/notebooks/blob/main/nb/Meta_Synthetic_Data_Llama3_2_\(3B\).ipynb) - new
+* [**Tool Calling**](https://colab.research.google.com/github/unslothai/notebooks/blob/main/nb/Qwen2.5_Coder_\(1.5B\)-Tool_Calling.ipynb) **- new**
+* [**Customer support agent**](https://colab.research.google.com/github/unslothai/notebooks/blob/main/nb/Granite4.0.ipynb) **- new**
+* [Mistral v0.3 Instruct (7B)](https://colab.research.google.com/github/unslothai/notebooks/blob/main/nb/Mistral_v0.3_\(7B\)-Conversational.ipynb)
+* [Ollama](https://colab.research.google.com/github/unslothai/notebooks/blob/main/nb/Llama3_\(8B\)-Ollama.ipynb)
+* [ORPO](https://colab.research.google.com/github/unslothai/notebooks/blob/main/nb/Llama3_\(8B\)-ORPO.ipynb)
+* [Continued Pretraining](https://colab.research.google.com/github/unslothai/notebooks/blob/main/nb/Mistral_v0.3_\(7B\)-CPT.ipynb)
+* [DPO Zephyr](https://colab.research.google.com/github/unslothai/notebooks/blob/main/nb/Zephyr_\(7B\)-DPO.ipynb)
+* [***Inference only***](https://colab.research.google.com/github/unslothai/notebooks/blob/main/nb/Llama3.1_\(8B\)-Inference.ipynb)
+* [Llama 3 (8B)](https://colab.research.google.com/github/unslothai/notebooks/blob/main/nb/Llama3_\(8B\)-Alpaca.ipynb)
+
+#### Specific use-case notebooks:
+
+* [**Customer support agent**](https://colab.research.google.com/github/unslothai/notebooks/blob/main/nb/Granite4.0.ipynb) **- new**
+* [**Automatic Kernel Creation**](https://colab.research.google.com/github/unslothai/notebooks/blob/main/nb/gpt-oss-\(20B\)-GRPO.ipynb) with RL **- new**
+* [DPO Zephyr](https://colab.research.google.com/github/unslothai/notebooks/blob/main/nb/Zephyr_\(7B\)-DPO.ipynb)
+* [**BERT - Text Classification**](https://colab.research.google.com/github/timothelaborie/text_classification_scripts/blob/main/unsloth_classification.ipynb) **- new as of Aug 19**
+* [Ollama](https://colab.research.google.com/github/unslothai/notebooks/blob/main/nb/Llama3_\(8B\)-Ollama.ipynb)
+* [**Tool Calling**](https://colab.research.google.com/github/unslothai/notebooks/blob/main/nb/Qwen2.5_Coder_\(1.5B\)-Tool_Calling.ipynb) **- new**
+* [Continued Pretraining (CPT)](https://colab.research.google.com/github/unslothai/notebooks/blob/main/nb/Mistral_v0.3_\(7B\)-CPT.ipynb)
+* [Multiple Datasets](https://colab.research.google.com/drive/1njCCbE1YVal9xC83hjdo2hiGItpY_D6t?usp=sharing) by Flail
+* [KTO](https://colab.research.google.com/drive/1MRgGtLWuZX4ypSfGguFgC-IblTvO2ivM?usp=sharing) by Jeffrey
+* [Inference chat UI](https://colab.research.google.com/github/unslothai/notebooks/blob/main/nb/Unsloth_Studio.ipynb)
+* [Conversational](https://colab.research.google.com/github/unslothai/notebooks/blob/main/nb/Llama3.2_\(1B_and_3B\)-Conversational.ipynb)
+* [ChatML](https://colab.research.google.com/drive/15F1xyn8497_dUbxZP4zWmPZ3PJx1Oymv?usp=sharing)
+* [Text Completion](https://colab.research.google.com/github/unslothai/notebooks/blob/main/nb/Mistral_\(7B\)-Text_Completion.ipynb)
+
+#### Rest of notebooks:
+
+* [Qwen2.5 (3B)](https://colab.research.google.com/github/unslothai/notebooks/blob/main/nb/Qwen2.5_\(3B\)-GRPO.ipynb)
+* [Gemma 2 (9B)](https://colab.research.google.com/github/unslothai/notebooks/blob/main/nb/Gemma2_\(9B\)-Alpaca.ipynb)
+* [Mistral NeMo (12B)](https://colab.research.google.com/github/unslothai/notebooks/blob/main/nb/Mistral_Nemo_\(12B\)-Alpaca.ipynb)
+* [Phi-3.5 (mini)](https://colab.research.google.com/github/unslothai/notebooks/blob/main/nb/Phi_3.5_Mini-Conversational.ipynb)
+* [Phi-3 (medium)](https://colab.research.google.com/github/unslothai/notebooks/blob/main/nb/Phi_3_Medium-Conversational.ipynb)
+* [Gemma 2 (2B)](https://colab.research.google.com/github/unslothai/notebooks/blob/main/nb/Gemma2_\(2B\)-Alpaca.ipynb)
+* [Qwen 2.5 Coder (14B)](https://colab.research.google.com/github/unslothai/notebooks/blob/main/nb/Qwen2.5_Coder_\(14B\)-Conversational.ipynb)
+* [Mistral Small (22B)](https://colab.research.google.com/github/unslothai/notebooks/blob/main/nb/Mistral_Small_\(22B\)-Alpaca.ipynb)
+* [TinyLlama](https://colab.research.google.com/github/unslothai/notebooks/blob/main/nb/TinyLlama_\(1.1B\)-Alpaca.ipynb)
+* [CodeGemma (7B)](https://colab.research.google.com/github/unslothai/notebooks/blob/main/nb/CodeGemma_\(7B\)-Conversational.ipynb)
+* [Mistral v0.3 (7B)](https://colab.research.google.com/github/unslothai/notebooks/blob/main/nb/Mistral_v0.3_\(7B\)-Alpaca.ipynb)
+* [Qwen2 (7B)](https://colab.research.google.com/github/unslothai/notebooks/blob/main/nb/Qwen2_\(7B\)-Alpaca.ipynb)
+
+#### Standard notebooks:
+
+* [**gpt-oss (20B)**](https://www.kaggle.com/notebooks/welcome?src=https://github.com/unslothai/notebooks/blob/main/nb/Kaggle-gpt-oss-\(20B\)-Fine-tuning.ipynb\&accelerator=nvidiaTeslaT4) **- new**
+* [Gemma 3n (E4B)](https://www.kaggle.com/code/danielhanchen/gemma-3n-4b-multimodal-finetuning-inference)
+* [Qwen3 (14B)](https://www.kaggle.com/notebooks/welcome?src=https%3A%2F%2Fgithub.com%2Funslothai/notebooks/blob/main/nb/Kaggle-Qwen3_\(14B\).ipynb)
+* [Magistral-2509 (24B)](https://www.kaggle.com/notebooks/welcome?src=https://github.com/unslothai/notebooks/blob/main/nb/Kaggle-Magistral_\(24B\)-Reasoning-Conversational.ipynb\&accelerator=nvidiaTeslaT4) - new
+* [Gemma 3 (4B)](https://www.kaggle.com/notebooks/welcome?src=https%3A%2F%2Fgithub.com%2Funslothai/notebooks/blob/main/nb/Kaggle-Gemma3_\(4B\).ipynb)
+* [Phi-4 (14B)](https://www.kaggle.com/notebooks/welcome?src=https%3A%2F%2Fgithub.com%2Funslothai/notebooks/blob/main/nb/Kaggle-Phi_4-Conversational.ipynb)
+* [Llama 3.1 (8B)](https://www.kaggle.com/notebooks/welcome?src=https%3A%2F%2Fgithub.com%2Funslothai/notebooks/blob/main/nb/Kaggle-Llama3.1_\(8B\)-Alpaca.ipynb)
+* [Llama 3.2 (1B + 3B)](https://www.kaggle.com/notebooks/welcome?src=https%3A%2F%2Fgithub.com%2Funslothai/notebooks/blob/main/nb/Kaggle-Llama3.2_\(1B_and_3B\)-Conversational.ipynb)
+* [Qwen 2.5 (7B)](https://www.kaggle.com/notebooks/welcome?src=https%3A%2F%2Fgithub.com%2Funslothai/notebooks/blob/main/nb/Kaggle-Qwen2.5_\(7B\)-Alpaca.ipynb)
+
+#### GRPO (Reasoning) notebooks:
+
+* [**Qwen2.5-VL**](https://www.kaggle.com/notebooks/welcome?src=https://github.com/unslothai/notebooks/blob/main/nb/Kaggle-Qwen2_5_7B_VL_GRPO.ipynb\&accelerator=nvidiaTeslaT4) - Vision GRPO - new
+* [Qwen3 (4B)](https://www.kaggle.com/notebooks/welcome?src=https://github.com/unslothai/notebooks/blob/main/nb/Kaggle-Qwen3_\(4B\)-GRPO.ipynb\&accelerator=nvidiaTeslaT4)
+* [Gemma 3 (1B)](https://www.kaggle.com/notebooks/welcome?src=https%3A%2F%2Fgithub.com%2Funslothai/notebooks/blob/main/nb/Kaggle-Gemma3_\(1B\)-GRPO.ipynb)
+* [Llama 3.1 (8B)](https://www.kaggle.com/notebooks/welcome?src=https%3A%2F%2Fgithub.com%2Funslothai/notebooks/blob/main/nb/Kaggle-Llama3.1_\(8B\)-GRPO.ipynb)
+* [Phi-4 (14B)](https://www.kaggle.com/notebooks/welcome?src=https%3A%2F%2Fgithub.com%2Funslothai/notebooks/blob/main/nb/Kaggle-Phi_4_\(14B\)-GRPO.ipynb)
+* [Qwen 2.5 (3B)](https://www.kaggle.com/notebooks/welcome?src=https%3A%2F%2Fgithub.com%2Funslothai/notebooks/blob/main/nb/Kaggle-Qwen2.5_\(3B\)-GRPO.ipynb)
+
+#### Text-to-Speech (TTS) notebooks:
+
+* [Sesame-CSM (1B)](https://www.kaggle.com/notebooks/welcome?src=https%3A%2F%2Fgithub.com%2Funslothai/notebooks/blob/main/nb/Kaggle-Sesame_CSM_\(1B\)-TTS.ipynb)
+* [Orpheus-TTS (3B)](https://www.kaggle.com/notebooks/welcome?src=https%3A%2F%2Fgithub.com%2Funslothai/notebooks/blob/main/nb/Kaggle-Orpheus_\(3B\)-TTS.ipynb)
+* [Whisper Large V3](https://www.kaggle.com/notebooks/welcome?src=https%3A%2F%2Fgithub.com%2Funslothai/notebooks/blob/main/nb/Kaggle-Whisper.ipynb) – Speech-to-Text
+* [Llasa-TTS (1B)](https://www.kaggle.com/notebooks/welcome?src=https%3A%2F%2Fgithub.com%2Funslothai/notebooks/blob/main/nb/Kaggle-Llasa_TTS_\(1B\).ipynb)
+* [Spark-TTS (0.5B)](https://www.kaggle.com/notebooks/welcome?src=https%3A%2F%2Fgithub.com%2Funslothai/notebooks/blob/main/nb/Kaggle-Spark_TTS_\(0_5B\).ipynb)
+* [Oute-TTS (1B)](https://www.kaggle.com/notebooks/welcome?src=https%3A%2F%2Fgithub.com%2Funslothai/notebooks/blob/main/nb/Kaggle-Oute_TTS_\(1B\).ipynb)
+
+#### Vision (Multimodal) notebooks:
+
+* [Llama 3.2 Vision (11B)](https://www.kaggle.com/notebooks/welcome?src=https%3A%2F%2Fgithub.com%2Funslothai/notebooks/blob/main/nb/Kaggle-Llama3.2_\(11B\)-Vision.ipynb)
+* [Qwen 2.5-VL (7B)](https://www.kaggle.com/notebooks/welcome?src=https%3A%2F%2Fgithub.com%2Funslothai/notebooks/blob/main/nb/Kaggle-Qwen2.5_VL_\(7B\)-Vision.ipynb)
+* [Pixtral (12B) 2409](https://www.kaggle.com/notebooks/welcome?src=https%3A%2F%2Fgithub.com%2Funslothai/notebooks/blob/main/nb/Kaggle-Pixtral_\(12B\)-Vision.ipynb)
+
+#### Specific use-case notebooks:
+
+* [Tool Calling](https://www.kaggle.com/notebooks/welcome?src=https://github.com/unslothai/notebooks/blob/main/nb/Kaggle-Qwen2.5_Coder_\(1.5B\)-Tool_Calling.ipynb\&accelerator=nvidiaTeslaT4)
+* [ORPO](https://www.kaggle.com/notebooks/welcome?src=https%3A%2F%2Fgithub.com%2Funslothai/notebooks/blob/main/nb/Kaggle-Llama3_\(8B\)-ORPO.ipynb)
+* [Continued Pretraining](https://www.kaggle.com/notebooks/welcome?src=https%3A%2F%2Fgithub.com%2Funslothai/notebooks/blob/main/nb/Kaggle-Mistral_v0.3_\(7B\)-CPT.ipynb)
+* [DPO Zephyr](https://www.kaggle.com/notebooks/welcome?src=https%3A%2F%2Fgithub.com%2Funslothai/notebooks/blob/main/nb/Kaggle-Zephyr_\(7B\)-DPO.ipynb)
+* [Inference only](https://www.kaggle.com/notebooks/welcome?src=https%3A%2F%2Fgithub.com%2Funslothai/notebooks/blob/main/nb/Kaggle-Llama3.1_\(8B\)-Inference.ipynb)
+* [Ollama](https://www.kaggle.com/notebooks/welcome?src=https%3A%2F%2Fgithub.com%2Funslothai/notebooks/blob/main/nb/Kaggle-Llama3_\(8B\)-Ollama.ipynb)
+* [Text Completion](https://www.kaggle.com/notebooks/welcome?src=https%3A%2F%2Fgithub.com%2Funslothai/notebooks/blob/main/nb/Kaggle-Mistral_\(7B\)-Text_Completion.ipynb)
+* [CodeForces-cot (Reasoning)](https://www.kaggle.com/notebooks/welcome?src=https%3A%2F%2Fgithub.com%2Funslothai/notebooks/blob/main/nb/Kaggle-CodeForces-cot-Finetune_for_Reasoning_on_CodeForces.ipynb)
+* [Unsloth Studio (chat UI)](https://www.kaggle.com/notebooks/welcome?src=https%3A%2F%2Fgithub.com%2Funslothai/notebooks/blob/main/nb/Kaggle-Unsloth_Studio.ipynb)
+
+#### Rest of notebooks:
+
+* [Gemma 2 (9B)](https://www.kaggle.com/notebooks/welcome?src=https%3A%2F%2Fgithub.com%2Funslothai/notebooks/blob/main/nb/Kaggle-Gemma2_\(9B\)-Alpaca.ipynb)
+* [Gemma 2 (2B)](https://www.kaggle.com/notebooks/welcome?src=https%3A%2F%2Fgithub.com%2Funslothai/notebooks/blob/main/nb/Kaggle-Gemma2_\(2B\)-Alpaca.ipynb)
+* [CodeGemma (7B)](https://www.kaggle.com/notebooks/welcome?src=https%3A%2F%2Fgithub.com%2Funslothai/notebooks/blob/main/nb/Kaggle-CodeGemma_\(7B\)-Conversational.ipynb)
+* [Mistral NeMo (12B)](https://www.kaggle.com/notebooks/welcome?src=https%3A%2F%2Fgithub.com%2Funslothai/notebooks/blob/main/nb/Kaggle-Mistral_Nemo_\(12B\)-Alpaca.ipynb)
+* [Mistral Small (22B)](https://www.kaggle.com/notebooks/welcome?src=https%3A%2F%2Fgithub.com%2Funslothai/notebooks/blob/main/nb/Kaggle-Mistral_Small_\(22B\)-Alpaca.ipynb)
+* [TinyLlama (1.1B)](https://www.kaggle.com/notebooks/welcome?src=https%3A%2F%2Fgithub.com%2Funslothai/notebooks/blob/main/nb/Kaggle-TinyLlama_\(1.1B\)-Alpaca.ipynb)
+
+To view a complete list of all our Kaggle notebooks, [click here](https://github.com/unslothai/notebooks#-kaggle-notebooks).
+
+{% hint style="info" %}
+Feel free to contribute to the notebooks by visiting our [repo](https://github.com/unslothai/notebooks)!
+{% endhint %}
+
+---
+
+## Conda Install
+
+**URL:** llms-txt#conda-install
+
+To install Unsloth locally on Conda, follow the steps below:
+
+{% hint style="warning" %}
+Only use Conda if you have it. If not, use [Pip](https://docs.unsloth.ai/get-started/install-and-update/pip-install).
+{% endhint %}
+
+Select either `pytorch-cuda=11.8,12.1` for CUDA 11.8 or CUDA 12.1. We support `python=3.10,3.11,3.12`.
+
+If you're looking to install Conda in a Linux environment, [read here](https://docs.anaconda.com/miniconda/), or run the below:
+
+**Examples:**
+
+Example 1 (bash):
+```bash
+conda create --name unsloth_env \
+    python=3.11 \
+    pytorch-cuda=12.1 \
+    pytorch cudatoolkit xformers -c pytorch -c nvidia -c xformers \
+    -y
+conda activate unsloth_env
+
+pip install unsloth
+```
+
+Example 2 (bash):
+```bash
+mkdir -p ~/miniconda3
+wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O ~/miniconda3/miniconda.sh
+bash ~/miniconda3/miniconda.sh -b -u -p ~/miniconda3
+rm -rf ~/miniconda3/miniconda.sh
+~/miniconda3/bin/conda init bash
+~/miniconda3/bin/conda init zsh
+```
+
+---
+
+## Save to 16-bit precision
+
+**URL:** llms-txt#save-to-16-bit-precision
+
+model.save_pretrained_merged("model", tokenizer, save_method="merged_16bit")
+python
+
+**Examples:**
+
+Example 1 (unknown):
+```unknown
+#### **Pushing to Hugging Face Hub**
+
+To share your model, we’ll push it to the Hugging Face Hub using the `push_to_hub_merged` method. This allows saving the model in multiple quantization formats.
+```
+
+---
+
+## Running & Saving Models
+
+**URL:** llms-txt#running-&-saving-models
+
+Learn how to save your finetuned model so you can run it in your favorite inference engine.
+
+You can also run your fine-tuned models by using [Unsloth's 2x faster inference](https://docs.unsloth.ai/basics/running-and-saving-models/unsloth-inference).
+
+<table data-card-size="large" data-view="cards"><thead><tr><th></th><th data-hidden data-card-target data-type="content-ref"></th><th data-hidden data-type="content-ref"></th></tr></thead><tbody><tr><td><a href="running-and-saving-models/saving-to-gguf">Saving to GGUF</a></td><td><a href="running-and-saving-models/saving-to-gguf">saving-to-gguf</a></td><td><a href="running-and-saving-models/saving-to-gguf">saving-to-gguf</a></td></tr><tr><td><a href="running-and-saving-models/saving-to-ollama">Ollama</a></td><td><a href="running-and-saving-models/saving-to-ollama">saving-to-ollama</a></td><td><a href="running-and-saving-models/saving-to-ollama">saving-to-ollama</a></td></tr><tr><td><a href="running-and-saving-models/saving-to-vllm-for-deployment">vLLM</a></td><td><a href="running-and-saving-models/saving-to-vllm-for-deployment">saving-to-vllm-for-deployment</a></td><td><a href="running-and-saving-models/saving-to-vllm-for-deployment">saving-to-vllm-for-deployment</a></td></tr><tr><td><a href="running-and-saving-models/saving-to-sglang-for-deployment">SGLang</a></td><td><a href="running-and-saving-models/saving-to-sglang-for-deployment">saving-to-sglang-for-deployment</a></td><td><a href="running-and-saving-models/vllm-engine-arguments">vllm-engine-arguments</a></td></tr><tr><td><a href="running-and-saving-models/unsloth-inference">Unsloth Inference</a></td><td><a href="running-and-saving-models/unsloth-inference">unsloth-inference</a></td><td><a href="running-and-saving-models/unsloth-inference">unsloth-inference</a></td></tr><tr><td><a href="running-and-saving-models/troubleshooting-inference">Troubleshooting</a></td><td><a href="running-and-saving-models/troubleshooting-inference">troubleshooting-inference</a></td><td><a href="running-and-saving-models/troubleshooting-inference">troubleshooting-inference</a></td></tr><tr><td><a href="running-and-saving-models/vllm-engine-arguments">vLLM Engine Arguments</a></td><td><a href="running-and-saving-models/vllm-engine-arguments">vllm-engine-arguments</a></td><td><a href="running-and-saving-models/saving-to-sglang-for-deployment">saving-to-sglang-for-deployment</a></td></tr><tr><td><a href="running-and-saving-models/lora-hot-swapping-guide">LoRA Hotswapping</a></td><td><a href="running-and-saving-models/lora-hot-swapping-guide">lora-hot-swapping-guide</a></td><td></td></tr></tbody></table>
+
+---
+
+## Vision Reinforcement Learning (VLM RL)
+
+**URL:** llms-txt#vision-reinforcement-learning-(vlm-rl)
+
+Train Vision/multimodal models via GRPO and RL with Unsloth!
+
+Unsloth now supports vision/multimodal RL with [Qwen3-VL](https://docs.unsloth.ai/models/qwen3-vl-how-to-run-and-fine-tune), [Gemma 3](https://docs.unsloth.ai/models/gemma-3-how-to-run-and-fine-tune) and more. Due to Unsloth's unique [weight sharing](https://docs.unsloth.ai/get-started/reinforcement-learning-rl-guide#what-unsloth-offers-for-rl) and custom kernels, Unsloth makes VLM RL **1.5–2× faster,** uses **90% less VRAM**, and enables **15× longer context** lengths than FA2 setups, with no accuracy loss. This update also introduces Qwen's [GSPO](#gspo-rl) algorithm.
+
+Unsloth can train Qwen3-VL-8B with GSPO/GRPO on a free Colab T4 GPU. Other VLMs work too, but may need larger GPUs. Gemma requires newer GPUs than T4 because vLLM [restricts to Bfloat16](https://docs.unsloth.ai/models/gemma-3-how-to-run-and-fine-tune#unsloth-fine-tuning-fixes), thus we recommend NVIDIA L4 on Colab. Our notebooks solve numerical math problems involving images and diagrams:
+
+* **Qwen-3 VL-8B** (vLLM inference)**:** [Colab](https://colab.research.google.com/github/unslothai/notebooks/blob/main/nb/Qwen3_VL_\(8B\)-Vision-GRPO.ipynb)
+* **Qwen-2.5 VL-7B** (vLLM inference)**:** [Colab](https://colab.research.google.com/github/unslothai/notebooks/blob/main/nb/Qwen2_5_7B_VL_GRPO.ipynb) •[ Kaggle](https://www.kaggle.com/notebooks/welcome?src=https://github.com/unslothai/notebooks/blob/main/nb/Kaggle-Qwen2_5_7B_VL_GRPO.ipynb\&accelerator=nvidiaTeslaT4)&#x20;
+* **Gemma-3-4B** (Unsloth inference): [Colab](https://colab.research.google.com/github/unslothai/notebooks/blob/main/nb/Gemma3_\(4B\)-Vision-GRPO.ipynb)
+
+We have also added vLLM VLM integration into Unsloth natively, so all you have to do to use vLLM inference is enable the `fast_inference=True` flag when initializing the model. Special thanks to [Sinoué GAD](https://github.com/unslothai/unsloth/pull/2752) for providing the [first notebook](https://github.com/GAD-cell/vlm-grpo/blob/main/examples/VLM_GRPO_basic_example.ipynb) that made integrating VLM RL easier!
+
+This VLM support also integrates our latest update for even more memory efficient + faster RL including our [Standby feature](https://docs.unsloth.ai/get-started/reinforcement-learning-rl-guide/memory-efficient-rl#unsloth-standby), which uniquely limits speed degradation compared to other implementations.
+
+{% hint style="info" %}
+You can only use `fast_inference` for VLMs supported by vLLM. Some models, like Llama 3.2 Vision thus only can run without vLLM, but they still work in Unsloth.
+{% endhint %}
+
+It is also important to note, that vLLM does not support LoRA for vision/encoder layers, thus set `finetune_vision_layers = False` when loading a LoRA adapter.\
+However you CAN train the vision layers as well if you use inference via transformers/Unsloth.&#x20;
+
+**Examples:**
+
+Example 1 (python):
+```python
+os.environ['UNSLOTH_VLLM_STANDBY'] = '1' # To enable memory efficient GRPO with vLLM
+model, tokenizer = FastVisionModel.from_pretrained(
+    model_name = "Qwen/Qwen2.5-VL-7B-Instruct",
+    max_seq_length = 16384, #Must be this large to fit image in context
+    load_in_4bit = True, # False for LoRA 16bit
+    fast_inference = True, # Enable vLLM fast inference
+    gpu_memory_utilization = 0.8, # Reduce if out of memory
+)
+```
+
+---
+
+## Updating
+
+**URL:** llms-txt#updating
+
+**Contents:**
+- Standard Updating  (recommended):
+  - Updating without dependency updates:
+- To use an old version of Unsloth:
+
+To update or use an old version of Unsloth, follow the steps below:
+
+## Standard Updating  (recommended):
+
+### Updating without dependency updates:
+
+<pre class="language-bash"><code class="lang-bash">pip install --upgrade --force-reinstall --no-cache-dir --no-deps git+https://github.com/unslothai/unsloth.git
+<strong>pip install --upgrade --force-reinstall --no-cache-dir --no-deps git+https://github.com/unslothai/unsloth-zoo.git
+</strong></code></pre>
+
+## To use an old version of Unsloth:
+
+'2025.1.5' is one of the previous old versions of Unsloth. Change it to a specific release listed on our [Github here](https://github.com/unslothai/unsloth/releases).
+
+**Examples:**
+
+Example 1 (bash):
+```bash
+pip install --upgrade unsloth unsloth_zoo
+```
+
+Example 2 (bash):
+```bash
+pip install --force-reinstall --no-cache-dir --no-deps unsloth==2025.1.5
+```
+
+---
+
+## Helper functions to extract answers from different formats
+
+**URL:** llms-txt#helper-functions-to-extract-answers-from-different-formats
+
+def extract_xml_answer(text: str) -> str:
+    answer = text.split("<answer>")[-1]
+    answer = answer.split("</answer>")[0]
+    return answer.strip()
+
+def extract_hash_answer(text: str) -> str | None:
+    if "####" not in text:
+        return None
+    return text.split("####")[1].strip()
+
+---
+
+## Int4 QAT
+
+**URL:** llms-txt#int4-qat
+
+from torchao.quantization import Int4WeightOnlyConfig
+model.save_pretrained_torchao(
+    model, "tokenizer",
+    torchao_config = Int4WeightOnlyConfig(),
+)
+
+---
+
+## Unsloth Environment Flags
+
+**URL:** llms-txt#unsloth-environment-flags
+
+Advanced flags which might be useful if you see breaking finetunes, or you want to turn stuff off.
+
+<table><thead><tr><th width="397.4666748046875">Environment variable</th><th>Purpose</th><th data-hidden></th></tr></thead><tbody><tr><td><code>os.environ["UNSLOTH_RETURN_LOGITS"] = "1"</code></td><td>Forcibly returns logits - useful for evaluation if logits are needed.</td><td></td></tr><tr><td><code>os.environ["UNSLOTH_COMPILE_DISABLE"] = "1"</code></td><td>Disables auto compiler. Could be useful to debug incorrect finetune results.</td><td></td></tr><tr><td><code>os.environ["UNSLOTH_DISABLE_FAST_GENERATION"] = "1"</code></td><td>Disables fast generation for generic models.</td><td></td></tr><tr><td><code>os.environ["UNSLOTH_ENABLE_LOGGING"] = "1"</code></td><td>Enables auto compiler logging - useful to see which functions are compiled or not.</td><td></td></tr><tr><td><code>os.environ["UNSLOTH_FORCE_FLOAT32"] = "1"</code></td><td>On float16 machines, use float32 and not float16 mixed precision. Useful for Gemma 3.</td><td></td></tr><tr><td><code>os.environ["UNSLOTH_STUDIO_DISABLED"] = "1"</code></td><td>Disables extra features.</td><td></td></tr><tr><td><code>os.environ["UNSLOTH_COMPILE_DEBUG"] = "1"</code></td><td>Turns on extremely verbose <code>torch.compile</code>logs.</td><td></td></tr><tr><td><code>os.environ["UNSLOTH_COMPILE_MAXIMUM"] = "0"</code></td><td>Enables maximum <code>torch.compile</code>optimizations - not recommended.</td><td></td></tr><tr><td><code>os.environ["UNSLOTH_COMPILE_IGNORE_ERRORS"] = "1"</code></td><td>Can turn this off to enable fullgraph parsing.</td><td></td></tr><tr><td><code>os.environ["UNSLOTH_FULLGRAPH"] = "0"</code></td><td>Enable <code>torch.compile</code> fullgraph mode</td><td></td></tr><tr><td><code>os.environ["UNSLOTH_DISABLE_AUTO_UPDATES"] = "1"</code></td><td>Forces no updates to <code>unsloth-zoo</code></td><td></td></tr></tbody></table>
+
+Another possibility is maybe the model uploads we uploaded are corrupted, but unlikely. Try the following:
+
+**Examples:**
+
+Example 1 (python):
+```python
+model, tokenizer = FastVisionModel.from_pretrained(
+    "Qwen/Qwen2-VL-7B-Instruct",
+    use_exact_model_name = True,
+)
+```
+
+---
+
+## Clone and build
+
+**URL:** llms-txt#clone-and-build
+
+**Contents:**
+  - Docker
+  - uv
+  - Conda or mamba (Advanced)
+  - WSL-Specific Notes
+
+pip install ninja
+export TORCH_CUDA_ARCH_LIST="12.0"
+git clone --depth=1 https://github.com/facebookresearch/xformers --recursive
+cd xformers && python setup.py install && cd ..
+bash
+uv pip install unsloth
+bash
+   curl -LsSf https://astral.sh/uv/install.sh | sh && source $HOME/.local/bin/env
+   bash
+   mkdir 'unsloth-blackwell' && cd 'unsloth-blackwell'
+   uv venv .venv --python=3.12 --seed
+   source .venv/bin/activate
+   bash
+   uv pip install -U vllm --torch-backend=cu128
+   bash
+   uv pip install unsloth unsloth_zoo bitsandbytes
+   bash
+   uv pip install -qqq \
+   "unsloth_zoo[base] @ git+https://github.com/unslothai/unsloth-zoo" \
+   "unsloth[base] @ git+https://github.com/unslothai/unsloth"
+   bash
+   # First uninstall xformers installed by previous libraries
+   pip uninstall xformers -y
+
+# Clone and build
+   pip install ninja
+   export TORCH_CUDA_ARCH_LIST="12.0"
+   git clone --depth=1 https://github.com/facebookresearch/xformers --recursive
+   cd xformers && python setup.py install && cd ..
+   bash
+   uv pip install -U transformers
+   bash
+   curl -L -O "https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-$(uname)-$(uname -m).sh"
+   bash
+   bash Miniforge3-$(uname)-$(uname -m).sh
+   bash
+   conda create --name unsloth-blackwell python==3.12 -y
+   bash
+   conda activate unsloth-blackwell
+   bash
+   pip install -U vllm --extra-index-url https://download.pytorch.org/whl/cu128
+   bash
+   pip install unsloth unsloth_zoo bitsandbytes
+   bash
+   # First uninstall xformers installed by previous libraries
+   pip uninstall xformers -y
+
+# Clone and build
+   pip install ninja
+   export TORCH_CUDA_ARCH_LIST="12.0"
+   git clone --depth=1 https://github.com/facebookresearch/xformers --recursive
+   cd xformers && python setup.py install && cd ..
+   bash
+   pip install -U triton>=3.3.1
+   bash
+   uv pip install -U transformers
+   bash
+   # Create or edit .wslconfig in your Windows user directory
+   # (typically C:\Users\YourUsername\.wslconfig)
+
+# Add these lines to the file
+   [wsl2]
+   memory=16GB  # Minimum 16GB recommended for xformers compilation
+   processors=4  # Adjust based on your CPU cores
+   swap=2GB
+   localhostForwarding=true
+   powershell
+   wsl --shutdown
+   bash
+   # Set CUDA architecture for Blackwell GPUs
+   export TORCH_CUDA_ARCH_LIST="12.0"
+
+# Install xformers from source with optimized build flags
+   pip install -v --no-build-isolation -U git+https://github.com/facebookresearch/xformers.git@main#egg=xformers
+   ```
+
+The `--no-build-isolation` flag helps avoid potential build issues in WSL environments.
+
+**Examples:**
+
+Example 1 (unknown):
+```unknown
+{% endcode %}
+
+### Docker
+
+[**`unsloth/unsloth`**](https://hub.docker.com/r/unsloth/unsloth) is Unsloth's only Docker image. For Blackwell and 50-series GPUs, use this same image - no separate image needed.
+
+For installation instructions, please follow our [Unsloth Docker guide](https://docs.unsloth.ai/new/how-to-fine-tune-llms-with-unsloth-and-docker).
+
+### uv
+```
+
+Example 2 (unknown):
+```unknown
+#### uv (Advanced)
+
+The installation order is important, since we want the overwrite bundled dependencies with specific versions (namely, `xformers` and `triton`).
+
+1. I prefer to use `uv` over `pip` as it's faster and better for resolving dependencies, especially for libraries which depend on `torch` but for which a specific `CUDA` version is required per this scenario.
+
+   Install `uv`
+```
+
+Example 3 (unknown):
+```unknown
+Create a project dir and venv:
+```
+
+Example 4 (unknown):
+```unknown
+2. Install `vllm`
+```
+
+---
+
+## Gemma 3n: How to Run & Fine-tune
+
+**URL:** llms-txt#gemma-3n:-how-to-run-&-fine-tune
+
+**Contents:**
+- 🖥️ Running Gemma 3n
+  - :gear: Official Recommended Settings
+  - :llama: Tutorial: How to Run Gemma 3n in Ollama
+  - 📖 Tutorial: How to Run Gemma 3n in llama.cpp
+
+Run Google's new Gemma 3n locally with Dynamic GGUFs on llama.cpp, Ollama, Open WebUI and fine-tune with Unsloth!
+
+Google’s Gemma 3n multimodal model handles image, audio, video, and text inputs. Available in 2B and 4B sizes, it supports 140 languages for text and multimodal tasks. You can now run and fine-tune **Gemma-3n-E4B** and **E2B** locally using [Unsloth](https://github.com/unslothai/unsloth).
+
+> **Fine-tune Gemma 3n with our** [**free Colab notebook**](https://colab.research.google.com/github/unslothai/notebooks/blob/main/nb/Gemma3N_\(4B\)-Conversational.ipynb)
+
+Gemma 3n has **32K context length**, 30s audio input, OCR, auto speech recognition (ASR), and speech translation via prompts.
+
+<a href="#running-gemma-3n" class="button primary">Running Tutorial</a><a href="#fine-tuning-gemma-3n-with-unsloth" class="button secondary">Fine-tuning Tutorial</a><a href="#fixes-for-gemma-3n" class="button secondary">Fixes + Technical Analysis</a>
+
+**Unsloth Gemma 3n (Instruct) uploads with optimal configs:**
+
+<table><thead><tr><th width="249">Dynamic 2.0 GGUF (text only)</th><th width="285">Dynamic 4-bit Instruct (to fine-tune)</th><th>16-bit Instruct</th></tr></thead><tbody><tr><td><ul><li><a href="https://huggingface.co/unsloth/gemma-3n-E2B-it-GGUF">2B</a></li><li><a href="https://huggingface.co/unsloth/gemma-3n-E4B-it-GGUF">4B</a></li></ul></td><td><ul><li><a href="https://huggingface.co/unsloth/gemma-3n-E2B-it-unsloth-bnb-4bit">2B</a></li><li><a href="https://huggingface.co/unsloth/gemma-3n-E4B-it-unsloth-bnb-4bit">4B</a></li></ul></td><td><ul><li><a href="https://huggingface.co/unsloth/gemma-3n-E2B-it">2B</a></li><li><a href="https://huggingface.co/unsloth/gemma-3n-E4B-it">4B</a></li></ul></td></tr></tbody></table>
+
+**See all our Gemma 3n uploads including base and more formats in** [**our collection here**](https://huggingface.co/collections/unsloth/gemma-3n-685d3874830e49e1c93f9339)**.**
+
+## 🖥️ Running Gemma 3n
+
+Currently Gemma 3n is only supported in **text format** for inference.
+
+{% hint style="info" %}
+We’ve [fixed issues](#fixes-for-gemma-3n) with GGUFs not working properly in Ollama only. Please redownload if using Ollama.
+{% endhint %}
+
+### :gear: Official Recommended Settings
+
+According to the Gemma team, the official recommended settings for inference:
+
+`temperature = 1.0, top_k = 64, top_p = 0.95, min_p = 0.0`
+
+* Temperature of 1.0
+* Top\_K of 64
+* Min\_P of 0.00 (optional, but 0.01 works well, llama.cpp default is 0.1)
+* Top\_P of 0.95
+* Repetition Penalty of 1.0. (1.0 means disabled in llama.cpp and transformers)
+* Chat template:&#x20;
+
+<pre data-overflow="wrap"><code><strong>&#x3C;bos>&#x3C;start_of_turn>user\nHello!&#x3C;end_of_turn>\n&#x3C;start_of_turn>model\nHey there!&#x3C;end_of_turn>\n&#x3C;start_of_turn>user\nWhat is 1+1?&#x3C;end_of_turn>\n&#x3C;start_of_turn>model\n
+  </strong></code></pre>
+* Chat template with `\n`newlines rendered (except for the last)
+
+{% code overflow="wrap" %}
+
+{% hint style="danger" %}
+llama.cpp an other inference engines auto add a \<bos> - DO NOT add TWO \<bos> tokens! You should ignore the \<bos> when prompting the model!
+{% endhint %}
+
+### :llama: Tutorial: How to Run Gemma 3n in Ollama
+
+{% hint style="success" %}
+Please re download Gemma 3N quants or remove the old ones via Ollama since there are some bug fixes. You can do the below to delete the old file and refresh it:
+
+1. Install `ollama` if you haven't already!&#x20;
+
+2. Run the model! Note you can call `ollama serve`in another terminal if it fails! We include all our fixes and suggested parameters (temperature etc) in `params` in our Hugging Face upload!
+
+### 📖 Tutorial: How to Run Gemma 3n in llama.cpp
+
+{% hint style="info" %}
+We would first like to thank [Xuan-Son Nguyen](https://x.com/ngxson) from Hugging Face, [Georgi Gerganov](https://x.com/ggerganov) from the llama.cpp team on making Gemma 3N work in llama.cpp!
+{% endhint %}
+
+1. Obtain the latest `llama.cpp` on [GitHub here](https://github.com/ggml-org/llama.cpp). You can follow the build instructions below as well. Change `-DGGML_CUDA=ON` to `-DGGML_CUDA=OFF` if you don't have a GPU or just want CPU inference.
+
+2. If you want to use `llama.cpp` directly to load models, you can do the below: (:Q4\_K\_XL) is the quantization type. You can also download via Hugging Face (point 3). This is similar to `ollama run`
+
+3. **OR** download the model via (after installing `pip install huggingface_hub hf_transfer` ). You can choose Q4\_K\_M, or other quantized versions (like BF16 full precision).&#x20;
+
+**Examples:**
+
+Example 1 (unknown):
+```unknown
+<bos><start_of_turn>user
+Hello!<end_of_turn>
+<start_of_turn>model
+Hey there!<end_of_turn>
+<start_of_turn>user
+What is 1+1?<end_of_turn>
+<start_of_turn>model\n
+```
+
+Example 2 (unknown):
+```unknown
+ollama rm hf.co/unsloth/gemma-3n-E4B-it-GGUF:UD-Q4_K_XL
+
+ollama run hf.co/unsloth/gemma-3n-E4B-it-GGUF:UD-Q4_K_XL
+```
+
+Example 3 (bash):
+```bash
+apt-get update
+apt-get install pciutils -y
+curl -fsSL https://ollama.com/install.sh | sh
+```
+
+Example 4 (bash):
+```bash
+ollama run hf.co/unsloth/gemma-3n-E4B-it-GGUF:UD-Q4_K_XL
+```
+
+---
+
+## Troubleshooting Inference
+
+**URL:** llms-txt#troubleshooting-inference
+
+**Contents:**
+  - Running in Unsloth works well, but after exporting & running on other platforms, the results are poor
+- Saving to `safetensors`, not `bin` format in Colab
+- If saving to GGUF or vLLM 16bit crashes
+
+If you're experiencing issues when running or saving your model.
+
+### Running in Unsloth works well, but after exporting & running on other platforms, the results are poor
+
+You might sometimes encounter an issue where your model runs and produces good results on Unsloth, but when you use it on another platform like Ollama or vLLM, the results are poor or you might get gibberish, endless/infinite generations *or* repeated output&#x73;**.**
+
+* The most common cause of this error is using an <mark style="background-color:blue;">**incorrect chat template**</mark>**.** It’s essential to use the SAME chat template that was used when training the model in Unsloth and later when you run it in another framework, such as llama.cpp or Ollama. When inferencing from a saved model, it's crucial to apply the correct template.
+* You must use the correct `eos token`. If not, you might get gibberish on longer generations.
+* It might also be because your inference engine adds an unnecessary "start of sequence" token (or the lack of thereof on the contrary) so ensure you check both hypotheses!
+* <mark style="background-color:green;">**Use our conversational notebooks to force the chat template - this will fix most issues.**</mark>
+  * Qwen-3 14B Conversational notebook [**Open in Colab**](https://colab.research.google.com/github/unslothai/notebooks/blob/main/nb/Qwen3_\(14B\)-Reasoning-Conversational.ipynb)
+  * Gemma-3 4B Conversational notebook [**Open in Colab**](https://colab.research.google.com/github/unslothai/notebooks/blob/main/nb/Gemma3_\(4B\).ipynb)
+  * Llama-3.2 3B Conversational notebook [**Open in Colab**](https://colab.research.google.com/github/unslothai/notebooks/blob/main/nb/Llama3.2_\(1B_and_3B\)-Conversational.ipynb)
+  * Phi-4 14B Conversational notebook [**Open in Colab**](https://colab.research.google.com/github/unslothai/notebooks/blob/main/nb/Phi_4-Conversational.ipynb)
+  * Mistral v0.3 7B Conversational notebook [**Open in Colab**](https://colab.research.google.com/github/unslothai/notebooks/blob/main/nb/Mistral_v0.3_\(7B\)-Conversational.ipynb)
+  * **More notebooks in our** [**notebooks repo**](https://github.com/unslothai/notebooks)**.**
+
+## Saving to `safetensors`, not `bin` format in Colab
+
+We save to `.bin` in Colab so it's like 4x faster, but set `safe_serialization = None` to force saving to `.safetensors`. So `model.save_pretrained(..., safe_serialization = None)` or `model.push_to_hub(..., safe_serialization = None)`
+
+## If saving to GGUF or vLLM 16bit crashes
+
+You can try reducing the maximum GPU usage during saving by changing `maximum_memory_usage`.
+
+The default is `model.save_pretrained(..., maximum_memory_usage = 0.75)`. Reduce it to say 0.5 to use 50% of GPU peak memory or lower. This can reduce OOM crashes during saving.
+
+---
+
+## Install xformers from source for blackwell support
+
+**URL:** llms-txt#install-xformers-from-source-for-blackwell-support
+
+RUN git clone --depth=1 https://github.com/facebookresearch/xformers --recursive && \
+    cd xformers && \
+    export TORCH_CUDA_ARCH_LIST="12.1" && \
+    python setup.py install && \
+    cd ..
+
+---
+
+## We're installing the latest Torch, Triton, OpenAI's Triton kernels, Transformers and Unsloth!
+
+**URL:** llms-txt#we're-installing-the-latest-torch,-triton,-openai's-triton-kernels,-transformers-and-unsloth!
+
+**Contents:**
+  - Configuring gpt-oss and Reasoning Effort
+
+!pip install --upgrade -qqq uv
+try: import numpy; install_numpy = f"numpy=={numpy.__version__}"
+except: install_numpy = "numpy"
+!uv pip install -qqq \
+    "torch>=2.8.0" "triton>=3.4.0" {install_numpy} \
+    "unsloth_zoo[base] @ git+https://github.com/unslothai/unsloth-zoo" \
+    "unsloth[base] @ git+https://github.com/unslothai/unsloth" \
+    torchvision bitsandbytes \
+    git+https://github.com/huggingface/transformers \
+    git+https://github.com/triton-lang/triton.git@05b2c186c1b6c9a08375389d5efe9cb4c401c075#subdirectory=python/triton_kernels
+```
+
+### Configuring gpt-oss and Reasoning Effort
+
+We’ll load **`gpt-oss-20b`**  using Unsloth's [linearized version](https://docs.unsloth.ai/models/gpt-oss-how-to-run-and-fine-tune/..#making-efficient-gpt-oss-fine-tuning-work) (as no other version will work for QLoRA fine-tuning). Configure the following parameters:
+
+* `max_seq_length = 2048`&#x20;
+  * Recommended for quick testing and initial experiments.
+* `load_in_4bit = True`&#x20;
+  * Use `False` for LoRA training (note: setting this to `False` will need at least 43GB VRAM). You ***MUST*** also set **`model_name = "unsloth/gpt-oss-20b-BF16"`**
+
+<pre class="language-python"><code class="lang-python">from unsloth import FastLanguageModel
+import torch
+max_seq_length = 1024
+dtype = None
+
+---
+
+## Reinforcement Learning - DPO, ORPO & KTO
+
+**URL:** llms-txt#reinforcement-learning---dpo,-orpo-&-kto
+
+**Contents:**
+- DPO Code
+
+To use the reward modelling functions for DPO, GRPO, ORPO or KTO with Unsloth, follow the steps below:
+
+DPO (Direct Preference Optimization), ORPO (Odds Ratio Preference Optimization), PPO, KTO Reward Modelling all work with Unsloth.
+
+We have Google Colab notebooks for reproducing GRPO, ORPO, DPO Zephyr, KTO and SimPO:
+
+* [GRPO notebooks](https://docs.unsloth.ai/unsloth-notebooks#grpo-reasoning-rl-notebooks)
+* [ORPO notebook](https://colab.research.google.com/github/unslothai/notebooks/blob/main/nb/Llama3_\(8B\)-ORPO.ipynb)
+* [DPO Zephyr notebook](https://colab.research.google.com/github/unslothai/notebooks/blob/main/nb/Zephyr_\(7B\)-DPO.ipynb)
+* [KTO notebook](https://colab.research.google.com/drive/1MRgGtLWuZX4ypSfGguFgC-IblTvO2ivM?usp=sharing)
+* [SimPO notebook](https://colab.research.google.com/drive/1Hs5oQDovOay4mFA6Y9lQhVJ8TnbFLFh2?usp=sharing)
+
+We're also in 🤗Hugging Face's official docs! We're on the [SFT docs](https://huggingface.co/docs/trl/main/en/sft_trainer#accelerate-fine-tuning-2x-using-unsloth) and the [DPO docs](https://huggingface.co/docs/trl/main/en/dpo_trainer#accelerate-dpo-fine-tuning-using-unsloth).
+
+```python
+python
+import os
+os.environ["CUDA_VISIBLE_DEVICES"] = "0" # Optional set GPU device ID
+
+from unsloth import FastLanguageModel, PatchDPOTrainer
+from unsloth import is_bfloat16_supported
+PatchDPOTrainer()
+import torch
+from transformers import TrainingArguments
+from trl import DPOTrainer
+
+model, tokenizer = FastLanguageModel.from_pretrained(
+    model_name = "unsloth/zephyr-sft-bnb-4bit",
+    max_seq_length = max_seq_length,
+    dtype = None,
+    load_in_4bit = True,
+)
+
+---
+
+## Devstral: How to Run & Fine-tune
+
+**URL:** llms-txt#devstral:-how-to-run-&-fine-tune
+
+**Contents:**
+- 🖥️ **Running Devstral**
+  - :gear: Official Recommended Settings
+- :llama: Tutorial: How to Run Devstral in Ollama
+- 📖 Tutorial: How to Run Devstral in llama.cpp  <a href="#tutorial-how-to-run-llama-4-scout-in-llama.cpp" id="tutorial-how-to-run-llama-4-scout-in-llama.cpp"></a>
+
+Run and fine-tune Mistral Devstral 1.1, including Small-2507 and 2505.
+
+**Devstral-Small-2507** (Devstral 1.1) is Mistral's new agentic LLM for software engineering. It excels at tool-calling, exploring codebases, and powering coding agents. Mistral AI released the original 2505 version in May, 2025.
+
+Finetuned from [**Mistral-Small-3.1**](https://huggingface.co/unsloth/Mistral-Small-3.1-24B-Instruct-2503-GGUF), Devstral supports a 128k context window. Devstral Small 1.1 has improved performance, achieving a score of 53.6% performance on [SWE-bench verified](https://openai.com/index/introducing-swe-bench-verified/), making it (July 10, 2025) the #1 open model on the benchmark.
+
+Unsloth Devstral 1.1 GGUFs contain additional <mark style="background-color:green;">**tool-calling support**</mark> and <mark style="background-color:green;">**chat template fixes**</mark>. Devstral 1.1 still works well with OpenHands but now also generalizes better to other prompts and coding environments.
+
+As text-only, Devstral’s vision encoder was removed prior to fine-tuning. We've added [*<mark style="background-color:green;">**optional Vision support**</mark>*](#possible-vision-support) for the model.
+
+{% hint style="success" %}
+We also worked with Mistral behind the scenes to help debug, test and correct any possible bugs and issues! Make sure to **download Mistral's official downloads or Unsloth's GGUFs** / dynamic quants to get the **correct implementation** (ie correct system prompt, correct chat template etc)
+
+Please use `--jinja` in llama.cpp to enable the system prompt!
+{% endhint %}
+
+All Devstral uploads use our Unsloth [Dynamic 2.0](https://docs.unsloth.ai/basics/unsloth-dynamic-2.0-ggufs) methodology, delivering the best performance on 5-shot MMLU and KL Divergence benchmarks. This means, you can run and fine-tune quantized Mistral LLMs with minimal accuracy loss!
+
+#### **Devstral - Unsloth Dynamic** quants:
+
+| Devstral 2507 (new)                                                                                                    | Devstral 2505                                                                                               |
+| ---------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| GGUF: [Devstral-Small-2507-GGUF](https://huggingface.co/unsloth/Devstral-Small-2507-GGUF)                              | [Devstral-Small-2505-GGUF](https://huggingface.co/unsloth/Devstral-Small-2505-GGUF)                         |
+| 4-bit BnB: [Devstral-Small-2507-unsloth-bnb-4bit](https://huggingface.co/unsloth/Devstral-Small-2507-unsloth-bnb-4bit) | [Devstral-Small-2505-unsloth-bnb-4bit](https://huggingface.co/unsloth/Devstral-Small-2505-unsloth-bnb-4bit) |
+
+## 🖥️ **Running Devstral**
+
+### :gear: Official Recommended Settings
+
+According to Mistral AI, these are the recommended settings for inference:
+
+* <mark style="background-color:blue;">**Temperature from 0.0 to 0.15**</mark>
+* Min\_P of 0.01 (optional, but 0.01 works well, llama.cpp default is 0.1)
+* <mark style="background-color:orange;">**Use**</mark><mark style="background-color:orange;">**&#x20;**</mark><mark style="background-color:orange;">**`--jinja`**</mark><mark style="background-color:orange;">**&#x20;**</mark><mark style="background-color:orange;">**to enable the system prompt.**</mark>
+
+**A system prompt is recommended**, and is a derivative of Open Hand's system prompt. The full system prompt is provided [here](https://huggingface.co/unsloth/Devstral-Small-2505/blob/main/SYSTEM_PROMPT.txt).
+
+{% hint style="success" %}
+Our dynamic uploads have the '`UD`' prefix in them. Those without are not dynamic however still utilize our calibration dataset.
+{% endhint %}
+
+## :llama: Tutorial: How to Run Devstral in Ollama
+
+1. Install `ollama` if you haven't already!&#x20;
+
+2. Run the model with our dynamic quant. Note you can call `ollama serve &`in another terminal if it fails! We include all suggested parameters (temperature etc) in `params` in our Hugging Face upload!
+3. Also Devstral supports 128K context lengths, so best to enable [**KV cache quantization**](https://github.com/ollama/ollama/blob/main/docs/faq.md#how-can-i-set-the-quantization-type-for-the-kv-cache). We use 8bit quantization which saves 50% memory usage. You can also try `"q4_0"`
+
+## 📖 Tutorial: How to Run Devstral in llama.cpp  <a href="#tutorial-how-to-run-llama-4-scout-in-llama.cpp" id="tutorial-how-to-run-llama-4-scout-in-llama.cpp"></a>
+
+1. Obtain the latest `llama.cpp` on [GitHub here](https://github.com/ggml-org/llama.cpp). You can follow the build instructions below as well. Change `-DGGML_CUDA=ON` to `-DGGML_CUDA=OFF` if you don't have a GPU or just want CPU inference.
+
+2. If you want to use `llama.cpp` directly to load models, you can do the below: (:Q4\_K\_XL) is the quantization type. You can also download via Hugging Face (point 3). This is similar to `ollama run`
+
+3. **OR** download the model via (after installing `pip install huggingface_hub hf_transfer` ). You can choose Q4\_K\_M, or other quantized versions (like BF16 full precision).
+
+**Examples:**
+
+Example 1 (unknown):
+```unknown
+You are Devstral, a helpful agentic model trained by Mistral AI and using the OpenHands scaffold. You can interact with a computer to solve tasks.
+
+<ROLE>
+Your primary role is to assist users by executing commands, modifying code, and solving technical problems effectively. You should be thorough, methodical, and prioritize quality over speed.
+* If the user asks a question, like "why is X happening", don't try to fix the problem. Just give an answer to the question.
+</ROLE>
+
+.... SYSTEM PROMPT CONTINUES ....
+```
+
+Example 2 (bash):
+```bash
+apt-get update
+apt-get install pciutils -y
+curl -fsSL https://ollama.com/install.sh | sh
+```
+
+Example 3 (bash):
+```bash
+export OLLAMA_KV_CACHE_TYPE="q8_0"
+ollama run hf.co/unsloth/Devstral-Small-2507-GGUF:UD-Q4_K_XL
+```
+
+Example 4 (bash):
+```bash
+apt-get update
+apt-get install pciutils build-essential cmake curl libcurl4-openssl-dev -y
+git clone https://github.com/ggerganov/llama.cpp
+cmake llama.cpp -B llama.cpp/build \
+    -DBUILD_SHARED_LIBS=OFF -DGGML_CUDA=ON -DLLAMA_CURL=ON
+cmake --build llama.cpp/build --config Release -j --clean-first --target llama-quantize llama-cli llama-gguf-split llama-mtmd-cli
+cp llama.cpp/build/bin/llama-* llama.cpp
+```
+
+---
+
+## Install triton from source for latest blackwell support
+
+**URL:** llms-txt#install-triton-from-source-for-latest-blackwell-support
+
+RUN git clone https://github.com/triton-lang/triton.git && \
+    cd triton && \
+    git checkout c5d671f91d90f40900027382f98b17a3e04045f6 && \
+    pip install -r python/requirements.txt && \
+    pip install . && \
+    cd ..
+
+---
+
+## FAQ + Is Fine-tuning Right For Me?
+
+**URL:** llms-txt#faq-+-is-fine-tuning-right-for-me?
+
+**Contents:**
+- Understanding Fine-Tuning
+  - Real-World Applications of Fine-Tuning
+- The Benefits of Fine-Tuning
+- Common Misconceptions
+  - Does Fine-Tuning Add New Knowledge to a Model?
+  - Is RAG Always Better Than Fine-Tuning?
+  - Is Fine-Tuning Expensive?
+- FAQ:
+  - Why You Should Combine RAG & Fine-Tuning
+  - LoRA vs. QLoRA: Which One to Use?
+
+If you're stuck on if fine-tuning is right for you, see here! Learn about fine-tuning misconceptions, how it compared to RAG and more:
+
+## Understanding Fine-Tuning
+
+Fine-tuning an LLM customizes its behavior, deepens its domain expertise, and optimizes its performance for specific tasks. By refining a pre-trained model (e.g. *Llama-3.1-8B*) with specialized data, you can:
+
+* **Update Knowledge** – Introduce new, domain-specific information that the base model didn’t originally include.
+* **Customize Behavior** – Adjust the model’s tone, personality, or response style to fit specific needs or a brand voice.
+* **Optimize for Tasks** – Improve accuracy and relevance on particular tasks or queries your use-case requires.
+
+Think of fine-tuning as creating a specialized expert out of a generalist model. Some debate whether to use Retrieval-Augmented Generation (RAG) instead of fine-tuning, but fine-tuning can incorporate knowledge and behaviors directly into the model in ways RAG cannot. In practice, combining both approaches yields the best results - leading to greater accuracy, better usability, and fewer hallucinations.
+
+### Real-World Applications of Fine-Tuning
+
+Fine-tuning can be applied across various domains and needs. Here are a few practical examples of how it makes a difference:
+
+* **Sentiment Analysis for Finance** – Train an LLM to determine if a news headline impacts a company positively or negatively, tailoring its understanding to financial context.
+* **Customer Support Chatbots** – Fine-tune on past customer interactions to provide more accurate and personalized responses in a company’s style and terminology.
+* **Legal Document Assistance** – Fine-tune on legal texts (contracts, case law, regulations) for tasks like contract analysis, case law research, or compliance support, ensuring the model uses precise legal language.
+
+## The Benefits of Fine-Tuning
+
+Fine-tuning offers several notable benefits beyond what a base model or a purely retrieval-based system can provide:
+
+#### Fine-Tuning vs. RAG: What’s the Difference?
+
+Fine-tuning can do mostly everything RAG can - but not the other way around. During training, fine-tuning embeds external knowledge directly into the model. This allows the model to handle niche queries, summarize documents, and maintain context without relying on an outside retrieval system. That’s not to say RAG lacks advantages as it is excels at accessing up-to-date information from external databases. It is in fact possible to retrieve fresh data with fine-tuning as well, however it is better to combine RAG with fine-tuning for efficiency.
+
+#### Task-Specific Mastery
+
+Fine-tuning deeply integrates domain knowledge into the model. This makes it highly effective at handling structured, repetitive, or nuanced queries, scenarios where RAG-alone systems often struggle. In other words, a fine-tuned model becomes a specialist in the tasks or content it was trained on.
+
+#### Independence from Retrieval
+
+A fine-tuned model has no dependency on external data sources at inference time. It remains reliable even if a connected retrieval system fails or is incomplete, because all needed information is already within the model’s own parameters. This self-sufficiency means fewer points of failure in production.
+
+#### Faster Responses
+
+Fine-tuned models don’t need to call out to an external knowledge base during generation. Skipping the retrieval step means they can produce answers much more quickly. This speed makes fine-tuned models ideal for time-sensitive applications where every second counts.
+
+#### Custom Behavior and Tone
+
+Fine-tuning allows precise control over how the model communicates. This ensures the model’s responses stay consistent with a brand’s voice, adhere to regulatory requirements, or match specific tone preferences. You get a model that not only knows *what* to say, but *how* to say it in the desired style.
+
+#### Reliable Performance
+
+Even in a hybrid setup that uses both fine-tuning and RAG, the fine-tuned model provides a reliable fallback. If the retrieval component fails to find the right information or returns incorrect data, the model’s built-in knowledge can still generate a useful answer. This guarantees more consistent and robust performance for your system.
+
+## Common Misconceptions
+
+Despite fine-tuning’s advantages, a few myths persist. Let’s address two of the most common misconceptions about fine-tuning:
+
+### Does Fine-Tuning Add New Knowledge to a Model?
+
+**Yes - it absolutely can.** A common myth suggests that fine-tuning doesn’t introduce new knowledge, but in reality it does. If your fine-tuning dataset contains new domain-specific information, the model will learn that content during training and incorporate it into its responses. In effect, fine-tuning *can and does* teach the model new facts and patterns from scratch.
+
+### Is RAG Always Better Than Fine-Tuning?
+
+**Not necessarily.** Many assume RAG will consistently outperform a fine-tuned model, but that’s not the case when fine-tuning is done properly. In fact, a well-tuned model often matches or even surpasses RAG-based systems on specialized tasks. Claims that “RAG is always better” usually stem from fine-tuning attempts that weren’t optimally configured - for example, using incorrect [LoRA parameters](https://docs.unsloth.ai/get-started/fine-tuning-llms-guide/lora-hyperparameters-guide) or insufficient training.
+
+Unsloth takes care of these complexities by automatically selecting the best parameter configurations for you. All you need is a good-quality dataset, and you'll get a fine-tuned model that performs to its fullest potential.
+
+### Is Fine-Tuning Expensive?
+
+**Not at all!** While full fine-tuning or pretraining can be costly, these are not necessary (pretraining is especially not necessary). In most cases, LoRA or QLoRA fine-tuning can be done for minimal cost. In fact, with Unsloth’s [free notebooks](https://docs.unsloth.ai/get-started/unsloth-notebooks) for Colab or Kaggle, you can fine-tune models without spending a dime. Better yet, you can even fine-tune locally on your own device.
+
+### Why You Should Combine RAG & Fine-Tuning
+
+Instead of choosing between RAG and fine-tuning, consider using **both** together for the best results. Combining a retrieval system with a fine-tuned model brings out the strengths of each approach. Here’s why:
+
+* **Task-Specific Expertise** – Fine-tuning excels at specialized tasks or formats (making the model an expert in a specific area), while RAG keeps the model up-to-date with the latest external knowledge.
+* **Better Adaptability** – A fine-tuned model can still give useful answers even if the retrieval component fails or returns incomplete information. Meanwhile, RAG ensures the system stays current without requiring you to retrain the model for every new piece of data.
+* **Efficiency** – Fine-tuning provides a strong foundational knowledge base within the model, and RAG handles dynamic or quickly-changing details without the need for exhaustive re-training from scratch. This balance yields an efficient workflow and reduces overall compute costs.
+
+### LoRA vs. QLoRA: Which One to Use?
+
+When it comes to implementing fine-tuning, two popular techniques can dramatically cut down the compute and memory requirements: **LoRA** and **QLoRA**. Here’s a quick comparison of each:
+
+* **LoRA (Low-Rank Adaptation)** – Fine-tunes only a small set of additional “adapter” weight matrices (in 16-bit precision), while leaving most of the original model unchanged. This significantly reduces the number of parameters that need updating during training.
+* **QLoRA (Quantized LoRA)** – Combines LoRA with 4-bit quantization of the model weights, enabling efficient fine-tuning of very large models on minimal hardware. By using 4-bit precision where possible, it dramatically lowers memory usage and compute overhead.
+
+We recommend starting with **QLoRA**, as it’s one of the most efficient and accessible methods available. Thanks to Unsloth’s [dynamic 4-bit](https://unsloth.ai/blog/dynamic-4bit) quants, the accuracy loss compared to standard 16-bit LoRA fine-tuning is now negligible.
+
+### Experimentation is Key
+
+There’s no single “best” approach to fine-tuning - only best practices for different scenarios. It’s important to experiment with different methods and configurations to find what works best for your dataset and use case. A great starting point is **QLoRA (4-bit)**, which offers a very cost-effective, resource-friendly way to fine-tune models without heavy computational requirements.
+
+{% content-ref url="../fine-tuning-llms-guide/lora-hyperparameters-guide" %}
+[lora-hyperparameters-guide](https://docs.unsloth.ai/get-started/fine-tuning-llms-guide/lora-hyperparameters-guide)
+{% endcontent-ref %}
+
+---
+
+## Connect via SSH
+
+**URL:** llms-txt#connect-via-ssh
+
+**Contents:**
+  - ⚙️ Advanced Settings
+  - **🔒 Security Notes**
+
+ssh -i ~/.ssh/container_key -p 2222 unsloth@localhost
+bash
+-p <host_port>:<container_port>
+bash
+-v <local_folder>:<container_folder>
+bash
+docker run -d -e JUPYTER_PORT=8000 \
+  -e JUPYTER_PASSWORD="mypassword" \
+  -e "SSH_KEY=$(cat ~/.ssh/container_key.pub)" \
+  -e USER_PASSWORD="unsloth2024" \
+  -p 8000:8000 -p 2222:22 \
+  -v $(pwd)/work:/workspace/work \
+  --gpus all \
+  unsloth/unsloth
+```
+
+### **🔒 Security Notes**
+
+* Container runs as non-root `unsloth` user by default
+* Use `USER_PASSWORD` for sudo operations inside container
+* SSH access requires public key authentication
+
+**Examples:**
+
+Example 1 (unknown):
+```unknown
+### ⚙️ Advanced Settings
+
+| Variable           | Description                        | Default   |
+| ------------------ | ---------------------------------- | --------- |
+| `JUPYTER_PASSWORD` | Jupyter Lab password               | `unsloth` |
+| `JUPYTER_PORT`     | Jupyter Lab port inside container  | `8888`    |
+| `SSH_KEY`          | SSH public key for authentication  | `None`    |
+| `USER_PASSWORD`    | Password for `unsloth` user (sudo) | `unsloth` |
+```
+
+Example 2 (unknown):
+```unknown
+* Jupyter Lab: `-p 8000:8888`
+* SSH access: `-p 2222:22`
+
+{% hint style="warning" %}
+**Important**: Use volume mounts to preserve your work between container runs.
+{% endhint %}
+```
+
+Example 3 (unknown):
+```unknown
+
+```
+
+---
+
+## DeepSeek-R1 Dynamic 1.58-bit
+
+**URL:** llms-txt#deepseek-r1-dynamic-1.58-bit
+
+**Contents:**
+  - 1-bit (Small) - Dynamic vs. Basic
+  - 1-bit (Medium) - Dynamic vs. Basic&#x20;
+  - 2-bit (Extra extra Small) - Dynamic vs. Basic&#x20;
+  - **Dynamic Quantization trial output**
+  - Non Dynamic Quantization trial output
+
+See performance comparison tables for Unsloth's Dynamic GGUF Quants vs Standard IMatrix Quants.
+
+Read our full DeepSeek-R1 blogpost here: [unsloth.ai/blog/deepseekr1-dynamic](https://unsloth.ai/blog/deepseekr1-dynamic)
+
+### 1-bit (Small) - Dynamic vs. Basic
+
+<table data-full-width="true"><thead><tr><th>GGUF Type</th><th>Quant</th><th>Size (GB)</th><th>Seed</th><th>Pygame</th><th>Background</th><th>Accelerate SPACE</th><th>Bird shape</th><th>Land</th><th>Top right score</th><th>Pipes</th><th>Best Score</th><th>Quit</th><th>Runnable</th><th>Score</th><th>Avg Score</th><th width="214">Errors</th><th width="421">Notes</th></tr></thead><tbody><tr><td>Dynamic</td><td>IQ1_S</td><td>131</td><td>3407</td><td>1</td><td>0.5</td><td>1</td><td>0.5</td><td>0.5</td><td>1</td><td>0.5</td><td>1</td><td>1</td><td>0</td><td>7</td><td></td><td>score =!inc SyntaxError: invalid syntax</td><td>Selects random shapes and colors at the start, but doesn't rotate across trials</td></tr><tr><td>Dynamic</td><td>IQ1_S</td><td>131</td><td>3408</td><td>1</td><td>1</td><td>0.25</td><td>1</td><td>0.5</td><td>1</td><td>0.5</td><td>1</td><td>1</td><td>0</td><td>7.25</td><td></td><td>score =B4 NameError: name 'B4' is not defined</td><td>Better - selects pipe colors randomnly, but all are just 1 color - should be different. Dropping to ground fails to reset acceleration.</td></tr><tr><td>Dynamic</td><td>IQ1_S</td><td>131</td><td>3409</td><td>1</td><td>0.5</td><td>0.5</td><td>0.5</td><td>0</td><td>1</td><td>1</td><td>1</td><td>1</td><td>0</td><td>6.5</td><td>6.92</td><td>score =3D 0 SyntaxError: invalid decimal literal</td><td>Too hard to play - acceleration too fast. Pipe colors now are random, but bird shape not changing. Land collison fails.</td></tr><tr><td>Basic</td><td>IQ1_S</td><td>133</td><td>3407</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td></td><td>No code</td><td>Fully failed. Repeats "with Dark Colurs" forever</td></tr><tr><td>Basic</td><td>IQ1_S</td><td>133</td><td>3408</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td></td><td>No code</td><td>Fully failed. Repeats "Pygame's" forever</td></tr><tr><td>Basic</td><td>IQ1_S</td><td>133</td><td>3409</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>No code</td><td>Fully failed. Repeats "pipe_x = screen_height<br>pipe_x = screen_height<br>pipe_height = screen_height - Pipe_height" forever.</td></tr></tbody></table>
+
+### 1-bit (Medium) - Dynamic vs. Basic&#x20;
+
+<table data-full-width="true"><thead><tr><th>GGUF Type</th><th>Quant</th><th>Size (GB)</th><th>Seed</th><th>Pygame</th><th>Background</th><th>Accelerate SPACE</th><th>Bird shape</th><th>Land</th><th>Top right score</th><th>Pipes</th><th>Best Score</th><th>Quit</th><th>Runnable</th><th>Score</th><th>Avg Score</th><th width="268">Errors</th><th width="284">Notes</th></tr></thead><tbody><tr><td>Dynamic</td><td>IQ1_M</td><td>158</td><td>3407</td><td>1</td><td>1</td><td>0.75</td><td>1</td><td>1</td><td>1</td><td>1</td><td>1</td><td>1</td><td>1</td><td>9.75</td><td></td><td>None</td><td>A bit fast and hard to play.</td></tr><tr><td>Dynamic</td><td>IQ1_M</td><td>158</td><td>3408</td><td>1</td><td>1</td><td>0.5</td><td>1</td><td>1</td><td>1</td><td>1</td><td>1</td><td>1</td><td>1</td><td>9.5</td><td></td><td>None</td><td>Very good - land should be clearer. Acceleration should be slower.</td></tr><tr><td>Dynamic</td><td>IQ1_M</td><td>158</td><td>3409</td><td>1</td><td>0.5</td><td>1</td><td>0.5</td><td>0.5</td><td>1</td><td>0.5</td><td>1</td><td>1</td><td>1</td><td>8</td><td>9.08</td><td>None</td><td>Background color does not change across trials.Pipes do not touch the top. No land is seen.</td></tr><tr><td>Basic</td><td>IQ1_M</td><td>149</td><td>3407</td><td>1</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>1</td><td>0</td><td>2</td><td></td><td>if game_over: NameError: name 'game_over' is not defined</td><td>Fully failed. Black screen only</td></tr><tr><td>Basic</td><td>IQ1_M</td><td>149</td><td>3408</td><td>1</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>1</td><td>0</td><td>2</td><td></td><td>No code</td><td>Fully failed. Black screen then closes.</td></tr><tr><td>Basic</td><td>IQ1_M</td><td>149</td><td>3409</td><td>1</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>1</td><td>1.67</td><td>window.fill((100, 100, 255)) Light Blue SyntaxError: invalid syntax &#x26;&#x26; main() NameError: name 'main' is not defined.</td><td>Fully failed.</td></tr></tbody></table>
+
+### 2-bit (Extra extra Small) - Dynamic vs. Basic&#x20;
+
+<table data-full-width="true"><thead><tr><th>GGUF Type</th><th>Quant</th><th>Size (GB)</th><th>Seed</th><th>Pygame</th><th>Background</th><th>Accelerate SPACE</th><th>Bird shape</th><th>Land</th><th>Top right score</th><th>Pipes</th><th>Best Score</th><th>Quit</th><th>Runnable</th><th>Score</th><th>Avg Score</th><th width="330">Errors</th><th width="260">Notes</th><th></th></tr></thead><tbody><tr><td>Dynamic</td><td>IQ2_XXS</td><td>183</td><td>3407</td><td>1</td><td>1</td><td>0.5</td><td>1</td><td>1</td><td>1</td><td>1</td><td>1</td><td>1</td><td>1</td><td>9.5</td><td></td><td>None</td><td>Too hard to play - acceleration too slow. Lags</td><td></td></tr><tr><td>Dynamic</td><td>IQ2_XXS</td><td>183</td><td>3408</td><td>1</td><td>1</td><td>1</td><td>1</td><td>1</td><td>1</td><td>0.5</td><td>0.5</td><td>1</td><td>0</td><td>8</td><td></td><td>global best_score SyntaxError: name 'best_score' is assigned to before global declaration</td><td>Had to edit 2 lines - remove global best_score, and set pipe_list = []</td><td></td></tr><tr><td>Dynamic</td><td>IQ2_XXS</td><td>183</td><td>3409</td><td>1</td><td>1</td><td>1</td><td>1</td><td>1</td><td>1</td><td>1</td><td>1</td><td>1</td><td>1</td><td>10</td><td>9.17</td><td>None</td><td>Extremely good. Even makes pipes have random distances between them.</td><td></td></tr><tr><td>Basic</td><td>IQ2_XXS</td><td>175</td><td>3407</td><td>1</td><td>0.5</td><td>0.5</td><td>0.5</td><td>1</td><td>0</td><td>0.5</td><td>1</td><td>0</td><td>0</td><td>5</td><td></td><td>pipe_color = random.choice([(34, 139, 34), (139, 69, 19), (47, 47, 47)) SyntaxError: closing parenthesis ')' does not match opening parenthesis '[' &#x26;&#x26; pygame.draw.polygon(screen, bird_color, points) ValueError: points argument must contain more than 2 points</td><td>Fails quiting. Same color. Collison detection a bit off. No score</td><td></td></tr><tr><td>Basic</td><td>IQ2_XXS</td><td>175</td><td>3408</td><td>1</td><td>0.5</td><td>0.5</td><td>0.5</td><td>1</td><td>1</td><td>0.5</td><td>1</td><td>0</td><td>0</td><td>6</td><td></td><td>pipes.append({'x': SCREEN_WIDTH, 'gap_y': random.randint(50, SCREEN_HEIGHT - 150)) SyntaxError: closing parenthesis ')' does not match opening parenthesis '{'</td><td>Acceleration weird. Chooses 1 color per round. Cannot quit.</td><td></td></tr><tr><td>Basic</td><td>IQ2_XXS</td><td>175</td><td>3409</td><td>1</td><td>1</td><td>1</td><td>1</td><td>1</td><td>1</td><td>1</td><td>0</td><td>0.5</td><td>0</td><td>7.5</td><td>6.17</td><td>screen = pygame.display.set_mode((SCREEN_WIDTH, SCREENHEIGHT)) NameError: name 'SCREENHEIGHT' is not defined. Did you mean: 'SCREEN_HEIGHT'?</td><td>OK. Colors change. Best score does not update. Quit only ESC not Q.</td><td></td></tr></tbody></table>
+
+### **Dynamic Quantization trial output**
+
+{% tabs %}
+{% tab title="IQ1\_S code" %}
+{% file src="<https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FqpBdpW55h5mNAzVoTxPI%2Finference_UD-IQ1_S_3407.txt?alt=media&token=37b19689-73e5-46d0-98be-352e515dfdf8>" %}
+
+{% file src="<https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FTdIrJSqc2VbNJy1bf3w5%2Finference_UD-IQ1_S_3408.txt?alt=media&token=e11f73bb-80be-49e5-91e2-f3a1f5495dcd>" %}
+
+{% file src="<https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FBk2ZwEIcLmvZQ3jlMLzw%2Finference_UD-IQ1_S_3409.txt?alt=media&token=052885f5-bee9-420d-a9c0-827412ac17c8>" %}
+{% endtab %}
+
+{% tab title="IQ1\_M code" %}
+{% file src="<https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2Ft7YmT1H3Nflcy5kAp1LE%2Finference_UD-IQ1_M_3407.txt?alt=media&token=6f62f911-3364-4f92-b311-c1fa9b759370>" %}
+
+{% file src="<https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FH6BCTeWlJpUkfeEmeqpu%2Finference_UD-IQ1_M_3408.txt?alt=media&token=7727a999-8c0a-4baf-8542-be8686a01630>" %}
+
+{% file src="<https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FvVJI0H2F9KTNj5kwUCtC%2Finference_UD-IQ1_M_3409.txt?alt=media&token=0f863d41-53d6-4c94-8d57-bf1eeb79ead5>" %}
+{% endtab %}
+
+{% tab title="IQ2\_XXS code" %}
+{% file src="<https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2F26jxRY5mWuon67OfvGtq%2Finference_UD-IQ2_XXS_3407.txt?alt=media&token=daf9bf7d-245e-4b54-b0c0-a6273833835a>" %}
+
+{% file src="<https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FEhjjYN7vAh7gbmR8oXbS%2Finference_UD-IQ2_XXS_3408.txt?alt=media&token=4b50d6dd-2798-44c7-aa92-7e67c09868a4>" %}
+
+{% file src="<https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FXwCSfIf16nTwHzcWepoV%2Finference_UD-IQ2_XXS_3409.txt?alt=media&token=2f7539c9-026d-41e7-b7c7-5738a89ae5d4>" %}
+{% endtab %}
+{% endtabs %}
+
+### Non Dynamic Quantization trial output
+
+{% tabs %}
+{% tab title="IQ1\_S basic code" %}
+{% file src="<https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FFtAMzAucSfKMkkmXItTj%2Finference_basic-IQ1_S_3407.txt?alt=media&token=76bfcf47-e1ce-442b-af49-6bfb6af7d046>" %}
+
+{% file src="<https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2F4NhjCVFMwCwT2OCj0IJ5%2Finference_basic-IQ1_S_3408.txt?alt=media&token=d4715674-3347-400b-9eb6-ae5d4470feeb>" %}
+
+{% file src="<https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2Fb0ZW3xs7R7IMryO7n7Yp%2Finference_basic-IQ1_S_3409.txt?alt=media&token=64b8825b-7103-4708-9d12-12770e43b546>" %}
+
+{% tab title="IQ1\_M basic code" %}
+{% file src="<https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FmZ2TsQEzoGjhGlqUjtmj%2Finference_basic-IQ1_M_3407.txt?alt=media&token=975a30d6-2d90-47eb-9d68-b50fd47337f7>" %}
+
+{% file src="<https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FIx9TQ99Qpmk7BViNLFBl%2Finference_basic-IQ1_M_3408.txt?alt=media&token=b88e1e5b-4535-4d93-bd67-f81def7377d5>" %}
+
+{% file src="<https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FDX7XYpJPxXKAMZeGhSrr%2Finference_basic-IQ1_M_3409.txt?alt=media&token=6da9127e-272b-4e74-b990-6657e25eea6b>" %}
+
+{% tab title="IQ2\_XXS basic code" %}
+{% file src="<https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FajsVHsVqlWpwHk7mY32t%2Finference_basic-IQ2_XXS_3407.txt?alt=media&token=cbbf36a2-0d6a-4a87-8232-45b0b7fcc588>" %}
+
+{% file src="<https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2F4vjncPu2r2D7F5jVOC7I%2Finference_basic-IQ2_XXS_3408.txt?alt=media&token=9ed635a2-bf97-4f49-b26f-6e985d0ab1b7>" %}
+
+{% file src="<https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FJmVOFgrRyXjY4lYZXE96%2Finference_basic-IQ2_XXS_3409.txt?alt=media&token=faad5bff-ba7f-41f1-abd5-7896f17a5b25>" %}
+
+{% endtab %}
+{% endtabs %}
+
+---
+
+## Troubleshooting & FAQs
+
+**URL:** llms-txt#troubleshooting-&-faqs
+
+**Contents:**
+  - Running in Unsloth works well, but after exporting & running on other platforms, the results are poor
+  - Saving to GGUF / vLLM 16bit crashes
+  - How do I manually save to GGUF?
+
+Tips to solve issues, and frequently asked questions.
+
+If you're still encountering any issues with versions or dependencies, please use our [Docker image](https://docs.unsloth.ai/get-started/install-and-update/docker) which will have everything pre-installed.
+
+{% hint style="success" %}
+**Try always to update Unsloth if you find any issues.**
+
+`pip install --upgrade --force-reinstall --no-cache-dir --no-deps unsloth unsloth_zoo`
+{% endhint %}
+
+### Running in Unsloth works well, but after exporting & running on other platforms, the results are poor
+
+You might sometimes encounter an issue where your model runs and produces good results on Unsloth, but when you use it on another platform like Ollama or vLLM, the results are poor or you might get gibberish, endless/infinite generations *or* repeated output&#x73;**.**
+
+* The most common cause of this error is using an <mark style="background-color:blue;">**incorrect chat template**</mark>**.** It’s essential to use the SAME chat template that was used when training the model in Unsloth and later when you run it in another framework, such as llama.cpp or Ollama. When inferencing from a saved model, it's crucial to apply the correct template.
+* It might also be because your inference engine adds an unnecessary "start of sequence" token (or the lack of thereof on the contrary) so ensure you check both hypotheses!
+* <mark style="background-color:green;">**Use our conversational notebooks to force the chat template - this will fix most issues.**</mark>
+  * Qwen-3 14B Conversational notebook [**Open in Colab**](https://colab.research.google.com/github/unslothai/notebooks/blob/main/nb/Qwen3_\(14B\)-Reasoning-Conversational.ipynb)
+  * Gemma-3 4B Conversational notebook [**Open in Colab**](https://colab.research.google.com/github/unslothai/notebooks/blob/main/nb/Gemma3_\(4B\).ipynb)
+  * Llama-3.2 3B Conversational notebook [**Open in Colab**](https://colab.research.google.com/github/unslothai/notebooks/blob/main/nb/Llama3.2_\(1B_and_3B\)-Conversational.ipynb)
+  * Phi-4 14B Conversational notebook [**Open in Colab**](https://colab.research.google.com/github/unslothai/notebooks/blob/main/nb/Phi_4-Conversational.ipynb)
+  * Mistral v0.3 7B Conversational notebook [**Open in Colab**](https://colab.research.google.com/github/unslothai/notebooks/blob/main/nb/Mistral_v0.3_\(7B\)-Conversational.ipynb)
+  * **More notebooks in our** [**notebooks docs**](https://docs.unsloth.ai/get-started/unsloth-notebooks)
+
+### Saving to GGUF / vLLM 16bit crashes
+
+You can try reducing the maximum GPU usage during saving by changing `maximum_memory_usage`.
+
+The default is `model.save_pretrained(..., maximum_memory_usage = 0.75)`. Reduce it to say 0.5 to use 50% of GPU peak memory or lower. This can reduce OOM crashes during saving.
+
+### How do I manually save to GGUF?
+
+First save your model to 16bit via:
+
+Compile llama.cpp from source like below:
+
+Then, save the model to F16:
+
+**Examples:**
+
+Example 1 (python):
+```python
+model.save_pretrained_merged("merged_model", tokenizer, save_method = "merged_16bit",)
+```
+
+Example 2 (bash):
+```bash
+apt-get update
+apt-get install pciutils build-essential cmake curl libcurl4-openssl-dev -y
+git clone https://github.com/ggerganov/llama.cpp
+cmake llama.cpp -B llama.cpp/build \
+    -DBUILD_SHARED_LIBS=ON -DGGML_CUDA=ON -DLLAMA_CURL=ON
+cmake --build llama.cpp/build --config Release -j --clean-first --target llama-quantize llama-cli llama-gguf-split llama-mtmd-cli
+cp llama.cpp/build/bin/llama-* llama.cpp
+```
+
+Example 3 (bash):
+```bash
+python llama.cpp/convert_hf_to_gguf.py merged_model \
+    --outfile model-F16.gguf --outtype f16 \
+    --split-max-size 50G
+```
+
+---
+
+## DeepSeek-R1-0528: How to Run Locally
+
+**URL:** llms-txt#deepseek-r1-0528:-how-to-run-locally
+
+**Contents:**
+- :gear: Recommended Settings
+  - 🐳 Official Recommended Settings:
+  - :1234: Chat template/prompt format
+- Model uploads
+- Run DeepSeek-R1-0528 Tutorials:
+  - :llama: Run in Ollama/Open WebUI
+  - :llama: Run Full R1-0528 on Ollama/Open WebUI
+  - ✨ Run Qwen3 distilled R1 in llama.cpp
+  - ✨ Run Full R1-0528 on llama.cpp
+
+A guide on how to run DeepSeek-R1-0528 including Qwen3 on your own local device!
+
+DeepSeek-R1-0528 is DeepSeek's new update to their R1 reasoning model. The full 671B parameter model requires 715GB of disk space. The quantized dynamic **1.66-bit** version uses 162GB (-80% reduction in size). GGUF: [DeepSeek-R1-0528-GGUF](https://huggingface.co/unsloth/DeepSeek-R1-0528-GGUF)
+
+DeepSeek also released a R1-0528 distilled version by fine-tuning Qwen3 (8B). The distill achieves similar performance to Qwen3 (235B). ***You can also*** [***fine-tune Qwen3 Distill***](#fine-tuning-deepseek-r1-0528-with-unsloth) ***with Unsloth***. Qwen3 GGUF: [DeepSeek-R1-0528-Qwen3-8B-GGUF](https://huggingface.co/unsloth/DeepSeek-R1-0528-Qwen3-8B-GGUF)
+
+All uploads use Unsloth [Dynamic 2.0](https://docs.unsloth.ai/basics/unsloth-dynamic-2.0-ggufs) for SOTA 5-shot MMLU and KL Divergence performance, meaning you can run & fine-tune quantized DeepSeek LLMs with minimal accuracy loss.
+
+**Tutorials navigation:**
+
+<a href="#run-qwen3-distilled-r1-in-llama.cpp" class="button secondary">Run in llama.cpp</a><a href="#run-in-ollama-open-webui" class="button secondary">Run in Ollama/Open WebUI</a><a href="#fine-tuning-deepseek-r1-0528-with-unsloth" class="button secondary">Fine-tuning R1-0528</a>
+
+{% hint style="success" %}
+NEW: Huge improvements to tool calling and chat template fixes.\
+\
+New [TQ1\_0 dynamic 1.66-bit quant](https://huggingface.co/unsloth/DeepSeek-R1-0528-GGUF?show_file_info=DeepSeek-R1-0528-UD-TQ1_0.gguf) - 162GB in size. Ideal for 192GB RAM (including Mac) and Ollama users. Try: `ollama run hf.co/unsloth/DeepSeek-R1-0528-GGUF:TQ1_0`
+{% endhint %}
+
+## :gear: Recommended Settings
+
+For DeepSeek-R1-0528-Qwen3-8B, the model can pretty much fit in any setup, and even those with as less as 20GB RAM. There is no need for any prep beforehand.\
+\
+However, for the full R1-0528 model which is 715GB in size, you will need extra prep. The 1.78-bit (IQ1\_S) quant will fit in a 1x 24GB GPU (with all layers offloaded). Expect around 5 tokens/s with this setup if you have bonus 128GB RAM as well.
+
+It is recommended to have at least 64GB RAM to run this quant (you will get 1 token/s without a GPU). For optimal performance you will need at least **180GB unified memory or 180GB combined RAM+VRAM** for 5+ tokens/s.
+
+We suggest using our 2.7bit (Q2\_K\_XL) or 2.4bit (IQ2\_XXS) quant to balance size and accuracy! The 2.4bit one also works well.
+
+{% hint style="success" %}
+Though not necessary, for the best performance, have your VRAM + RAM combined = to the size of the quant you're downloading.
+{% endhint %}
+
+### 🐳 Official Recommended Settings:
+
+According to [DeepSeek](https://huggingface.co/deepseek-ai/DeepSeek-R1-0528), these are the recommended settings for R1 (R1-0528 and Qwen3 distill should use the same settings) inference:
+
+* Set the <mark style="background-color:green;">**temperature 0.6**</mark> to reduce repetition and incoherence.
+* Set <mark style="background-color:green;">**top\_p to 0.95**</mark> (recommended)
+* Run multiple tests and average results for reliable evaluation.
+
+### :1234: Chat template/prompt format
+
+R1-0528 uses the same chat template as the original R1 model. You do not need to force `<think>\n` , but you can still add it in!
+
+A BOS is forcibly added, and an EOS separates each interaction. To counteract double BOS tokens during inference, you should only call `tokenizer.encode(..., add_special_tokens = False)` since the chat template auto adds a BOS token as well.\
+For llama.cpp / GGUF inference, you should skip the BOS since it’ll auto add it:
+
+The `<think>` and `</think>` tokens get their own designated tokens.
+
+**ALL our uploads** - including those that are not imatrix-based or dynamic, utilize our calibration dataset, which is specifically optimized for conversational, coding, and language tasks.
+
+* Qwen3 (8B) distill: [DeepSeek-R1-0528-Qwen3-8B-GGUF](https://huggingface.co/unsloth/DeepSeek-R1-0528-Qwen3-8B-GGUF)
+* Full DeepSeek-R1-0528 model uploads below:
+
+We also uploaded [IQ4\_NL](https://huggingface.co/unsloth/DeepSeek-R1-0528-GGUF/tree/main/IQ4_NL) and [Q4\_1](https://huggingface.co/unsloth/DeepSeek-R1-0528-GGUF/tree/main/Q4_1) quants which run specifically faster for ARM and Apple devices respectively.
+
+<table data-full-width="false"><thead><tr><th>MoE Bits</th><th>Type + Link</th><th>Disk Size</th><th>Details</th></tr></thead><tbody><tr><td>1.66bit</td><td><a href="https://huggingface.co/unsloth/DeepSeek-R1-0528-GGUF?show_file_info=DeepSeek-R1-0528-UD-TQ1_0.gguf">TQ1_0</a></td><td><strong>162GB</strong></td><td>1.92/1.56bit</td></tr><tr><td>1.78bit</td><td><a href="https://huggingface.co/unsloth/DeepSeek-R1-0528-GGUF/tree/main/UD-IQ1_S">IQ1_S</a></td><td><strong>185GB</strong></td><td>2.06/1.56bit</td></tr><tr><td>1.93bit</td><td><a href="https://huggingface.co/unsloth/DeepSeek-R1-0528-GGUF/tree/main/UD-IQ1_M">IQ1_M</a></td><td><strong>200GB</strong></td><td>2.5/2.06/1.56</td></tr><tr><td>2.42bit</td><td><a href="https://huggingface.co/unsloth/DeepSeek-R1-0528-GGUF/tree/main/UD-IQ2_XXS">IQ2_XXS</a></td><td><strong>216GB</strong></td><td>2.5/2.06bit</td></tr><tr><td>2.71bit</td><td><a href="https://huggingface.co/unsloth/DeepSeek-R1-0528-GGUF/tree/main/UD-Q2_K_XL">Q2_K_XL</a></td><td><strong>251GB</strong></td><td> 3.5/2.5bit</td></tr><tr><td>3.12bit</td><td><a href="https://huggingface.co/unsloth/DeepSeek-R1-0528-GGUF/tree/main/UD-IQ3_XXS">IQ3_XXS</a></td><td><strong>273GB</strong></td><td> 3.5/2.06bit</td></tr><tr><td>3.5bit</td><td><a href="https://huggingface.co/unsloth/DeepSeek-R1-0528-GGUF/tree/main/UD-Q3_K_XL">Q3_K_XL</a></td><td><strong>296GB</strong></td><td> 4.5/3.5bit</td></tr><tr><td>4.5bit</td><td><a href="https://huggingface.co/unsloth/DeepSeek-R1-0528-GGUF/tree/main/UD-Q4_K_XL">Q4_K_XL</a></td><td><strong>384GB</strong></td><td> 5.5/4.5bit</td></tr><tr><td>5.5bit</td><td><a href="https://huggingface.co/unsloth/DeepSeek-R1-0528-GGUF/tree/main/UD-Q5_K_XL">Q5_K_XL</a></td><td><strong>481GB</strong></td><td>6.5/5.5bit</td></tr></tbody></table>
+
+We've also uploaded versions in [BF16 format](https://huggingface.co/unsloth/DeepSeek-R1-0528-BF16), and original [FP8 (float8) format](https://huggingface.co/unsloth/DeepSeek-R1-0528).
+
+## Run DeepSeek-R1-0528 Tutorials:
+
+### :llama: Run in Ollama/Open WebUI
+
+1. Install `ollama` if you haven't already! You can only run models up to 32B in size. To run the full 720GB R1-0528 model, [see here](#run-full-r1-0528-on-ollama-open-webui).
+
+2. Run the model! Note you can call `ollama serve`in another terminal if it fails! We include all our fixes and suggested parameters (temperature etc) in `params` in our Hugging Face upload!
+
+3. <mark style="color:green;background-color:yellow;">**(NEW) To run the full R1-0528 model in Ollama, you can use our TQ1\_0 (162GB quant):**</mark>
+
+### :llama: Run Full R1-0528 on Ollama/Open WebUI
+
+Open WebUI has made an step-by-step tutorial on how to run R1 here and for R1-0528, you will just need to replace R1 with the new 0528 quant: [docs.openwebui.com/tutorials/integrations/deepseekr1-dynamic/](https://docs.openwebui.com/tutorials/integrations/deepseekr1-dynamic/)
+
+<mark style="background-color:green;">**(NEW) To run the full R1-0528 model in Ollama, you can use our TQ1\_0 (162GB quant):**</mark>
+
+If you want to use any of the quants that are larger than TQ1\_0 (162GB) on Ollama, you need to first merge the 3 GGUF split files into 1 like the code below. Then you will need to run the model locally.
+
+### ✨ Run Qwen3 distilled R1 in llama.cpp
+
+1. <mark style="background-color:yellow;">**To run the full 720GB R1-0528 model,**</mark> [<mark style="background-color:yellow;">**see here**</mark>](#run-full-r1-0528-on-llama.cpp)<mark style="background-color:yellow;">**.**</mark> Obtain the latest `llama.cpp` on [GitHub here](https://github.com/ggml-org/llama.cpp). You can follow the build instructions below as well. Change `-DGGML_CUDA=ON` to `-DGGML_CUDA=OFF` if you don't have a GPU or just want CPU inference.
+
+2. Then use llama.cpp directly to download the model:
+
+### ✨ Run Full R1-0528 on llama.cpp
+
+1. Obtain the latest `llama.cpp` on [GitHub here](https://github.com/ggml-org/llama.cpp). You can follow the build instructions below as well. Change `-DGGML_CUDA=ON` to `-DGGML_CUDA=OFF` if you don't have a GPU or just want CPU inference.
+
+2. If you want to use `llama.cpp` directly to load models, you can do the below: (:IQ1\_S) is the quantization type. You can also download via Hugging Face (point 3). This is similar to `ollama run` . Use `export LLAMA_CACHE="folder"` to force `llama.cpp` to save to a specific location.
+
+{% hint style="success" %}
+Please try out `-ot ".ffn_.*_exps.=CPU"` to offload all MoE layers to the CPU! This effectively allows you to fit all non MoE layers on 1 GPU, improving generation speeds. You can customize the regex expression to fit more layers if you have more GPU capacity.
+
+If you have a bit more GPU memory, try `-ot ".ffn_(up|down)_exps.=CPU"` This offloads up and down projection MoE layers.
+
+Try `-ot ".ffn_(up)_exps.=CPU"` if you have even more GPU memory. This offloads only up projection MoE layers.
+
+And finally offload all layers via `-ot ".ffn_.*_exps.=CPU"` This uses the least VRAM.
+
+You can also customize the regex, for example `-ot "\.(6|7|8|9|[0-9][0-9]|[0-9][0-9][0-9])\.ffn_(gate|up|down)_exps.=CPU"` means to offload gate, up and down MoE layers but only from the 6th layer onwards.
+{% endhint %}
+
+3. Download the model via (after installing `pip install huggingface_hub hf_transfer` ). You can choose `UD-IQ1_S`(dynamic 1.78bit quant) or other quantized versions like `Q4_K_M` . We <mark style="background-color:green;">**recommend using our 2.7bit dynamic quant**</mark><mark style="background-color:green;">**&#x20;**</mark><mark style="background-color:green;">**`UD-Q2_K_XL`**</mark><mark style="background-color:green;">**&#x20;**</mark><mark style="background-color:green;">**to balance size and accuracy**</mark>. More versions at: [https://huggingface.co/unsloth/DeepSeek-R1-0528-GGUF](https://huggingface.co/unsloth/DeepSeek-V3-0324-GGUF)
+
+{% code overflow="wrap" %}
+
+**Examples:**
+
+Example 1 (unknown):
+```unknown
+<｜begin▁of▁sentence｜><｜User｜>What is 1+1?<｜Assistant｜>It's 2.<｜end▁of▁sentence｜><｜User｜>Explain more!<｜Assistant｜>
+```
+
+Example 2 (unknown):
+```unknown
+<｜User｜>What is 1+1?<｜Assistant｜>
+```
+
+Example 3 (bash):
+```bash
+apt-get update
+apt-get install pciutils -y
+curl -fsSL https://ollama.com/install.sh | sh
+```
+
+Example 4 (bash):
+```bash
+ollama run hf.co/unsloth/DeepSeek-R1-0528-Qwen3-8B-GGUF:Q4_K_XL
+```
+
+---
+
+## GLM-4.6: How to Run Locally
+
+**URL:** llms-txt#glm-4.6:-how-to-run-locally
+
+**Contents:**
+  - Unsloth Chat Template fixes
+- :gear: Recommended Settings
+  - Official Recommended Settings
+- Run GLM-4.6 Tutorials:
+  - :llama: Run in Ollama
+  - ✨ Run in llama.cpp
+
+A guide on how to run Z.ai's new GLM-4.6 model on your own local device!
+
+GLM-4.6 is the latest reasoning model from **Z.ai**, achieving SOTA performance on coding and agent benchmarks while offering improved conversational chats. The full 355B parameter model requires **400GB** of disk space, while the Unsloth Dynamic 2-bit GGUF reduces the size to **135GB** (-**75%)**. [**GLM-4.6-GGUF**](https://huggingface.co/unsloth/GLM-4.6-GGUF)
+
+There is currently no smaller **GLM-4.6-Air** model available, however Z.ai's team says that it is expected soon.
+
+{% hint style="success" %}
+We did multiple [**chat template fixes**](#unsloth-chat-template-fixes) for GLM-4.6 to make `llama.cpp/llama-cli --jinja` work - please only use `--jinja` otherwise the output will be wrong!
+
+You asked for benchmarks on our quants, so we’re showcasing Aider Polyglot results! Our Dynamic 3-bit DeepSeek V3.1 GGUF scores **75.6%**, surpassing many full-precision SOTA LLMs. [Read more.](https://docs.unsloth.ai/new/unsloth-dynamic-ggufs-on-aider-polyglot)
+{% endhint %}
+
+All uploads use Unsloth [Dynamic 2.0](https://docs.unsloth.ai/basics/unsloth-dynamic-2.0-ggufs) for SOTA 5-shot MMLU and Aider performance, meaning you can run & fine-tune quantized GLM LLMs with minimal accuracy loss.
+
+**Tutorials navigation:**
+
+<a href="#run-in-llama.cpp" class="button secondary">Run in llama.cpp</a><a href="#run-in-ollama" class="button secondary">Run in Ollama</a>
+
+### Unsloth Chat Template fixes
+
+One of the significant fixes we did addresses an issue with prompting GGUFs, where the second prompt wouldn’t work. We fixed this issue however, this problem still persists in GGUFs without our fixes. For example, when using any non-Unsloth GLM-4.6 GGUF, the first conversation works fine, but the second one breaks.
+
+<figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FChLNqBafvjV5imyNYtv1%2Ftool-calling-on-glm-4-6-with-unsloths-ggufs-v0-oys0k2088nuf1.webp?alt=media&#x26;token=10df52ce-860b-4e6f-b7c9-d7a6aeaa1055" alt="" width="563"><figcaption></figcaption></figure>
+
+We’ve resolved this in our chat template, so when using our version, conversations beyond the second (third, fourth, etc.) work without any errors. There are still some issues with tool-calling, which we haven’t fully investigated yet due to bandwidth limitations. We’ve already informed the GLM team about these remaining issues.
+
+## :gear: Recommended Settings
+
+The 2-bit dynamic quant UD-Q2\_K\_XL uses 135GB of disk space - this works well in a **1x24GB card and 128GB of RAM** with MoE offloading. The 1-bit UD-TQ1 GGUF also **works natively in Ollama**!
+
+{% hint style="info" %}
+You must use `--jinja` for llama.cpp quants - this uses our [fixed chat templates](#chat-template-bug-fixes) and enables the correct template! You might get incorrect results if you do not use `--jinja`
+{% endhint %}
+
+The 4-bit quants will fit in a 1x 40GB GPU (with MoE layers offloaded to RAM). Expect around 5 tokens/s with this setup if you have bonus 165GB RAM as well. It is recommended to have at least 205GB RAM to run this 4-bit. For optimal performance you will need at least 205GB unified memory or 205GB combined RAM+VRAM for 5+ tokens/s. To learn how to increase generation speed and fit longer contexts, [read here](#improving-generation-speed).
+
+{% hint style="success" %}
+Though not a must, for best performance, have your VRAM + RAM combined equal to the size of the quant you're downloading. If not, hard drive / SSD offloading will work with llama.cpp, just inference will be slower.
+{% endhint %}
+
+### Official Recommended Settings
+
+According to Z.ai, these are the recommended settings for GLM inference:
+
+* Set the <mark style="background-color:green;">**temperature 1.0**</mark>
+* Set <mark style="background-color:green;">**top\_p to 0.95**</mark> (recommended for coding)
+* Set <mark style="background-color:green;">**top\_k to 40**</mark> (recommended for coding)
+* **200K context length** or less
+* Use `--jinja` for llama.cpp variants - we **fixed some chat template issues as well!**
+
+## Run GLM-4.6 Tutorials:
+
+### :llama: Run in Ollama
+
+{% stepper %}
+{% step %}
+Install `ollama` if you haven't already! To run more variants of the model, [see here](https://docs.unsloth.ai/deepseek-v3.1-how-to-run-locally#run-in-llama.cpp).
+
+{% step %}
+Run the model! Note you can call `ollama serve`in another terminal if it fails! We include all our fixes and suggested parameters (temperature etc) in `params` in our Hugging Face upload!
+
+{% step %}
+To run other quants, you need to first merge the GGUF split files into 1 like the code below. Then you will need to run the model locally.
+
+{% endstep %}
+{% endstepper %}
+
+### ✨ Run in llama.cpp
+
+{% stepper %}
+{% step %}
+Obtain the latest `llama.cpp` on [GitHub here](https://github.com/ggml-org/llama.cpp). You can follow the build instructions below as well. Change `-DGGML_CUDA=ON` to `-DGGML_CUDA=OFF` if you don't have a GPU or just want CPU inference.
+
+{% step %}
+If you want to use `llama.cpp` directly to load models, you can do the below: (:Q2\_K\_XL) is the quantization type. You can also download via Hugging Face (point 3). This is similar to `ollama run` . Use `export LLAMA_CACHE="folder"` to force `llama.cpp` to save to a specific location. Remember the model has only a maximum of 128K context length.
+
+{% hint style="success" %}
+Please try out `-ot ".ffn_.*_exps.=CPU"` to offload all MoE layers to the CPU! This effectively allows you to fit all non MoE layers on 1 GPU, improving generation speeds. You can customize the regex expression to fit more layers if you have more GPU capacity.
+
+If you have a bit more GPU memory, try `-ot ".ffn_(up|down)_exps.=CPU"` This offloads up and down projection MoE layers.
+
+Try `-ot ".ffn_(up)_exps.=CPU"` if you have even more GPU memory. This offloads only up projection MoE layers.
+
+And finally offload all layers via `-ot ".ffn_.*_exps.=CPU"` This uses the least VRAM.
+
+You can also customize the regex, for example `-ot "\.(6|7|8|9|[0-9][0-9]|[0-9][0-9][0-9])\.ffn_(gate|up|down)_exps.=CPU"` means to offload gate, up and down MoE layers but only from the 6th layer onwards.
+{% endhint %}
+
+{% step %}
+Download the model via (after installing `pip install huggingface_hub hf_transfer` ). You can choose `UD-`Q2\_K\_XL (dynamic 2bit quant) or other quantized versions like `Q4_K_XL` . We <mark style="background-color:green;">**recommend using our 2.7bit dynamic quant**</mark><mark style="background-color:green;">**&#x20;**</mark><mark style="background-color:green;">**`UD-Q2_K_XL`**</mark><mark style="background-color:green;">**&#x20;**</mark><mark style="background-color:green;">**to balance size and accuracy**</mark>.
+
+**Examples:**
+
+Example 1 (bash):
+```bash
+apt-get update
+apt-get install pciutils -y
+curl -fsSL https://ollama.com/install.sh | sh
+```
+
+Example 2 (unknown):
+```unknown
+OLLAMA_MODELS=unsloth ollama serve &
+
+OLLAMA_MODELS=unsloth ollama run hf.co/unsloth/GLM-4.6-GGUF:TQ1_0
+```
+
+Example 3 (bash):
+```bash
+./llama.cpp/llama-gguf-split --merge \
+  GLM-4.6-GGUF/GLM-4.6-UD-Q2_K_XL/GLM-4.6-UD-Q2_K_XL-00001-of-00003.gguf \
+	merged_file.gguf
+```
+
+Example 4 (bash):
+```bash
+OLLAMA_MODELS=unsloth ollama serve &
+
+OLLAMA_MODELS=unsloth ollama run merged_file.gguf
+```
+
+---
+
+## Docker
+
+**URL:** llms-txt#docker
+
+**Contents:**
+  - ⚡ Quickstart
+  - 📖 Usage Example
+
+Install Unsloth using our official Docker container
+
+Learn how to use our Docker containers with all dependencies pre-installed for immediate installation. No setup required, just run and start training!
+
+Unsloth Docker image: [**`unsloth/unsloth`**](https://hub.docker.com/r/unsloth/unsloth)
+
+{% hint style="success" %}
+You can now use our main Docker image `unsloth/unsloth` for Blackwell and 50-series GPUs - no separate image needed.
+{% endhint %}
+
+{% stepper %}
+{% step %}
+
+#### Install Docker and NVIDIA Container Toolkit.
+
+Install Docker via [Linux](https://docs.docker.com/engine/install/) or [Desktop](https://docs.docker.com/desktop/) (other).\
+Then install [NVIDIA Container Toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html#installation):
+
+<pre class="language-bash"><code class="lang-bash"><strong>export NVIDIA_CONTAINER_TOOLKIT_VERSION=1.17.8-1
+</strong>sudo apt-get update &#x26;&#x26; sudo apt-get install -y \
+  nvidia-container-toolkit=${NVIDIA_CONTAINER_TOOLKIT_VERSION} \
+  nvidia-container-toolkit-base=${NVIDIA_CONTAINER_TOOLKIT_VERSION} \
+  libnvidia-container-tools=${NVIDIA_CONTAINER_TOOLKIT_VERSION} \
+  libnvidia-container1=${NVIDIA_CONTAINER_TOOLKIT_VERSION}
+</code></pre>
+
+<figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FpB9zmHmOoFb8OqMGofGJ%2Fnvidia%20toolkit.png?alt=media&#x26;token=45942493-176a-466e-9303-ce10ce7557c6" alt=""><figcaption></figcaption></figure>
+{% endstep %}
+
+#### Run the container.
+
+[**`unsloth/unsloth`**](https://hub.docker.com/r/unsloth/unsloth) is Unsloth's only Docker image. For Blackwell and 50-series GPUs, use this same image - no separate one needed.
+
+<figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2Fkh8fgug3JMbj1l65XfT3%2Fdocker%20run.png?alt=media&#x26;token=a8637c9f-f0d2-40d7-ae41-4f1379d264f0" alt=""><figcaption></figcaption></figure>
+{% endstep %}
+
+#### Access Jupyter Lab
+
+Go to [http://localhost:8888](http://localhost:8888/) and open Unsloth.
+
+<figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FiJK5LtoZ15scNnXBJ9Bk%2Fjupyter.png?alt=media&#x26;token=f5e545e5-dadb-453a-8738-1b86f4abc7fc" alt="" width="563"><figcaption></figcaption></figure>
+
+Access the `unsloth-notebooks` tabs to see Unsloth notebooks.
+
+<div><figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FM7ufJw76H0Fuq33rAXhj%2FScreenshot_from_2025-09-30_21-38-15.png?alt=media&#x26;token=360b1990-9fd2-481e-8ab5-4e156a1d2708" alt=""><figcaption></figcaption></figure> <figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2F6W5orxOXBh1HRsSpXe86%2FScreenshot_from_2025-09-30_21-39-41.png?alt=media&#x26;token=00f61daf-8b4b-480a-85b6-62eaa9de64a6" alt=""><figcaption></figcaption></figure></div>
+{% endstep %}
+
+#### Start training with Unsloth
+
+If you're new, follow our step-by-step [Fine-tuning Guide](https://docs.unsloth.ai/get-started/fine-tuning-llms-guide), [RL Guide](https://docs.unsloth.ai/get-started/reinforcement-learning-rl-guide) or just save/copy any of our premade [notebooks](https://docs.unsloth.ai/get-started/unsloth-notebooks).
+
+<figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FlXvwMkWQ72p6nxFzD0ev%2FScreenshot_from_2025-09-30_21-40-29.png?alt=media&#x26;token=2a5f135d-6138-4670-aca7-ca22b5f730d7" alt=""><figcaption></figcaption></figure>
+{% endstep %}
+{% endstepper %}
+
+#### 📂 Container Structure
+
+* `/workspace/work/` — Your mounted work directory
+* `/workspace/unsloth-notebooks/` — Example fine-tuning notebooks
+* `/home/unsloth/` — User home directory
+
+#### Setting up SSH Key
+
+If you don't have an SSH key pair:
+
+**Examples:**
+
+Example 1 (bash):
+```bash
+docker run -d -e JUPYTER_PASSWORD="mypassword" \
+  -p 8888:8888 -p 2222:22 \
+  -v $(pwd)/work:/workspace/work \
+  --gpus all \
+  unsloth/unsloth
+```
+
+Example 2 (bash):
+```bash
+docker run -d -e JUPYTER_PORT=8000 \
+  -e JUPYTER_PASSWORD="mypassword" \
+  -e "SSH_KEY=$(cat ~/.ssh/container_key.pub)" \
+  -e USER_PASSWORD="unsloth2024" \
+  -p 8000:8000 -p 2222:22 \
+  -v $(pwd)/work:/workspace/work \
+  --gpus all \
+  unsloth/unsloth
+```
+
+---
+
+## Datasets Guide
+
+**URL:** llms-txt#datasets-guide
+
+**Contents:**
+- What is a Dataset?
+  - Data Format
+- Getting Started
+- Formatting the Data
+  - Common Data Formats for LLM Training
+  - Applying Chat Templates with Unsloth
+  - Formatting Data Q\&A
+- Synthetic Data Generation
+  - Synthetic Dataset Notebook
+  - Using a local LLM or ChatGPT for synthetic data
+
+Learn how to create & prepare a dataset for fine-tuning.
+
+## What is a Dataset?
+
+For LLMs, datasets are collections of data that can be used to train our models. In order to be useful for training, text data needs to be in a format that can be tokenized. You'll also learn how to [use datasets inside of Unsloth](#applying-chat-templates-with-unsloth).
+
+One of the key parts of creating a dataset is your [chat template](https://docs.unsloth.ai/basics/chat-templates) and how you are going to design it. Tokenization is also important as it breaks text into tokens, which can be words, sub-words, or characters so LLMs can process it effectively. These tokens are then turned into embeddings and are adjusted to help the model understand the meaning and context.
+
+To enable the process of tokenization, datasets need to be in a format that can be read by a tokenizer.
+
+<table data-full-width="false"><thead><tr><th>Format</th><th>Description </th><th>Training Type</th></tr></thead><tbody><tr><td>Raw Corpus</td><td>Raw text from a source such as a website, book, or article.</td><td>Continued Pretraining (CPT)</td></tr><tr><td>Instruct</td><td>Instructions for the model to follow and an example of the output to aim for.</td><td>Supervised fine-tuning (SFT)</td></tr><tr><td>Conversation</td><td>Multiple-turn conversation between a user and an AI assistant.</td><td>Supervised fine-tuning (SFT)</td></tr><tr><td>RLHF</td><td>Conversation between a user and an AI assistant, with the assistant's responses being ranked by a script, another model or human evaluator.</td><td>Reinforcement Learning (RL)</td></tr></tbody></table>
+
+{% hint style="info" %}
+It's worth noting that different styles of format exist for each of these types.&#x20;
+{% endhint %}
+
+Before we format our data, we want to identify the following:&#x20;
+
+{% stepper %}
+{% step %} <mark style="color:green;">Purpose of dataset</mark>
+
+Knowing the purpose of the dataset will help us determine what data we need and format to use.
+
+The purpose could be, adapting a model to a new task such as summarization or improving a model's ability to role-play a specific character. For example:
+
+* Chat-based dialogues (Q\&A, learn a new language, customer support, conversations).
+* Structured tasks ([classification](https://colab.research.google.com/github/timothelaborie/text_classification_scripts/blob/main/unsloth_classification.ipynb), summarization, generation tasks).
+* Domain-specific data (medical, finance, technical).
+  {% endstep %}
+
+{% step %} <mark style="color:green;">Style of output</mark>
+
+The style of output will let us know what sources of data we will use to reach our desired output.
+
+For example, the type of output you want to achieve could be JSON, HTML, text or code. Or perhaps you want it to be Spanish, English or German etc.&#x20;
+{% endstep %}
+
+{% step %} <mark style="color:green;">Data source</mark>
+
+When we know the purpose and style of the data we need, we need to analyze the quality and [quantity](#how-big-should-my-dataset-be) of the data. Hugging Face and Wikipedia are great sources of datasets and Wikipedia is especially useful if you are looking to train a model to learn a language.
+
+The Source of data can be a CSV file, PDF or even a website. You can also [synthetically generate](#synthetic-data-generation) data but extra care is required to make sure each example is high quality and relevant.
+{% endstep %}
+{% endstepper %}
+
+{% hint style="success" %}
+One of the best ways to create a better dataset is by combining it with a more generalized dataset from Hugging Face like ShareGPT to make your model smarter and diverse. You could also add [synthetically generated data](#synthetic-data-generation).
+{% endhint %}
+
+## Formatting the Data
+
+When we have identified the relevant criteria, and collected the necessary data, we can then format our data into a machine readable format that is ready for training.
+
+### Common Data Formats for LLM Training
+
+For [**continued pretraining**](https://docs.unsloth.ai/basics/continued-pretraining), we use raw text format without specific structure:
+
+This format preserves natural language flow and allows the model to learn from continuous text.
+
+If we are adapting a model to a new task, and intend for the model to output text in a single turn based on a specific set of instructions, we can use **Instruction** format in [Alpaca style](https://docs.unsloth.ai/basics/tutorial-how-to-finetune-llama-3-and-use-in-ollama#id-6.-alpaca-dataset)
+
+When we want multiple turns of conversation we can use the ShareGPT format:
+
+The template format uses the "from"/"value" attribute keys and messages alternates between `human`and `gpt`, allowing for natural dialogue flow.
+
+The other common format is OpenAI's ChatML format and is what Hugging Face defaults to. This is probably the most used format, and alternates between `user` and `assistant`
+
+### Applying Chat Templates with Unsloth
+
+For datasets that usually follow the common chatml format, the process of preparing the dataset for training or finetuning, consists of four simple steps:
+
+* Check the chat templates that Unsloth currently supports:\\
+
+\
+  This will print out the list of templates currently supported by Unsloth. Here is an example output:\\
+
+* Use `get_chat_template` to apply the right chat template to your tokenizer:\\
+
+* Define your formatting function. Here's an example:\\
+
+\
+  \
+  This function loops through your dataset applying the chat template you defined to each sample.\\
+
+* Finally, let's load the dataset and apply the required modifications to our dataset: \\
+
+\
+  If your dataset uses the ShareGPT format with "from"/"value" keys instead of the ChatML "role"/"content" format, you can use the `standardize_sharegpt` function to convert it first. The revised code will now look as follows:\
+  \\
+
+### Formatting Data Q\&A
+
+<mark style="color:green;">**Q:**</mark> How can I use the Alpaca instruct format?&#x20;
+
+<mark style="color:green;">**A:**</mark>  If your dataset is already formatted in the Alpaca format, then follow the formatting steps as shown in the Llama3.1 [notebook ](https://colab.research.google.com/github/unslothai/notebooks/blob/main/nb/Llama3.1_\(8B\)-Alpaca.ipynb#scrollTo=LjY75GoYUCB8). If you need to convert your data to the Alpaca format, one approach is to create a Python script to process your raw data. If you're working on a summarization task, you can use a local LLM to generate instructions and outputs for each example.&#x20;
+
+<mark style="color:green;">**Q:**</mark> Should I always use the standardize\_sharegpt method?
+
+<mark style="color:green;">**A:**</mark>  Only use the standardize\_sharegpt method if your target dataset is formatted in the sharegpt format, but your model expect a ChatML format instead.
+
+\ <mark style="color:green;">**Q:**</mark> Why not use the apply\_chat\_template function that comes with the tokenizer.
+
+<mark style="color:green;">**A:**</mark>  The `chat_template` attribute when a model is first uploaded by the original model owners sometimes contains errors and may take time to be updated. In contrast, at Unsloth, we thoroughly check and fix any errors in the `chat_template` for every model when we upload the quantized versions to our repositories. Additionally, our `get_chat_template` and `apply_chat_template` methods offer advanced data manipulation features, which are fully documented on our Chat Templates documentation [page](https://docs.unsloth.ai/basics/chat-templates).&#x20;
+
+<mark style="color:green;">**Q:**</mark> What if my template is not currently supported by Unsloth?
+
+<mark style="color:green;">**A:**</mark>  Submit a feature request on the unsloth github issues [forum](https://github.com/unslothai/unsloth). As a temporary workaround, you could also use the tokenizer's own apply\_chat\_template function until your feature request is approved and merged.
+
+## Synthetic Data Generation
+
+You can also use any local LLM like Llama 3.3 (70B) or OpenAI's GPT 4.5 to generate synthetic data. Generally, it is better to use a bigger like Llama 3.3 (70B) to ensure the highest quality outputs. You can directly use inference engines like vLLM, Ollama or llama.cpp to generate synthetic data but it will require some manual work to collect it and prompt for more data. There's 3 goals for synthetic data:
+
+* Produce entirely new data - either from scratch or from your existing dataset
+* Diversify your dataset so your model does not [overfit](https://docs.unsloth.ai/get-started/lora-hyperparameters-guide#avoiding-overfitting-and-underfitting) and become too specific
+* Augment existing data e.g. automatically structure your dataset in the correct chosen format
+
+### Synthetic Dataset Notebook
+
+We collaborated with Meta to launch a free notebook for creating Synthetic Datasets automatically using local models like Llama 3.2. [Access the notebook here.](https://colab.research.google.com/github/unslothai/notebooks/blob/main/nb/Meta_Synthetic_Data_Llama3_2_\(3B\).ipynb)
+
+What the notebook does:
+
+* Auto-parses PDFs, websites, YouTube videos and more
+* Uses Meta’s Synthetic Data Kit + Llama 3.2 (3B) to generate QA pairs
+* Cleans and filters the data automatically
+* Fine-tunes the dataset with Unsloth + Llama
+* Notebook is fully done locally with no API calling necessary
+
+### Using a local LLM or ChatGPT for synthetic data
+
+Your goal is to prompt the model to generate and process QA data that is in your specified format. The model will need to learn the structure that you provided and also the context so ensure you at least have 10 examples of data already. Examples prompts:
+
+* **Prompt for generating more dialogue on an existing dataset**:
+
+<pre data-overflow="wrap"><code><strong>Using the dataset example I provided, follow the structure and generate conversations based on the examples.
+  </strong></code></pre>
+* **Prompt if you no have dataset**:
+
+{% code overflow="wrap" %}
+
+{% endcode %}
+* **Prompt for a dataset without formatting**:
+
+{% code overflow="wrap" %}
+
+It is recommended to check the quality of generated data to remove or improve on irrelevant or poor-quality responses. Depending on your dataset it may also have to be balanced in many areas so your model does not overfit. You can then feed this cleaned dataset back into your LLM to regenerate data, now with even more guidance.
+
+## Dataset FAQ + Tips
+
+### How big should my dataset be?
+
+We generally recommend using a bare minimum of at least 100 rows of data for fine-tuning to achieve reasonable results. For optimal performance, a dataset with over 1,000 rows is preferable, and in this case, more data usually leads to better outcomes. If your dataset is too small you can also add synthetic data or add a dataset from Hugging Face to diversify it. However, the effectiveness of your fine-tuned model depends heavily on the quality of the dataset, so be sure to thoroughly clean and prepare your data.
+
+### How should I structure my dataset if I want to fine-tune a reasoning model?
+
+If you want to fine-tune a model that already has reasoning capabilities like the distilled versions of DeepSeek-R1 (e.g. DeepSeek-R1-Distill-Llama-8B), you will need to still follow question/task and answer pairs however, for your answer you will need to change the answer so it includes reasoning/chain-of-thought process and the steps it took to derive the answer.\
+\
+For a model that does not have reasoning and you want to train it so that it later encompasses reasoning capabilities, you will need to utilize a standard dataset but this time without reasoning in its answers. This is training process is known as [Reinforcement Learning and GRPO](https://docs.unsloth.ai/get-started/reinforcement-learning-rl-guide).
+
+### Multiple datasets
+
+If you have multiple datasets for fine-tuning, you can either:
+
+* Standardize the format of all datasets, combine them into a single dataset, and fine-tune on this unified dataset.
+* Use the [Multiple Datasets](https://colab.research.google.com/drive/1njCCbE1YVal9xC83hjdo2hiGItpY_D6t?usp=sharing) notebook to fine-tune on multiple datasets directly.
+
+### Can I fine-tune the same model multiple times?
+
+You can fine-tune an already fine-tuned model multiple times, but it's best to combine all the datasets and perform the fine-tuning in a single process instead. Training an already fine-tuned model can potentially alter the quality and knowledge acquired during the previous fine-tuning process.
+
+## Using Datasets in Unsloth
+
+See an example of using the Alpaca dataset inside of Unsloth on Google Colab:
+
+<figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FKSmRDpkySelZfWSrWxDm%2Fimage.png?alt=media&#x26;token=5401e4da-796a-42ad-8b85-2263f3e59e86" alt=""><figcaption></figcaption></figure>
+
+We will now use the Alpaca Dataset created by calling GPT-4 itself. It is a list of 52,000 instructions and outputs which was very popular when Llama-1 was released, since it made finetuning a base LLM be competitive with ChatGPT itself.
+
+You can access the GPT4 version of the Alpaca dataset [here](https://huggingface.co/datasets/vicgalle/alpaca-gpt4.). Below shows some examples of the dataset:
+
+<figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FzKhujR9Nxz95VFSdf4J5%2Fimage.png?alt=media&#x26;token=a3c52718-eaf1-4a3d-b325-414d8e67722e" alt=""><figcaption></figcaption></figure>
+
+You can see there are 3 columns in each row - an instruction, and input and an output. We essentially combine each row into 1 large prompt like below. We then use this to finetune the language model, and this made it very similar to ChatGPT. We call this process **supervised instruction finetuning**.
+
+<figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FieYX44Vjd0OygJvO0jaR%2Fimage.png?alt=media&#x26;token=eb67fa41-a280-4656-8be6-5b6bf6f587c2" alt=""><figcaption></figcaption></figure>
+
+### Multiple columns for finetuning
+
+But a big issue is for ChatGPT style assistants, we only allow 1 instruction / 1 prompt, and not multiple columns / inputs. For example in ChatGPT, you can see we must submit 1 prompt, and not multiple prompts.
+
+<figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FpFUWhntUQLu05l4ns7Pq%2Fimage.png?alt=media&#x26;token=e989e4a6-6033-4741-b97f-d0c3ce8f5888" alt=""><figcaption></figcaption></figure>
+
+This essentially means we have to "merge" multiple columns into 1 large prompt for finetuning to actually function!
+
+For example the very famous Titanic dataset has many many columns. Your job was to predict whether a passenger has survived or died based on their age, passenger class, fare price etc. We can't simply pass this into ChatGPT, but rather, we have to "merge" this information into 1 large prompt.
+
+<figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FrydHBjHoJT7w8FwzKAXK%2FMerge-1.png?alt=media&#x26;token=ec812057-0475-4717-87fe-311f14735c37" alt=""><figcaption></figcaption></figure>
+
+For example, if we ask ChatGPT with our "merged" single prompt which includes all the information for that passenger, we can then ask it to guess or predict whether the passenger has died or survived.
+
+<figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FJVkv73fRWvwwFxMym7uW%2Fimage.png?alt=media&#x26;token=59b97b76-f2f2-46c9-8940-60a37e4e7d62" alt=""><figcaption></figcaption></figure>
+
+Other finetuning libraries require you to manually prepare your dataset for finetuning, by merging all your columns into 1 prompt. In Unsloth, we simply provide the function called `to_sharegpt` which does this in 1 go!
+
+<figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2F9fo2IBA7P0tNwhNR9Prm%2Fimage.png?alt=media&#x26;token=7bd7244a-0fea-4e57-9038-a8a360138056" alt=""><figcaption></figcaption></figure>
+
+Now this is a bit more complicated, since we allow a lot of customization, but there are a few points:
+
+* You must enclose all columns in curly braces `{}`. These are the column names in the actual CSV / Excel file.
+* Optional text components must be enclosed in `[[]]`. For example if the column "input" is empty, the merging function will not show the text and skip this. This is useful for datasets with missing values.
+* Select the output or target / prediction column in `output_column_name`. For the Alpaca dataset, this will be `output`.
+
+For example in the Titanic dataset, we can create a large merged prompt format like below, where each column / piece of text becomes optional.
+
+<figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FRMvBpfXC9ToCRL0oCJfN%2Fimage.png?alt=media&#x26;token=c257c7fc-8a9c-4d4f-ab3d-6894ae49f2a9" alt=""><figcaption></figcaption></figure>
+
+For example, pretend the dataset looks like this with a lot of missing data:
+
+| Embarked | Age | Fare |
+| -------- | --- | ---- |
+| S        | 23  |      |
+|          | 18  | 7.25 |
+
+Then, we do not want the result to be:
+
+1. The passenger embarked from S. Their age is 23. Their fare is **EMPTY**.
+2. The passenger embarked from **EMPTY**. Their age is 18. Their fare is $7.25.
+
+Instead by optionally enclosing columns using `[[]]`, we can exclude this information entirely.
+
+1. \[\[The passenger embarked from S.]] \[\[Their age is 23.]] \[\[Their fare is **EMPTY**.]]
+2. \[\[The passenger embarked from **EMPTY**.]] \[\[Their age is 18.]] \[\[Their fare is $7.25.]]
+
+1. The passenger embarked from S. Their age is 23.
+2. Their age is 18. Their fare is $7.25.
+
+### Multi turn conversations
+
+A bit issue if you didn't notice is the Alpaca dataset is single turn, whilst remember using ChatGPT was interactive and you can talk to it in multiple turns. For example, the left is what we want, but the right which is the Alpaca dataset only provides singular conversations. We want the finetuned language model to somehow learn how to do multi turn conversations just like ChatGPT.
+
+<figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FWCAN7bYUt6QWwCWUxisL%2Fdiff.png?alt=media&#x26;token=29821fd9-2181-4d1d-8b93-749b69bcf400" alt=""><figcaption></figcaption></figure>
+
+So we introduced the `conversation_extension` parameter, which essentially selects some random rows in your single turn dataset, and merges them into 1 conversation! For example, if you set it to 3, we randomly select 3 rows and merge them into 1! Setting them too long can make training slower, but could make your chatbot and final finetune much better!
+
+<figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FWi1rRNBFC2iDmCvSJsZt%2Fcombine.png?alt=media&#x26;token=bef37a55-b272-4be3-89b5-9767c219a380" alt=""><figcaption></figcaption></figure>
+
+Then set `output_column_name` to the prediction / output column. For the Alpaca dataset dataset, it would be the output column.
+
+We then use the `standardize_sharegpt` function to just make the dataset in a correct format for finetuning! Always call this!
+
+<figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FE75C4Y848VNF6luLuPRR%2Fimage.png?alt=media&#x26;token=aac1d79b-ecca-4e56-939d-d97dcbbf30eb" alt=""><figcaption></figcaption></figure>
+
+## Vision Fine-tuning
+
+The dataset for fine-tuning a vision or multimodal model also includes image inputs. For example, the [Llama 3.2 Vision Notebook](https://colab.research.google.com/github/unslothai/notebooks/blob/main/nb/Llama3.2_\(11B\)-Vision.ipynb#scrollTo=vITh0KVJ10qX) uses a radiography case to show how AI can help medical professionals analyze X-rays, CT scans, and ultrasounds more efficiently.
+
+We'll be using a sampled version of the ROCO radiography dataset. You can access the dataset [here](https://www.google.com/url?q=https%3A%2F%2Fhuggingface.co%2Fdatasets%2Funsloth%2FRadiology_mini). The dataset includes X-rays, CT scans and ultrasounds showcasing medical conditions and diseases. Each image has a caption written by experts describing it. The goal is to finetune a VLM to make it a useful analysis tool for medical professionals.
+
+Let's take a look at the dataset, and check what the 1st example shows:
+
+| Image                                                                                                                                                                                                                                                                                                        | Caption                                                                                                                                       |
+| ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| <p></p><div><figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FrjdETiyi6jqzAao7vg8I%2Fxray.png?alt=media&#x26;token=f66fdd7f-5e10-4eff-a280-5b3d63ed7849" alt="" width="164"><figcaption></figcaption></figure></div> | Panoramic radiography shows an osteolytic lesion in the right posterior maxilla with resorption of the floor of the maxillary sinus (arrows). |
+
+To format the dataset, all vision finetuning tasks should be formatted as follows:
+
+We will craft an custom instruction asking the VLM to be an expert radiographer. Notice also instead of just 1 instruction, you can add multiple turns to make it a dynamic conversation.
+
+Let's convert the dataset into the "correct" format for finetuning:
+
+The first example is now structured like below:
+
+{% code overflow="wrap" %}
+
+Before we do any finetuning, maybe the vision model already knows how to analyse the images? Let's check if this is the case!
+
+For more details, view our dataset section in the [notebook here](https://colab.research.google.com/github/unslothai/notebooks/blob/main/nb/Llama3.2_\(11B\)-Vision.ipynb#scrollTo=vITh0KVJ10qX).
+
+**Examples:**
+
+Example 1 (json):
+```json
+"text": "Pasta carbonara is a traditional Roman pasta dish. The sauce is made by mixing raw eggs with grated Pecorino Romano cheese and black pepper. The hot pasta is then tossed with crispy guanciale (cured pork cheek) and the egg mixture, creating a creamy sauce from the residual heat. Despite popular belief, authentic carbonara never contains cream or garlic. The dish likely originated in Rome in the mid-20th century, though its exact origins are debated..."
+```
+
+Example 2 (json):
+```json
+"Instruction": "Task we want the model to perform."
+
+"Input": "Optional, but useful, it will essentially be the user's query."
+
+"Output": "The expected result of the task and the output of the model."
+```
+
+Example 3 (json):
+```json
+{
+  "conversations": [
+    {
+      "from": "human",
+      "value": "Can you help me make pasta carbonara?"
+    },
+    {
+      "from": "gpt",
+      "value": "Would you like the traditional Roman recipe, or a simpler version?"
+    },
+    {
+      "from": "human",
+      "value": "The traditional version please"
+    },
+    {
+      "from": "gpt",
+      "value": "The authentic Roman carbonara uses just a few ingredients: pasta, guanciale, eggs, Pecorino Romano, and black pepper. Would you like the detailed recipe?"
+    }
+  ]
+}
+```
+
+Example 4 (unknown):
+```unknown
+{
+  "messages": [
+    {
+      "role": "user",
+      "content": "What is 1+1?"
+    },
+    {
+      "role": "assistant",
+      "content": "It's 2!"
+    },
+  ]
+}
+```
+
+---
+
+## Unsloth Requirements
+
+**URL:** llms-txt#unsloth-requirements
+
+**Contents:**
+- System Requirements
+- Fine-tuning VRAM requirements:
+
+Here are Unsloth's requirements including system and GPU VRAM requirements.
+
+## System Requirements
+
+* **Operating System**: Works on Linux and Windows.
+* Supports NVIDIA GPUs since 2018+ including [Blackwell RTX 50](https://docs.unsloth.ai/basics/fine-tuning-llms-with-blackwell-rtx-50-series-and-unsloth) and [**DGX Spark**](https://docs.unsloth.ai/basics/fine-tuning-llms-with-nvidia-dgx-spark-and-unsloth).\
+  Minimum CUDA Capability 7.0 (V100, T4, Titan V, RTX 20 & 50, A100, H100, L40 etc) [Check your GPU!](https://developer.nvidia.com/cuda-gpus) GTX 1070, 1080 works, but is slow.
+* The official [Unsloth Docker image](https://hub.docker.com/r/unsloth/unsloth) `unsloth/unsloth` is available on Docker Hub.
+* Unsloth works on [AMD](https://docs.unsloth.ai/new/fine-tuning-llms-on-amd-gpus-with-unsloth) and [Intel](https://github.com/unslothai/unsloth/pull/2621) GPUs! Apple/Silicon/MLX is in the works.
+* If you have different versions of torch, transformers etc., `pip install unsloth` will automatically install all the latest versions of those libraries so you don't need to worry about version compatibility.
+* Your device should have `xformers`, `torch`, `BitsandBytes` and `triton` support.
+
+{% hint style="info" %}
+Python 3.13 is now supported!
+{% endhint %}
+
+## Fine-tuning VRAM requirements:
+
+How much GPU memory do I need for LLM fine-tuning using Unsloth?
+
+{% hint style="info" %}
+A common issue when you OOM or run out of memory is because you set your batch size too high. Set it to 1, 2, or 3 to use less VRAM.
+
+**For context length benchmarks, see** [**here**](https://docs.unsloth.ai/basics/unsloth-benchmarks#context-length-benchmarks)**.**
+{% endhint %}
+
+Check this table for VRAM requirements sorted by model parameters and fine-tuning method. QLoRA uses 4-bit, LoRA uses 16-bit. Keep in mind that sometimes more VRAM is required depending on the model so these numbers are the absolute minimum:
+
+| Model parameters | QLoRA (4-bit) VRAM | LoRA (16-bit) VRAM |
+| ---------------- | ------------------ | ------------------ |
+| 3B               | 3.5 GB             | 8 GB               |
+| 7B               | 5 GB               | 19 GB              |
+| 8B               | 6 GB               | 22 GB              |
+| 9B               | 6.5 GB             | 24 GB              |
+| 11B              | 7.5 GB             | 29 GB              |
+| 14B              | 8.5 GB             | 33 GB              |
+| 27B              | 22GB               | 64GB               |
+| 32B              | 26 GB              | 76 GB              |
+| 40B              | 30GB               | 96GB               |
+| 70B              | 41 GB              | 164 GB             |
+| 81B              | 48GB               | 192GB              |
+| 90B              | 53GB               | 212GB              |
+| 405B             | 237 GB             | 950 GB             |
+
+---
+
+## vLLM Engine Arguments
+
+**URL:** llms-txt#vllm-engine-arguments
+
+**Contents:**
+  - :tada:Float8 Quantization
+  - :shaved\_ice:LoRA Hot Swapping / Dynamic LoRAs
+
+vLLM engine arguments, flags, options for serving models on vLLM.
+
+<table><thead><tr><th width="212.9000244140625">Argument</th><th>Example and use-case</th></tr></thead><tbody><tr><td><strong><code>--gpu-memory-utilization</code></strong></td><td>Default 0.9. How much VRAM usage vLLM can use. Reduce if going out of memory. Try setting this to 0.95 or 0.97.</td></tr><tr><td><strong><code>--max-model-len</code></strong></td><td>Set maximum sequence length. Reduce this if going out of memory! For example set <strong><code>--max-model-len 32768</code></strong> to use only 32K sequence lengths.</td></tr><tr><td><strong><code>--quantization</code></strong></td><td>Use fp8 for dynamic float8 quantization. Use this in tandem with <strong><code>--kv-cache-dtype</code></strong> fp8 to enable float8 KV cache as well.</td></tr><tr><td><strong><code>--kv-cache-dtype</code></strong></td><td>Use <code>fp8</code> for float8 KV cache to reduce memory usage by 50%.</td></tr><tr><td><strong><code>--port</code></strong></td><td>Default is 8000. How to access vLLM's localhost ie http://localhost:8000</td></tr><tr><td><strong><code>--api-key</code></strong></td><td>Optional - Set the password (or no password) to access the model.</td></tr><tr><td><strong><code>--tensor-parallel-size</code></strong></td><td>Default is 1. Splits model across tensors. Set this to how many GPUs you are using - if you have 4, set this to 4. 8, then 8. You should have NCCL, otherwise this might be slow.</td></tr><tr><td><strong><code>--pipeline-parallel-size</code></strong></td><td>Default is 1. Splits model across layers. Use this with <strong><code>--pipeline-parallel-size</code></strong> where TP is used within each node, and PP is used across multi-node setups (set PP to number of nodes)</td></tr><tr><td><strong><code>--enable-lora</code></strong></td><td>Enables LoRA serving. Useful for serving Unsloth finetuned LoRAs.</td></tr><tr><td><strong><code>--max-loras</code></strong></td><td>How many LoRAs you want to serve at 1 time. Set this to 1 for 1 LoRA, or say 16. This is a queue so LoRAs can be hot-swapped.</td></tr><tr><td><strong><code>--max-lora-rank</code></strong></td><td>Maximum rank of all LoRAs. Possible choices are <code>8</code>, <code>16</code>, <code>32</code>, <code>64</code>, <code>128</code>, <code>256</code>, <code>320</code>, <code>512</code></td></tr><tr><td><strong><code>--dtype</code></strong></td><td>Allows <code>auto</code>, <code>bfloat16</code>, <code>float16</code> Float8 and other quantizations use a different flag - see <code>--quantization</code></td></tr><tr><td><strong><code>--tokenizer</code></strong></td><td>Specify the tokenizer path like <code>unsloth/gpt-oss-20b</code> if the served model has a different tokenizer.</td></tr><tr><td><strong><code>--hf-token</code></strong></td><td>Add your HuggingFace token if needed for gated models</td></tr><tr><td><strong><code>--swap-space</code></strong></td><td>Default is 4GB. CPU offloading usage. Reduce if you have VRAM, or increase for low memory GPUs.</td></tr><tr><td><strong><code>--seed</code></strong></td><td>Default is 0 for vLLM</td></tr><tr><td><strong><code>--disable-log-stats</code></strong></td><td>Disables logging like throughput, server requests.</td></tr><tr><td><strong><code>--enforce-eager</code></strong></td><td>Disables compilation. Faster to load, but slower for inference.</td></tr><tr><td><strong><code>--disable-cascade-attn</code></strong></td><td>Useful for Reinforcement Learning runs for vLLM &#x3C; 0.11.0, as Cascade Attention was slightly buggy on A100 GPUs (Unsloth fixes this)</td></tr></tbody></table>
+
+### :tada:Float8 Quantization
+
+For example to host Llama 3.3 70B Instruct (supports 128K context length) with Float8 KV Cache and quantization, try:
+
+### :shaved\_ice:LoRA Hot Swapping / Dynamic LoRAs
+
+To enable LoRA serving for at most 4 LoRAs at 1 time (these are hot swapped / changed), first set the environment flag to allow hot swapping:
+
+Then, serve it with LoRA support:
+
+To load a LoRA dynamically (set the lora name as well), do:
+
+To remove it from the pool:
+
+**Examples:**
+
+Example 1 (bash):
+```bash
+vllm serve unsloth/Llama-3.3-70B-Instruct \
+    --quantization fp8 \
+    --kv-cache-dtype fp8
+    --gpu-memory-utilization 0.97 \
+    --max-model-len 65536
+```
+
+Example 2 (bash):
+```bash
+export VLLM_ALLOW_RUNTIME_LORA_UPDATING=True
+```
+
+Example 3 (bash):
+```bash
+export VLLM_ALLOW_RUNTIME_LORA_UPDATING=True
+vllm serve unsloth/Llama-3.3-70B-Instruct \
+    --quantization fp8 \
+    --kv-cache-dtype fp8
+    --gpu-memory-utilization 0.97 \
+    --max-model-len 65536 \
+    --enable-lora \
+    --max-loras 4 \
+    --max-lora-rank 64
+```
+
+Example 4 (bash):
+```bash
+curl -X POST http://localhost:8000/v1/load_lora_adapter \
+    -H "Content-Type: application/json" \
+    -d '{
+        "lora_name": "LORA_NAME",
+        "lora_path": "/path/to/LORA"
+    }'
+```
+
+---
+
+## QwQ-32B: How to Run effectively
+
+**URL:** llms-txt#qwq-32b:-how-to-run-effectively
+
+**Contents:**
+- :gear: Official Recommended Settings
+- :thumbsup: Recommended settings for llama.cpp
+- :sunny: Dry Repetition Penalty
+- :llama: Tutorial: How to Run QwQ-32B in Ollama
+- 📖 Tutorial: How to Run QwQ-32B in llama.cpp
+
+How to run QwQ-32B effectively with our bug fixes and without endless generations + GGUFs.
+
+Qwen released QwQ-32B - a reasoning model with performance comparable to DeepSeek-R1 on many [benchmarks](https://qwenlm.github.io/blog/qwq-32b/). However, people have been experiencing **infinite generations**, **many repetitions**, \<think> token issues and finetuning issues. We hope this guide will help debug and fix most issues!
+
+{% hint style="info" %}
+Our model uploads with our bug fixes work great for fine-tuning, vLLM and Transformers. If you're using llama.cpp and engines that use llama.cpp as backend, follow our [instructions here](#tutorial-how-to-run-qwq-32b) to fix endless generations.
+{% endhint %}
+
+**Unsloth QwQ-32B uploads with our bug fixes:**
+
+| [GGUF](https://huggingface.co/unsloth/QwQ-32B-GGUF) | [Dynamic 4-bit](https://huggingface.co/unsloth/QwQ-32B-unsloth-bnb-4bit) | [BnB 4-bit](https://huggingface.co/unsloth/QwQ-32B-bnb-4bit) | [16-bit](https://huggingface.co/unsloth/QwQ-32B) |
+| --------------------------------------------------- | ------------------------------------------------------------------------ | ------------------------------------------------------------ | ------------------------------------------------ |
+
+## :gear: Official Recommended Settings
+
+According to [Qwen](https://huggingface.co/Qwen/QwQ-32B), these are the recommended settings for inference:
+
+* Temperature of 0.6
+* Top\_K of 40 (or 20 to 40)
+* Min\_P of 0.00 (optional, but 0.01 works well, llama.cpp default is 0.1)
+* Top\_P of 0.95
+* Repetition Penalty of 1.0. (1.0 means disabled in llama.cpp and transformers)
+* Chat template: `<|im_start|>user\nCreate a Flappy Bird game in Python.<|im_end|>\n<|im_start|>assistant\n<think>\n`
+
+{% hint style="warning" %}
+`llama.cpp` uses `min_p = 0.1`by default, which might cause issues. Force it to 0.0.
+{% endhint %}
+
+## :thumbsup: Recommended settings for llama.cpp
+
+We noticed many people use a `Repetition Penalty` greater than 1.0. For example 1.1 to 1.5. This actually interferes with llama.cpp's sampling mechanisms. The goal of a repetition penalty is to penalize repeated generations, but we found this doesn't work as expected.
+
+Turning off `Repetition Penalty` also works (ie setting it to 1.0), but we found using it to be useful to penalize endless generations.
+
+To use it, we found you must also edit the ordering of samplers in llama.cpp to before applying `Repetition Penalty`, otherwise there will be endless generations. So add this:
+
+By default, llama.cpp uses this ordering:
+
+We reorder essentially temperature and dry, and move min\_p forward. This means we apply samplers in this order:
+
+If you still encounter issues, you can increase the`--repeat-penalty 1.0 to 1.2 or 1.3.`
+
+Courtesy to [@krist486](https://x.com/krist486/status/1897885598196654180) for bringing llama.cpp sampling directions to my attention.
+
+## :sunny: Dry Repetition Penalty
+
+We investigated usage of `dry penalty`  as suggested in <https://github.com/ggml-org/llama.cpp/blob/master/examples/main/README.md> using a value of 0.8, but we actually found this to **rather cause syntax issues especially for coding**. If you still encounter issues, you can increase the`dry penalty to 0.8.`
+
+Utilizing our swapped sampling ordering can also help if you decide to use `dry penalty`.
+
+## :llama: Tutorial: How to Run QwQ-32B in Ollama
+
+1. Install `ollama` if you haven't already!
+
+2. Run run the model! Note you can call `ollama serve`in another terminal if it fails! We include all our fixes and suggested parameters (temperature, min\_p etc) in `param` in our Hugging Face upload!
+
+## 📖 Tutorial: How to Run QwQ-32B in llama.cpp
+
+1. Obtain the latest `llama.cpp` on [GitHub here](https://github.com/ggml-org/llama.cpp). You can follow the build instructions below as well. Change `-DGGML_CUDA=ON` to `-DGGML_CUDA=OFF` if you don't have a GPU or just want CPU inference.
+
+2. Download the model via (after installing `pip install huggingface_hub hf_transfer` ). You can choose Q4\_K\_M, or other quantized versions (like BF16 full precision). More versions at: <https://huggingface.co/unsloth/QwQ-32B-GGUF>
+
+**Examples:**
+
+Example 1 (bash):
+```bash
+--samplers "top_k;top_p;min_p;temperature;dry;typ_p;xtc"
+```
+
+Example 2 (bash):
+```bash
+--samplers "dry;top_k;typ_p;top_p;min_p;xtc;temperature"
+```
+
+Example 3 (bash):
+```bash
+top_k=40
+top_p=0.95
+min_p=0.0
+temperature=0.6
+dry
+typ_p
+xtc
+```
+
+Example 4 (bash):
+```bash
+apt-get update
+apt-get install pciutils -y
+curl -fsSL https://ollama.com/install.sh | sh
+```
+
+---
+
+## Qwen3-VL: How to Run & Fine-tune
+
+**URL:** llms-txt#qwen3-vl:-how-to-run-&-fine-tune
+
+**Contents:**
+- 🖥️ **Running Qwen3-VL**
+  - :gear: Recommended Settings
+  - :bug:Chat template bug fixes
+  - 📖 Llama.cpp: Run Qwen3-VL Tutorial
+
+Learn to fine-tune and run Qwen3-VL locally with Unsloth.
+
+Qwen3-VL is Qwen’s new vision models with **instruct** and **thinking** versions. The 2B, 4B, 8B and 32B models are dense, while 30B and 235B are MoE. The 235B thinking LLM delivers SOTA vision and coding performance rivaling GPT-5 (high) and Gemini 2.5 Pro.\
+\
+Qwen3-VL has vision, video and OCR capabilities as well as 256K context (can be extended to 1M).\
+\
+[Unsloth](https://github.com/unslothai/unsloth) supports **Qwen3-VL fine-tuning and** [**RL**](https://docs.unsloth.ai/new/vision-reinforcement-learning-vlm-rl). Train Qwen3-VL (8B) for free with our [notebooks](#fine-tuning-qwen3-vl).
+
+<a href="#running-qwen3-vl" class="button primary">Running Qwen3-VL</a><a href="#fine-tuning-qwen3-vl" class="button primary">Fine-tuning Qwen3-VL</a>
+
+#### **Qwen3-VL Unsloth uploads**:
+
+Qwen3-VL is now supported for GGUFs by llama.cpp as of 30th October 2025, so you can run them locally!
+
+| Dynamic GGUFs (to run)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    | 4-bit BnB Unsloth Dynamic                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             | 16-bit full-precision                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
+| ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| <ul><li><a href="https://huggingface.co/unsloth/Qwen3-VL-2B-Instruct-GGUF">2B-Instruct</a></li><li><a href="https://huggingface.co/unsloth/Qwen3-VL-2B-Thinking-GGUF">2B-Thinking</a></li><li><a href="https://huggingface.co/unsloth/Qwen3-VL-4B-Instruct-GGUF">4B-Instruct</a></li><li><a href="https://huggingface.co/unsloth/Qwen3-VL-4B-Thinking-GGUF">4B-Thinking</a></li><li><a href="https://huggingface.co/unsloth/Qwen3-VL-8B-Instruct-GGUF">8B-Instruct</a></li><li><a href="https://huggingface.co/unsloth/Qwen3-VL-8B-Thinking-GGUF">8B-Thinking</a></li><li><a href="https://huggingface.co/unsloth/Qwen3-VL-30B-A3B-Instruct-GGUF">30B-Instruct</a></li><li><a href="https://huggingface.co/unsloth/Qwen3-VL-30B-A3B-Thinking-GGUF">30B-Thinking</a></li><li><a href="https://huggingface.co/unsloth/Qwen3-VL-32B-Instruct-GGUF">32B-Instruct</a></li><li><a href="https://huggingface.co/unsloth/Qwen3-VL-32B-Thinking-GGUF">32B-Thinking</a></li><li><a href="https://huggingface.co/unsloth/Qwen3-VL-235B-A22B-Instruct-GGUF">235B-A22B-Instruct</a></li><li><a href="https://huggingface.co/unsloth/Qwen3-VL-235B-A22B-Thinking-GGUF">235B-A22B-Thinking</a></li></ul> | <ul><li><a href="https://huggingface.co/unsloth/Qwen3-VL-2B-Instruct-unsloth-bnb-4bit">2B-Instruct</a></li><li><a href="https://huggingface.co/unsloth/Qwen3-VL-2B-Thinking-unsloth-bnb-4bit">2B-Thinking</a></li><li><a href="https://huggingface.co/unsloth/Qwen3-VL-4B-Instruct-unsloth-bnb-4bit">4B-Instruct</a></li><li><a href="https://huggingface.co/unsloth/Qwen3-VL-4B-Thinking-unsloth-bnb-4bit">4B-Thinking</a></li><li><a href="https://huggingface.co/unsloth/Qwen3-VL-8B-Instruct-unsloth-bnb-4bit">8B-Instruct</a></li><li><a href="https://huggingface.co/unsloth/Qwen3-VL-8B-Thinking-unsloth-bnb-4bit">8B-Thinking</a></li><li><a href="https://huggingface.co/unsloth/Qwen3-VL-32B-Instruct-unsloth-bnb-4bit">32B-Instruct</a></li><li><a href="https://huggingface.co/unsloth/Qwen3-VL-32B-Thinking-unsloth-bnb-4bit">32B-Thinking</a></li></ul> | <ul><li><a href="https://huggingface.co/unsloth/Qwen3-VL-2B-Instruct">2B-Instruct</a></li><li><a href="https://huggingface.co/unsloth/Qwen3-VL-4B-Instruct">4B-Instruct</a></li><li><a href="https://huggingface.co/unsloth/Qwen3-VL-4B-Thinking">4B-Thinking</a></li><li><a href="https://huggingface.co/unsloth/Qwen3-VL-8B-Instruct">8B-Instruct</a></li><li><a href="https://huggingface.co/unsloth/Qwen3-VL-8B-Thinking">8B-Thinking</a></li><li><a href="https://huggingface.co/unsloth/Qwen3-VL-30B-A3B-Instruct">30B-Instruct</a></li><li><a href="https://huggingface.co/unsloth/Qwen3-VL-30B-A3B-Thinking">30B-Thinking</a></li><li><a href="https://huggingface.co/unsloth/Qwen3-VL-32B-Instruct">32B-Instruct</a></li><li><a href="https://huggingface.co/unsloth/Qwen3-VL-32B-Thinking">32B-Thinking</a></li><li><a href="https://huggingface.co/unsloth/Qwen3-VL-235B-A22B-Thinking">235B-A22B-Thinking</a></li><li><a href="https://huggingface.co/unsloth/Qwen3-VL-235B-A22B-Instruct">235B-A22B-Instruct</a></li></ul> |
+
+## 🖥️ **Running Qwen3-VL**
+
+To run the model in llama.cpp, vLLM, Ollama etc., here are the recommended settings:
+
+### :gear: Recommended Settings
+
+Qwen recommends these settings for both models (they're a bit different for Instruct vs Thinking):
+
+| Instruct Settings:                                                       | Thinking Settings:                                                       |
+| ------------------------------------------------------------------------ | ------------------------------------------------------------------------ |
+| <mark style="background-color:blue;">**Temperature = 0.7**</mark>        | <mark style="background-color:blue;">**Temperature = 1.0**</mark>        |
+| <mark style="background-color:yellow;">**Top\_P = 0.8**</mark>           | <mark style="background-color:yellow;">**Top\_P = 0.95**</mark>          |
+| <mark style="background-color:green;">**presence\_penalty = 1.5**</mark> | <mark style="background-color:green;">**presence\_penalty = 0.0**</mark> |
+| Output Length = 32768 (up to 256K)                                       | Output Length = 40960 (up to 256K)                                       |
+| Top\_K = 20                                                              | Top\_K = 20                                                              |
+
+Qwen3-VL also used the below settings for their benchmarking numbers, as mentioned [on GitHub](https://github.com/QwenLM/Qwen3-VL/tree/main?tab=readme-ov-file#generation-hyperparameters).
+
+{% columns %}
+{% column %}
+Instruct Settings:
+
+{% column %}
+Thinking Settings:
+
+{% endcolumn %}
+{% endcolumns %}
+
+### :bug:Chat template bug fixes
+
+At Unsloth, we care about accuracy the most, so we investigated why after the 2nd turn of running the Thinking models, llama.cpp would break, as seen below:
+
+{% columns %}
+{% column %}
+
+<figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FcIfJ9Z12IV5a2GkmgaUR%2Fimage.webp?alt=media&#x26;token=326c563d-4eac-48fb-9650-4273066c6cd3" alt=""><figcaption></figcaption></figure>
+
+{% column %}
+The error code:
+
+{% endcolumn %}
+{% endcolumns %}
+
+We have successfully fixed the Thinking chat template for the VL models so we re-uploaded all Thinking quants and Unsloth's quants. They should now all work after the 2nd conversation - **other quants will fail to load after the 2nd conversation.**
+
+### 📖 Llama.cpp: Run Qwen3-VL Tutorial
+
+1. Obtain the latest `llama.cpp` on [GitHub here](https://github.com/ggml-org/llama.cpp). You can follow the build instructions below as well. Change `-DGGML_CUDA=ON` to `-DGGML_CUDA=OFF` if you don't have a GPU or just want CPU inference.
+
+2. **Let's first get an image!** You can also upload images as well. We shall use <https://raw.githubusercontent.com/unslothai/unsloth/refs/heads/main/images/unsloth%20made%20with%20love.png>, which is just our mini logo showing how finetunes are made with Unsloth:
+
+<figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2Fuy8HigwFkdFQ3t5zqlrt%2Funsloth%20made%20with%20love.png?alt=media&#x26;token=a277774a-e489-453d-859a-41d07cdaf417" alt="" width="188"><figcaption></figcaption></figure>
+
+3. Let's download this image
+
+{% code overflow="wrap" %}
+
+4. Let's get the 2nd image at <https://files.worldwildlife.org/wwfcmsprod/images/Sloth_Sitting_iStock_3_12_2014/story_full_width/8l7pbjmj29_iStock_000011145477Large_mini__1_.jpg>
+
+<figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FCQLROoU52USjV0zQjdFS%2F8l7pbjmj29_iStock_000011145477Large_mini__1_.jpg?alt=media&#x26;token=95d02461-3c45-4faa-9a0f-df24662550be" alt="" width="188"><figcaption></figcaption></figure>
+
+{% code overflow="wrap" %}
+
+5. Then, let's use llama.cpp's auto model downloading feature, try this for the 8B Instruct model:
+
+6. Once in, you will see the below screen:
+
+<figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FHWjRf7bM74evnyVyZI9h%2Fimage.png?alt=media&#x26;token=0455895d-0958-4a4e-bba6-acb5cfb96607" alt=""><figcaption></figcaption></figure>
+
+7. Load up the image via `/image PATH` ie `/image unsloth.png` then press ENTER
+
+<figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FjxLvuNnNbF9Uopl69zly%2Fimage.png?alt=media&#x26;token=dd0be11d-ad65-4685-9df4-6e3f784d3fc4" alt="" width="375"><figcaption></figcaption></figure>
+
+8. When you hit ENTER, it'll say "unsloth.png image loaded"
+
+<figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FqJUMOhy012imZtl5AvaU%2Fimage.png?alt=media&#x26;token=3c50fa1e-017b-49bf-a192-106fae06e292" alt="" width="375"><figcaption></figcaption></figure>
+
+9. Now let's ask a question like "What is this image?":
+
+<figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FQf2cbJrgxjUTnMPqFD6q%2Fimage.png?alt=media&#x26;token=0436fbf6-25d9-41da-a8d2-460e725413c0" alt=""><figcaption></figcaption></figure>
+
+10. Now load in picture 2 via `/image picture.png` then hit ENTER and ask "What is this image?"
+
+<figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FAtQVCafTlUza5rGsp4RT%2Fimage.png?alt=media&#x26;token=e57431db-9df3-46ba-aa4f-5082e0698c2e" alt=""><figcaption></figcaption></figure>
+
+11. And finally let's ask how are both images are related (it works!)
+
+{% code overflow="wrap" %}
+
+<figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FbSJbXAwwHjJ3O3Q1UI7z%2Fimage.png?alt=media&#x26;token=c56ac688-408f-43fa-82e1-2a945c9a1bbf" alt=""><figcaption></figcaption></figure>
+
+12. You can also download the model via (after installing `pip install huggingface_hub hf_transfer` ) HuggingFace's `snapshot_download` which is useful for large model downloads, **since llama.cpp's auto downloader might lag.** You can choose Q4\_K\_M, or other quantized versions.
+
+**Examples:**
+
+Example 1 (bash):
+```bash
+export greedy='false'
+export seed=3407
+export top_p=0.8
+export top_k=20
+export temperature=0.7
+export repetition_penalty=1.0
+export presence_penalty=1.5
+export out_seq_length=32768
+```
+
+Example 2 (bash):
+```bash
+export greedy='false'
+export seed=1234
+export top_p=0.95
+export top_k=20
+export temperature=1.0
+export repetition_penalty=1.0
+export presence_penalty=0.0
+export out_seq_length=40960
+```
+
+Example 3 (unknown):
+```unknown
+terminate called after throwing an instance of 'std::runtime_error'
+  what():  Value is not callable: null at row 63, column 78:
+            {%- if '</think>' in content %}
+                {%- set reasoning_content = ((content.split('</think>')|first).rstrip('\n').split('<think>')|last).lstrip('\n') %}
+                                                                             ^
+```
+
+Example 4 (bash):
+```bash
+apt-get update
+apt-get install pciutils build-essential cmake curl libcurl4-openssl-dev -y
+git clone https://github.com/ggml-org/llama.cpp
+cmake llama.cpp -B llama.cpp/build \
+    -DBUILD_SHARED_LIBS=OFF -DGGML_CUDA=ON -DLLAMA_CURL=ON
+cmake --build llama.cpp/build --config Release -j --clean-first
+cp llama.cpp/build/bin/llama-* llama.cpp
+```
+
+---
+
+## Main game loop:
+
+**URL:** llms-txt#main-game-loop:
+
+**Contents:**
+- :sunrise\_over\_mountains: Still doesn't work? Try Min\_p = 0.1, Temperature = 1.5
+- :thinking: \<think> token not shown?
+- Extra Notes
+- :pencil2: Tokenizer Bug Fixes
+- :tools: Dynamic 4-bit Quants
+
+while running :
+     for event in pygame.event.get() : 
+        if quit ... etc
+
+pygame.quit()
+print("Code is simplified. Due time constraints, full working version requires further implementation.")
+bash
+./llama.cpp/llama-cli --model unsloth-QwQ-32B-GGUF/QwQ-32B-Q4_K_M.gguf \
+    --threads 32 --n-gpu-layers 99 \
+    --ctx-size 16384 \
+    --temp 1.5 \
+    --min-p 0.1 \
+    --top-k 0 \
+    --top-p 1.0 \
+    -no-cnv \
+    --prompt "<|im_start|>user\nCreate a Flappy Bird game in Python. You must include these things:\n1. You must use pygame.\n2. The background color should be randomly chosen and is a light shade. Start with a light blue color.\n3. Pressing SPACE multiple times will accelerate the bird.\n4. The bird's shape should be randomly chosen as a square, circle or triangle. The color should be randomly chosen as a dark color.\n5. Place on the bottom some land colored as dark brown or yellow chosen randomly.\n6. Make a score shown on the top right side. Increment if you pass pipes and don't hit them.\n7. Make randomly spaced pipes with enough space. Color them randomly as dark green or light brown or a dark gray shade.\n8. When you lose, show the best score. Make the text inside the screen. Pressing q or Esc will quit the game. Restarting is pressing SPACE again.\nThe final game should be inside a markdown section in Python. Check your code for errors and fix them before the final markdown section.<|im_end|>\n<|im_start|>assistant\n<think>\n"
+bash
+./llama.cpp/llama-cli --model unsloth-QwQ-32B-GGUF/QwQ-32B-Q4_K_M.gguf \
+    --threads 32 --n-gpu-layers 99 \
+    --ctx-size 16384 \
+    --temp 0.6 \
+    --min-p 0.0 \
+    --top-k 40 \
+    --top-p 0.95 \
+    -no-cnv \
+    --prompt "<|im_start|>user\nCreate a Flappy Bird game in Python. You must include these things:\n1. You must use pygame.\n2. The background color should be randomly chosen and is a light shade. Start with a light blue color.\n3. Pressing SPACE multiple times will accelerate the bird.\n4. The bird's shape should be randomly chosen as a square, circle or triangle. The color should be randomly chosen as a dark color.\n5. Place on the bottom some land colored as dark brown or yellow chosen randomly.\n6. Make a score shown on the top right side. Increment if you pass pipes and don't hit them.\n7. Make randomly spaced pipes with enough space. Color them randomly as dark green or light brown or a dark gray shade.\n8. When you lose, show the best score. Make the text inside the screen. Pressing q or Esc will quit the game. Restarting is pressing SPACE again.\nThe final game should be inside a markdown section in Python. Check your code for errors and fix them before the final markdown section.<|im_end|>\n<|im_start|>assistant\n<think>\n"
+
+{%- if tools %} {{- '<|im_start|>system\n' }} {%- if messages[0]['role'] == 'system' %} {{- messages[0]['content'] }} {%- else %} {{- '' }} {%- endif %} {{- "\n\n# Tools\n\nYou may call one or more functions to assist with the user query.\n\nYou are provided with function signatures within <tools></tools> XML tags:\n<tools>" }} {%- for tool in tools %} {{- "\n" }} {{- tool | tojson }} {%- endfor %} {{- "\n</tools>\n\nFor each function call, return a json object with function name and arguments within <tool_call></tool_call> XML tags:\n<tool_call>\n{\"name\": <function-name>, \"arguments\": <args-json-object>}\n</tool_call><|im_end|>\n" }} {%- else %} {%- if messages[0]['role'] == 'system' %} {{- '<|im_start|>system\n' + messages[0]['content'] + '<|im_end|>\n' }} {%- endif %} {%- endif %} {%- for message in messages %} {%- if (message.role == "user") or (message.role == "system" and not loop.first) %} {{- '<|im_start|>' + message.role + '\n' + message.content + '<|im_end|>' + '\n' }} {%- elif message.role == "assistant" and not message.tool_calls %} {%- set content = message.content.split('</think>')[-1].lstrip('\n') %} {{- '<|im_start|>' + message.role + '\n' + content + '<|im_end|>' + '\n' }} {%- elif message.role == "assistant" %} {%- set content = message.content.split('</think>')[-1].lstrip('\n') %} {{- '<|im_start|>' + message.role }} {%- if message.content %} {{- '\n' + content }} {%- endif %} {%- for tool_call in message.tool_calls %} {%- if tool_call.function is defined %} {%- set tool_call = tool_call.function %} {%- endif %} {{- '\n<tool_call>\n{"name": "' }} {{- tool_call.name }} {{- '", "arguments": ' }} {{- tool_call.arguments | tojson }} {{- '}\n</tool_call>' }} {%- endfor %} {{- '<|im_end|>\n' }} {%- elif message.role == "tool" %} {%- if (loop.index0 == 0) or (messages[loop.index0 - 1].role != "tool") %} {{- '<|im_start|>user' }} {%- endif %} {{- '\n<tool_response>\n' }} {{- message.content }} {{- '\n</tool_response>' }} {%- if loop.last or (messages[loop.index0 + 1].role != "tool") %} {{- '<|im_end|>\n' }} {%- endif %} {%- endif %} {%- endfor %} {%- if add_generation_prompt %} {{- '<|im_start|>assistant\n<think>\n' }} {%- endif %}
+
+{%- if tools %} {{- '<|im_start|>system\n' }} {%- if messages[0]['role'] == 'system' %} {{- messages[0]['content'] }} {%- else %} {{- '' }} {%- endif %} {{- "\n\n# Tools\n\nYou may call one or more functions to assist with the user query.\n\nYou are provided with function signatures within <tools></tools> XML tags:\n<tools>" }} {%- for tool in tools %} {{- "\n" }} {{- tool | tojson }} {%- endfor %} {{- "\n</tools>\n\nFor each function call, return a json object with function name and arguments within <tool_call></tool_call> XML tags:\n<tool_call>\n{\"name\": <function-name>, \"arguments\": <args-json-object>}\n</tool_call><|im_end|>\n" }} {%- else %} {%- if messages[0]['role'] == 'system' %} {{- '<|im_start|>system\n' + messages[0]['content'] + '<|im_end|>\n' }} {%- endif %} {%- endif %} {%- for message in messages %} {%- if (message.role == "user") or (message.role == "system" and not loop.first) %} {{- '<|im_start|>' + message.role + '\n' + message.content + '<|im_end|>' + '\n' }} {%- elif message.role == "assistant" and not message.tool_calls %} {%- set content = message.content.split('</think>')[-1].lstrip('\n') %} {{- '<|im_start|>' + message.role + '\n' + content + '<|im_end|>' + '\n' }} {%- elif message.role == "assistant" %} {%- set content = message.content.split('</think>')[-1].lstrip('\n') %} {{- '<|im_start|>' + message.role }} {%- if message.content %} {{- '\n' + content }} {%- endif %} {%- for tool_call in message.tool_calls %} {%- if tool_call.function is defined %} {%- set tool_call = tool_call.function %} {%- endif %} {{- '\n<tool_call>\n{"name": "' }} {{- tool_call.name }} {{- '", "arguments": ' }} {{- tool_call.arguments | tojson }} {{- '}\n</tool_call>' }} {%- endfor %} {{- '<|im_end|>\n' }} {%- elif message.role == "tool" %} {%- if (loop.index0 == 0) or (messages[loop.index0 - 1].role != "tool") %} {{- '<|im_start|>user' }} {%- endif %} {{- '\n<tool_response>\n' }} {{- message.content }} {{- '\n</tool_response>' }} {%- if loop.last or (messages[loop.index0 + 1].role != "tool") %} {{- '<|im_end|>\n' }} {%- endif %} {%- endif %} {%- endfor %} {%- if add_generation_prompt %} {{- '<|im_start|>assistant\n' }} {%- endif %}
+json
+{
+  ...,
+  "rope_scaling": {
+    "factor": 4.0,
+    "original_max_position_embeddings": 32768,
+    "type": "yarn"
+  }
+}
+bash
+--override-kv qwen2.context_length=int:131072 \
+--override-kv qwen2.rope.scaling.type=str:yarn \
+--override-kv qwen2.rope.scaling.factor=float:4 \
+--override-kv qwen2.rope.scaling.original_context_length=int:32768 \
+--override-kv qwen2.rope.scaling.attn_factor=float:1.13862943649292 \
+bash
+--override-kv qwen2.attention.layer_norm_rms_epsilon=float:0.000001 \
+
+"eos_token": "<|im_end|>",
+"pad_token": "<|endoftext|>",
+```
+
+## :tools: Dynamic 4-bit Quants
+
+We also uploaded dynamic 4bit quants which increase accuracy vs naive 4bit quantizations! We attach the QwQ quantization error plot analysis for both activation and weight quantization errors:
+
+<figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2F32wjrIWeUEQTMq9PhmbS%2FQwQ%20quantization%20errors.png?alt=media&#x26;token=0733fd33-9fe9-4aad-812c-75dbad00373f" alt=""><figcaption></figcaption></figure>
+
+We uploaded dynamic 4-bit quants to: <https://huggingface.co/unsloth/QwQ-32B-unsloth-bnb-4bit>
+
+Since vLLM 0.7.3 (2025 February 20th) <https://github.com/vllm-project/vllm/releases/tag/v0.7.3>, vLLM now supports loading Unsloth dynamic 4bit quants!
+
+All our GGUFs are at <https://huggingface.co/unsloth/QwQ-32B-GGUF>!
+
+**Examples:**
+
+Example 1 (unknown):
+```unknown
+9. You might be wondering maybe it's Q4\_K\_M? B16 ie full precision should work fine right? Incorrect - the outputs again fail if we do not use our fix of -`-samplers "top_k;top_p;min_p;temperature;dry;typ_p;xtc"` when using a Repetition Penalty.
+
+## :sunrise\_over\_mountains: Still doesn't work? Try Min\_p = 0.1, Temperature = 1.5
+
+According to the Min\_p paper <https://arxiv.org/pdf/2407.01082>, for more creative and diverse outputs, and if you still see repetitions, try disabling top\_p and top\_k!
+```
+
+Example 2 (unknown):
+```unknown
+Another approach is to disable `min_p` directly, since llama.cpp by default uses `min_p = 0.1`!
+```
+
+Example 3 (unknown):
+```unknown
+## :thinking: \<think> token not shown?
+
+Some people are reporting that because \<think> is default added in the chat template, some systems are not outputting the thinking traces correctly. You will have to manually edit the Jinja template from:
+
+{% code overflow="wrap" %}
+```
+
+Example 4 (unknown):
+```unknown
+{% endcode %}
+
+to another by removing the `<think>\n` at the end. The model will now have to manually add `<think>\n` during inference, which might not always succeed. DeepSeek also edited all models to default add a `<think>` token to force the model to go into reasoning model.
+
+So change `{%- if add_generation_prompt %} {{- '<|im_start|>assistant\n<think>\n' }} {%- endif %}` to `{%- if add_generation_prompt %} {{- '<|im_start|>assistant\n' }} {%- endif %}`  ie remove `<think>\n`
+
+<details>
+
+<summary>Full jinja template with removed &#x3C;think>\n part</summary>
+
+{% code overflow="wrap" %}
+```
+
+---
+
+## Push to Hugging Face Hub (requires a token)
+
+**URL:** llms-txt#push-to-hugging-face-hub-(requires-a-token)
+
+**Contents:**
+- Video Tutorials
+
+model.push_to_hub_merged(
+    "your-username/model-name", tokenizer, save_method="merged_16bit", token="your-token"
+)
+python
+model.push_to_hub_gguf(
+    "your-username/model-name",
+    tokenizer,
+    quantization_method=["q4_k_m", "q8_0", "q5_k_m"],
+    token="your-token",
+)
+```
+
+Once saved in GGUF format, the model can be easily deployed in lightweight environments using **llama.cpp** or used in other inference engines.
+{% endstep %}
+{% endstepper %}
+
+Here are some video tutorials created by amazing YouTubers who we think are fantastic!
+
+{% embed url="<https://www.youtube.com/watch?v=SoPE1cUz3Hs>" %}
+Local GRPO on your own device
+{% endembed %}
+
+{% embed url="<https://www.youtube.com/watch?t=3289s&v=bbFEYPx9Hpo>" %}
+Great to learn about how to prep your dataset and explanations behind Reinforcement Learning + GRPO basics
+{% endembed %}
+
+{% embed url="<https://www.youtube.com/watch?v=juOh1afy-IE>" %}
+
+{% embed url="<https://www.youtube.com/watch?v=oF0_eMhzRaQ>" %}
+
+**Examples:**
+
+Example 1 (unknown):
+```unknown
+#### **Saving in GGUF Format for llama.cpp**
+
+Unsloth also supports saving in **GGUF format**, making it compatible with **llama.cpp** and **Ollama**.
+```
+
+---
+
+## Int8 QAT
+
+**URL:** llms-txt#int8-qat
+
+**Contents:**
+  - :teapot:Quantizing models without training
+
+from torchao.quantization import Int8DynamicActivationInt8WeightConfig
+model.save_pretrained_torchao(
+    model, "tokenizer",
+    torchao_config = Int8DynamicActivationInt8WeightConfig(),
+)
+python
+
+**Examples:**
+
+Example 1 (unknown):
+```unknown
+{% endcode %}
+
+You can then run the merged QAT lower precision model in vLLM, Unsloth and other systems for inference! These are all in the [Qwen3-4B QAT Colab notebook](https://colab.research.google.com/github/unslothai/notebooks/blob/main/nb/Qwen3_\(4B\)_Instruct-QAT.ipynb) we have as well!
+
+### :teapot:Quantizing models without training
+
+You can also call `model.save_pretrained_torchao` directly without doing any QAT as well! This is simply PTQ or native quantization. For example, saving to Dynamic float8 format is below:
+
+{% code overflow="wrap" %}
+```
+
+---
+
+## Define the system prompt that instructs the model to use a specific format
+
+**URL:** llms-txt#define-the-system-prompt-that-instructs-the-model-to-use-a-specific-format
+
+SYSTEM_PROMPT = """
+Respond in the following format:
+<reasoning>
+...
+</reasoning>
+<answer>
+...
+</answer>
+"""
+
+XML_COT_FORMAT = """\
+<reasoning>
+{reasoning}
+</reasoning>
+<answer>
+{answer}
+</answer>
+"""
+
+import re
+from datasets import load_dataset, Dataset
+
+**Examples:**
+
+Example 1 (unknown):
+```unknown
+Now, to prepare the dataset:
+```
+
+---
+
+## os.environ["HF_HUB_ENABLE_HF_TRANSFER"] = "1"
+
+**URL:** llms-txt#os.environ["hf_hub_enable_hf_transfer"]-=-"1"
+
+**Contents:**
+  - Running on Mac / Apple devices
+  - Run in Ollama/Open WebUI
+- DeepSeek Chat Template
+- GGUF R1 Table
+
+from huggingface_hub import snapshot_download
+snapshot_download(
+  repo_id = "unsloth/DeepSeek-R1-GGUF",
+  local_dir = "DeepSeek-R1-GGUF",
+  allow_patterns = ["*UD-IQ1_S*"], # Select quant type UD-IQ1_S for 1.58bit
+)
+bash
+./llama.cpp/llama-cli \
+    --model DeepSeek-R1-GGUF/DeepSeek-R1-UD-IQ1_S/DeepSeek-R1-UD-IQ1_S-00001-of-00003.gguf \
+    --cache-type-k q4_0 \
+    --threads 12 -no-cnv --prio 2 \
+    --temp 0.6 \
+    --ctx-size 8192 \
+    --seed 3407 \
+    --prompt "<｜User｜>What is 1+1?<｜Assistant｜>"
+txt
+ <think>
+ Okay, so I need to figure out what 1 plus 1 is. Hmm, where do I even start? I remember from school that adding numbers is pretty basic, but I want to make sure I understand it properly.
+ Let me think, 1 plus 1. So, I have one item and I add another one. Maybe like a apple plus another apple. If I have one apple and someone gives me another, I now have two apples. So, 1 plus 1 should be 2. That makes sense.
+ Wait, but sometimes math can be tricky. Could it be something else? Like, in a different number system maybe? But I think the question is straightforward, using regular numbers, not like binary or hexadecimal or anything.
+ I also recall that in arithmetic, addition is combining quantities. So, if you have two quantities of 1, combining them gives you a total of 2. Yeah, that seems right.
+ Is there a scenario where 1 plus 1 wouldn't be 2? I can't think of any...
+bash
+./llama.cpp/llama-cli \
+    --model DeepSeek-R1-GGUF/DeepSeek-R1-UD-IQ1_S/DeepSeek-R1-UD-IQ1_S-00001-of-00003.gguf \
+    --cache-type-k q4_0 \
+    --threads 12 -no-cnv --prio 2 \
+    --n-gpu-layers 7 \
+    --temp 0.6 \
+    --ctx-size 8192 \
+    --seed 3407 \
+    --prompt "<｜User｜>Create a Flappy Bird game in Python.<｜Assistant｜>"
+
+<｜User｜>Create a Flappy Bird game in Python. You must include these things:
+1. You must use pygame.
+2. The background color should be randomly chosen and is a light shade. Start with a light blue color.
+3. Pressing SPACE multiple times will accelerate the bird.
+4. The bird's shape should be randomly chosen as a square, circle or triangle. The color should be randomly chosen as a dark color.
+5. Place on the bottom some land colored as dark brown or yellow chosen randomly.
+6. Make a score shown on the top right side. Increment if you pass pipes and don't hit them.
+7. Make randomly spaced pipes with enough space. Color them randomly as dark green or light brown or a dark gray shade.
+8. When you lose, show the best score. Make the text inside the screen. Pressing q or Esc will quit the game. Restarting is pressing SPACE again.
+The final game should be inside a markdown section in Python. Check your code for errors and fix them before the final markdown section.<｜Assistant｜>
+
+./llama.cpp/llama-cli \
+    --model DeepSeek-R1-GGUF/DeepSeek-R1-UD-IQ1_S/DeepSeek-R1-UD-IQ1_S-00001-of-00003.gguf \
+    --cache-type-k q4_0 \
+    --threads 12 -no-cnv --prio 2 \
+    --n-gpu-layers 7 \
+    --temp 0.6 \
+    --ctx-size 8192 \
+    --seed 3407 \
+    --prompt "<｜User｜>Create a Flappy Bird game in Python. You must include these things:\n1. You must use pygame.\n2. The background color should be randomly chosen and is a light shade. Start with a light blue color.\n3. Pressing SPACE multiple times will accelerate the bird.\n4. The bird's shape should be randomly chosen as a square, circle or triangle. The color should be randomly chosen as a dark color.\n5. Place on the bottom some land colored as dark brown or yellow chosen randomly.\n6. Make a score shown on the top right side. Increment if you pass pipes and don't hit them.\n7. Make randomly spaced pipes with enough space. Color them randomly as dark green or light brown or a dark gray shade.\n8. When you lose, show the best score. Make the text inside the screen. Pressing q or Esc will quit the game. Restarting is pressing SPACE again.\nThe final game should be inside a markdown section in Python. Check your code for errors and fix them before the final markdown section.<｜Assistant｜>"
+
+./llama.cpp/llama-gguf-split --merge \
+    DeepSeek-R1-GGUF/DeepSeek-R1-UD-IQ1_S-00001-of-00003.gguf \
+    merged_file.gguf
+
+./llama.cpp/llama-cli \
+    --model DeepSeek-R1-GGUF/DeepSeek-R1-UD-IQ1_S/DeepSeek-R1-UD-IQ1_S-00001-of-00003.gguf \
+    --cache-type-k q4_0 \
+    --threads 16 \
+    --prio 2 \
+    --temp 0.6 \
+    --ctx-size 8192 \
+    --seed 3407 \
+    --n-gpu-layers 59 \
+    -no-cnv \
+    --prompt "<｜User｜>Create a Flappy Bird game in Python.<｜Assistant｜>"
+
+./llama.cpp/llama-gguf-split --merge \
+  DeepSeek-R1-GGUF/DeepSeek-R1-UD-IQ1_S/DeepSeek-R1-UD-IQ1_S-00001-of-00003.gguf \
+	merged_file.gguf
+```
+
+## DeepSeek Chat Template
+
+All distilled versions and the main 671B R1 model use the same chat template:
+
+`<｜begin▁of▁sentence｜><｜User｜>What is 1+1?<｜Assistant｜>It's 2.<｜end▁of▁sentence｜><｜User｜>Explain more!<｜Assistant｜>`
+
+A BOS is forcibly added, and an EOS separates each interaction. To counteract double BOS tokens during inference, you should only call *tokenizer.encode(..., add\_special\_tokens = False)* since the chat template auto adds a BOS token as well.\
+For llama.cpp / GGUF inference, you should skip the BOS since it’ll auto add it.
+
+`<｜User｜>What is 1+1?<｜Assistant｜>`
+
+The \<think> and \</think> tokens get their own designated tokens. For the distilled versions for Qwen and Llama, some tokens are re-mapped, whilst Qwen for example did not have a BOS token, so <|object\_ref\_start|> had to be used instead.\
+\
+**Tokenizer ID Mappings:**
+
+| Token                     | R1     | Distill Qwen | Distill Llama |
+| ------------------------- | ------ | ------------ | ------------- |
+| \<think>                  | 128798 | 151648       | 128013        |
+| \</think>                 | 128799 | 151649       | 128014        |
+| <\|begin\_of\_sentence\|> | 0      | 151646       | 128000        |
+| <\|end\_of\_sentence\|>   | 1      | 151643       | 128001        |
+| <\|User\|>                | 128803 | 151644       | 128011        |
+| <\|Assistant\|>           | 128804 | 151645       | 128012        |
+| Padding token             | 2      | 151654       | 128004        |
+
+Original tokens in models:
+
+| Token                 | Qwen 2.5 32B Base        | Llama 3.3 70B Instruct            |
+| --------------------- | ------------------------ | --------------------------------- |
+| \<think>              | <\|box\_start\|>         | <\|reserved\_special\_token\_5\|> |
+| \</think>             | <\|box\_end\|>           | <\|reserved\_special\_token\_6\|> |
+| <｜begin▁of▁sentence｜> | <\|object\_ref\_start\|> | <\|begin\_of\_text\|>             |
+| <｜end▁of▁sentence｜>   | <\|endoftext\|>          | <\|end\_of\_text\|>               |
+| <｜User｜>              | <\|im\_start\|>          | <\|reserved\_special\_token\_3\|> |
+| <｜Assistant｜>         | <\|im\_end\|>            | <\|reserved\_special\_token\_4\|> |
+| Padding token         | <\|vision\_pad\|>        | <\|finetune\_right\_pad\_id\|>    |
+
+All Distilled and the original R1 versions seem to have accidentally assigned the padding token to <｜end▁of▁sentence｜>, which is mostly not a good idea, especially if you want to further finetune on top of these reasoning models. This will cause endless infinite generations, since most frameworks will mask the EOS token out as -100.\
+\
+We fixed all distilled and the original R1 versions with the correct padding token (Qwen uses <|vision\_pad|>, Llama uses <|finetune\_right\_pad\_id|>, and R1 uses <｜▁pad▁｜> or our own added <｜PAD▁TOKEN｜>.
+
+<table data-full-width="true"><thead><tr><th>MoE Bits</th><th>Type</th><th>Disk Size</th><th>Accuracy</th><th>Link</th><th>Details</th></tr></thead><tbody><tr><td>1.58bit</td><td>UD-IQ1_S</td><td><strong>131GB</strong></td><td>Fair</td><td><a href="https://huggingface.co/unsloth/DeepSeek-R1-GGUF/tree/main/DeepSeek-R1-UD-IQ1_S">Link</a></td><td>MoE all 1.56bit. <code>down_proj</code> in MoE mixture of 2.06/1.56bit</td></tr><tr><td>1.73bit</td><td>UD-IQ1_M</td><td><strong>158GB</strong></td><td>Good</td><td><a href="https://huggingface.co/unsloth/DeepSeek-R1-GGUF/tree/main/DeepSeek-R1-UD-IQ1_M">Link</a></td><td>MoE all 1.56bit. <code>down_proj</code> in MoE left at 2.06bit</td></tr><tr><td>2.22bit</td><td>UD-IQ2_XXS</td><td><strong>183GB</strong></td><td>Better</td><td><a href="https://huggingface.co/unsloth/DeepSeek-R1-GGUF/tree/main/DeepSeek-R1-UD-IQ2_XXS">Link</a></td><td>MoE all 2.06bit. <code>down_proj</code> in MoE mixture of 2.5/2.06bit</td></tr><tr><td>2.51bit</td><td>UD-Q2_K_XL</td><td><strong>212GB</strong></td><td>Best</td><td><a href="https://huggingface.co/unsloth/DeepSeek-R1-GGUF/tree/main/DeepSeek-R1-UD-Q2_K_XL">Link</a></td><td>MoE all 2.5bit. <code>down_proj</code> in MoE mixture of 3.5/2.5bit</td></tr></tbody></table>
+
+**Examples:**
+
+Example 1 (unknown):
+```unknown
+6. Example with Q4\_0 K quantized cache **Notice -no-cnv disables auto conversation mode**
+```
+
+Example 2 (unknown):
+```unknown
+Example output:
+```
+
+Example 3 (unknown):
+```unknown
+4. If you have a GPU (RTX 4090 for example) with 24GB, you can offload multiple layers to the GPU for faster processing. If you have multiple GPUs, you can probably offload more layers.
+```
+
+Example 4 (unknown):
+```unknown
+5. To test our Flappy Bird example as mentioned in our blog post here: <https://unsloth.ai/blog/deepseekr1-dynamic>, we can produce the 2nd example like below using our 1.58bit dynamic quant:
+
+<table data-column-title-hidden data-view="cards" data-full-width="false"><thead><tr><th></th><th></th><th></th><th data-hidden data-card-cover data-type="files"></th></tr></thead><tbody><tr><td>Original DeepSeek R1</td><td></td><td></td><td><a href="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FHHUZZTFj0WpgSuWFlibf%2FInShot_20250127_043158375_H8Uu6tyJXYAFwUEIu04Am.gif?alt=media&#x26;token=a959720d-b1b4-4b80-b10d-1c41928dfdcf">InShot_20250127_043158375_H8Uu6tyJXYAFwUEIu04Am.gif</a></td></tr><tr><td>1.58bit Dynamic Quant</td><td></td><td></td><td><a href="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FqgLhnVaN53kV4cvZaDci%2FInShot_20250127_042648160_lrtL8-eRhl4qtLaUDSU87.gif?alt=media&#x26;token=e608b30a-1cbe-49ac-b18a-967a50c67c68">InShot_20250127_042648160_lrtL8-eRhl4qtLaUDSU87.gif</a></td></tr></tbody></table>
+
+The prompt used is as below:
+
+{% code overflow="wrap" %}
+```
+
+---
+
+## IBM Granite 4.0
+
+**URL:** llms-txt#ibm-granite-4.0
+
+**Contents:**
+- Run Granite-4.0 Tutorials
+  - :gear: Recommended Inference Settings
+  - :llama: Ollama: Run Granite-4.0 Tutorial
+  - 📖 llama.cpp: Run Granite-4.0 Tutorial
+
+How to run IBM Granite-4.0 with Unsloth GGUFs on llama.cpp, Ollama and how to fine-tune!
+
+IBM releases Granite-4.0 models with 3 sizes including **Nano** (350M & 1B), **Micro** (3B), **Tiny** (7B/1B active) and **Small** (32B/9B active). Trained on 15T tokens, IBM’s new Hybrid (H) Mamba architecture enables Granite-4.0 models to run faster with lower memory use.
+
+Learn [how to run](#run-granite-4.0-tutorials) Unsloth Granite-4.0 Dynamic GGUFs or fine-tune/RL the model. You can [fine-tune Granite-4.0](#fine-tuning-granite-4.0-in-unsloth) with our free Colab notebook for a support agent use-case.
+
+<a href="#run-granite-4.0-tutorials" class="button secondary">Running Tutorial</a><a href="#fine-tuning-granite-4.0-in-unsloth" class="button secondary">Fine-tuning Tutorial</a>
+
+**Unsloth Granite-4.0 uploads:**
+
+<table><thead><tr><th width="249">Dynamic GGUFs</th><th>Dynamic 4-bit + FP8</th><th>16-bit Instruct</th></tr></thead><tbody><tr><td><ul><li><a href="https://huggingface.co/unsloth/granite-4.0-h-350m-GGUF">H-350M</a></li><li><a href="https://huggingface.co/unsloth/granite-4.0-350m-GGUF">350M</a></li><li><a href="https://huggingface.co/unsloth/granite-4.0-h-1b-GGUF">H-1B</a></li><li><a href="https://huggingface.co/unsloth/granite-4.0-1b-GGUF">1B</a></li><li><a href="https://huggingface.co/unsloth/granite-4.0-h-small-GGUF">H-Small</a></li><li><a href="https://huggingface.co/unsloth/granite-4.0-h-tiny-GGUF">H-Tiny</a></li><li><a href="https://huggingface.co/unsloth/granite-4.0-h-micro-GGUF">H-Micro</a></li><li><a href="https://huggingface.co/unsloth/granite-4.0-micro-GGUF">Micro</a></li></ul></td><td><p>Dynamic 4-bit Instruct:</p><ul><li><a href="https://huggingface.co/unsloth/granite-4.0-h-micro-unsloth-bnb-4bit">H-Micro</a></li><li><a href="https://huggingface.co/unsloth/granite-4.0-micro-unsloth-bnb-4bit">Micro</a></li></ul><p>FP8 Dynamic:</p><ul><li><a href="https://huggingface.co/unsloth/granite-4.0-h-small-FP8-Dynamic">H-Small FP8</a></li><li><a href="https://huggingface.co/unsloth/granite-4.0-h-tiny-FP8-Dynamic">H-Tiny FP8</a></li></ul></td><td><ul><li><a href="https://huggingface.co/unsloth/granite-4.0-h-350m">H-350M</a></li><li><a href="https://huggingface.co/unsloth/granite-4.0-350m">350M</a></li><li><a href="https://huggingface.co/unsloth/granite-4.0-h-1b">H-1B</a></li><li><a href="https://huggingface.co/unsloth/granite-4.0-1b">1B</a></li><li><a href="https://huggingface.co/unsloth/granite-4.0-h-small">H-Small</a></li><li><a href="https://huggingface.co/unsloth/granite-4.0-h-tiny">H-Tiny</a></li><li><a href="https://huggingface.co/unsloth/granite-4.0-h-micro">H-Micro</a></li><li><a href="https://huggingface.co/unsloth/granite-4.0-micro">Micro</a></li></ul></td></tr></tbody></table>
+
+You can also view our [Granite-4.0 collection](https://huggingface.co/collections/unsloth/granite-40-68ddf64b4a8717dc22a9322d) for all uploads including Dynamic Float8 quants etc.
+
+**Granite-4.0 Models Explanations:**
+
+* **Nano and H-Nano:** The 350M and 1B models offer strong instruction-following abilities, enabling advanced on-device and edge AI and research/fine-tuning applications.
+* **H-Small (MoE):** Enterprise workhorse for daily tasks, supports multiple long-context sessions on entry GPUs like L40S (32B total, 9B active).
+* **H-Tiny (MoE):** Fast, cost-efficient for high-volume, low-complexity tasks; optimized for local and edge use (7B total, 1B active).
+* **H-Micro (Dense):** Lightweight, efficient for high-volume, low-complexity workloads; ideal for local and edge deployment (3B total).
+* **Micro (Dense):** Alternative dense option when Mamba2 isn’t fully supported (3B total).
+
+## Run Granite-4.0 Tutorials
+
+### :gear: Recommended Inference Settings
+
+IBM recommends these settings:
+
+`temperature=0.0`, `top_p=1.0`, `top_k=0`
+
+* <mark style="background-color:green;">**Temperature of 0.0**</mark>
+* Top\_K = 0
+* Top\_P = 1.0
+* Recommended minimum context: 16,384
+* Maximum context length window: 131,072 (128K context)
+
+### :llama: Ollama: Run Granite-4.0 Tutorial
+
+1. Install `ollama` if you haven't already!&#x20;
+
+2. Run the model! Note you can call `ollama serve`in another terminal if it fails! We include all our fixes and suggested parameters (temperature etc) in `params` in our Hugging Face upload! You can change the model name '`granite-4.0-h-small-GGUF`' to any Granite model like 'granite-4.0-h-micro:Q8\_K\_XL'.
+
+### 📖 llama.cpp: Run Granite-4.0 Tutorial
+
+1. Obtain the latest `llama.cpp` on [GitHub here](https://github.com/ggml-org/llama.cpp). You can follow the build instructions below as well. Change `-DGGML_CUDA=ON` to `-DGGML_CUDA=OFF` if you don't have a GPU or just want CPU inference.
+
+2. If you want to use `llama.cpp` directly to load models, you can do the below: (:Q4\_K\_XL) is the quantization type. You can also download via Hugging Face (point 3). This is similar to `ollama run`
+
+3. **OR** download the model via (after installing `pip install huggingface_hub hf_transfer` ). You can choose Q4\_K\_M, or other quantized versions (like BF16 full precision).
+
+**Examples:**
+
+Example 1 (unknown):
+```unknown
+<|start_of_role|>system<|end_of_role|>You are a helpful assistant. Please ensure responses are professional, accurate, and safe.<|end_of_text|>
+<|start_of_role|>user<|end_of_role|>Please list one IBM Research laboratory located in the United States. You should only output its name and location.<|end_of_text|>
+<|start_of_role|>assistant<|end_of_role|>Almaden Research Center, San Jose, California<|end_of_text|>
+```
+
+Example 2 (bash):
+```bash
+apt-get update
+apt-get install pciutils -y
+curl -fsSL https://ollama.com/install.sh | sh
+```
+
+Example 3 (bash):
+```bash
+ollama run hf.co/unsloth/granite-4.0-h-small-GGUF:UD-Q4_K_XL
+```
+
+Example 4 (bash):
+```bash
+apt-get update
+apt-get install pciutils build-essential cmake curl libcurl4-openssl-dev -y
+git clone https://github.com/ggml-org/llama.cpp
+cmake llama.cpp -B llama.cpp/build \
+    -DBUILD_SHARED_LIBS=OFF -DGGML_CUDA=ON -DLLAMA_CURL=ON
+cmake --build llama.cpp/build --config Release -j --clean-first --target llama-cli llama-gguf-split
+cp llama.cpp/build/bin/llama-* llama.cpp
+```
+
+---
+
+## For BF16:
+
+**URL:** llms-txt#for-bf16:
+
+python llama.cpp/convert_hf_to_gguf.py merged_model \
+    --outfile model-BF16.gguf --outtype bf16 \
+    --split-max-size 50G
+
+---
+
+## Setting up Wandb
+
+**URL:** llms-txt#setting-up-wandb
+
+**Contents:**
+- :question:How do I do Early Stopping?
+
+os.environ["WANDB_PROJECT"] = "<name>"
+os.environ["WANDB_LOG_MODEL"] = "checkpoint"
+
+report_to = "wandb",
+logging_steps = 1, # Change if needed
+save_steps = 100 # Change if needed
+run_name = "<name>" # (Optional)
+
+import wandb
+run = wandb.init()
+artifact = run.use_artifact('<username>/<Wandb-project-name>/<run-id>', type='model')
+artifact_dir = artifact.download()
+trainer.train(resume_from_checkpoint=artifact_dir)
+python
+from trl import SFTConfig, SFTTrainer
+trainer = SFTTrainer(
+    args = SFTConfig(
+        fp16_full_eval = True,
+        per_device_eval_batch_size = 2,
+        eval_accumulation_steps = 4,
+        output_dir = "training_checkpoints", # location of saved checkpoints for early stopping
+        save_strategy = "steps",             # save model every N steps
+        save_steps = 10,                     # how many steps until we save the model
+        save_total_limit = 3,                # keep ony 3 saved checkpoints to save disk space
+        eval_strategy = "steps",             # evaluate every N steps
+        eval_steps = 10,                     # how many steps until we do evaluation
+        load_best_model_at_end = True,       # MUST USE for early stopping
+        metric_for_best_model = "eval_loss", # metric we want to early stop on
+        greater_is_better = False,           # the lower the eval loss, the better
+    ),
+    model = model,
+    tokenizer = tokenizer,
+    train_dataset = new_dataset["train"],
+    eval_dataset = new_dataset["test"],
+)
+python
+from transformers import EarlyStoppingCallback
+early_stopping_callback = EarlyStoppingCallback(
+    early_stopping_patience = 3,     # How many steps we will wait if the eval loss doesn't decrease
+                                     # For example the loss might increase, but decrease after 3 steps
+    early_stopping_threshold = 0.0,  # Can set higher - sets how much loss should decrease by until
+                                     # we consider early stopping. For eg 0.01 means if loss was
+                                     # 0.02 then 0.01, we consider to early stop the run.
+)
+trainer.add_callback(early_stopping_callback)
+```
+
+Then train the model as usual via `trainer.train() .`
+
+**Examples:**
+
+Example 1 (unknown):
+```unknown
+Then in `TrainingArguments()` set
+```
+
+Example 2 (unknown):
+```unknown
+To train the model, do `trainer.train()`; to resume training, do
+```
+
+Example 3 (unknown):
+```unknown
+## :question:How do I do Early Stopping?
+
+If you want to stop or pause the finetuning / training run since the evaluation loss is not decreasing, then you can use early stopping which stops the training process. Use `EarlyStoppingCallback`.
+
+As usual, set up your trainer and your evaluation dataset. The below is used to stop the training run if the `eval_loss` (the evaluation loss) is not decreasing after 3 steps or so.
+```
+
+Example 4 (unknown):
+```unknown
+We then add the callback which can also be customized:
+```
+
+---
+
+## LoRA Hyperparameters Guide
+
+**URL:** llms-txt#lora-hyperparameters-guide
+
+**Contents:**
+  - :question:But what is LoRA?
+- :1234: Key Fine-tuning Hyperparameters
+  - **Learning Rate**
+  - **Epochs**
+  - **LoRA or QLoRA**
+  - Hyperparameters & Recommendations:
+- :deciduous\_tree: Gradient Accumulation and Batch Size equivalency
+  - Effective Batch Size
+  - The VRAM & Performance Trade-off
+  - :sloth: Unsloth Gradient Accumulation Fix
+
+Optimal lora rank. alpha, number of epochs, batch size & gradient accumulation, QLoRA vs LoRA, target modules and more!
+
+LoRA hyperparameters are adjustable parameters that control how Low-Rank Adaptation (LoRA) fine-tunes LLMs. With many options (such as learning rate and epochs) and millions of possible combinations, selecting the right values is crucial for achieving accuracy, stability, quality, and fewer hallucinations during fine-tuning.
+
+You'll learn the best practices for these parameters, based on insights from hundreds of research papers and experiments, and see how they impact the model. **While we recommend using Unsloth's defaults**, understanding these concepts will give you full control.\
+\
+The goal is to change hyperparameter numbers to increase accuracy while counteracting [**overfitting or underfitting**](#overfitting-poor-generalization-too-specialized). Overfitting occurs when the model memorizes the training data, harming its ability to generalize to new, unseen inputs. The objective is a model that generalizes well, not one that simply memorizes.
+
+{% columns %}
+{% column %}
+
+### :question:But what is LoRA?
+
+In LLMs, we have model weights. Llama 70B has 70 billion numbers. Instead of changing all 70b numbers, we instead add thin matrices A and B to each weight, and optimize those. This means we only optimize 1% of weights.
+{% endcolumn %}
+
+<figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2Fx6UtLPuzEudHY7SjLDAm%2Fimage.png?alt=media&#x26;token=ca891bda-e67e-4219-b74e-4a3a9c137700" alt=""><figcaption><p>Instead of optimizing Model Weights (yellow), we optimize 2 thin matrices A and B.</p></figcaption></figure>
+{% endcolumn %}
+{% endcolumns %}
+
+## :1234: Key Fine-tuning Hyperparameters
+
+### **Learning Rate**
+
+Defines how much the model’s weights are adjusted during each training step.
+
+* **Higher Learning Rates**: Lead to faster initial convergence but can cause training to become unstable or fail to find an optimal minimum if set too high.
+* **Lower Learning Rates**: Result in more stable and precise training but may require more epochs to converge, increasing overall training time. While low learning rates are often thought to cause underfitting, they actually can lead to **overfitting** or even prevent the model from learning.
+* **Typical Range**: `2e-4` (0.0002) to `5e-6` (0.000005).  \
+  :green\_square: ***For normal LoRA/QLoRA Fine-tuning***, *we recommend* **`2e-4`** *as a starting point.* \
+  :blue\_square: ***For Reinforcement Learning** (DPO, GRPO etc.), we recommend* **`5e-6` .** \
+  :white\_large\_square: ***For Full Fine-tuning,** lower learning rates are generally more appropriate.*
+
+The number of times the model sees the full training dataset.
+
+* **More Epochs:** Can help the model learn better, but a high number can cause it to **memorize the training data**, hurting its performance on new tasks.
+* **Fewer Epochs:** Reduces training time and can prevent overfitting, but may result in an undertrained model if the number is insufficient for the model to learn the dataset's underlying patterns.
+* **Recommended:** 1-3 epochs. For most instruction-based datasets, training for more than 3 epochs offers diminishing returns and increases the risk of overfitting.
+
+### **LoRA or QLoRA**
+
+LoRA uses 16-bit precision, while QLoRA is a 4-bit fine-tuning method.
+
+* **LoRA:** 16-bit fine-tuning. It's slightly faster and slightly more accurate, but consumes significantly more VRAM (4× more than QLoRA). Recommended for 16-bit environments and scenarios where maximum accuracy is required.
+* **QLoRA:** 4-bit fine-tuning. Slightly slower and marginally less accurate, but uses much less VRAM (4× less). \
+  :sloth: *70B LLaMA fits in <48GB VRAM with QLoRA in Unsloth -* [*more details here*](https://unsloth.ai/blog/llama3-3)*.*
+
+### Hyperparameters & Recommendations:
+
+<table><thead><tr><th width="154.39678955078125">Hyperparameter</th><th width="383.6192626953125">Function</th><th>Recommended Settings</th></tr></thead><tbody><tr><td><strong>LoRA Rank</strong> (<code>r</code>)</td><td>Controls the number of trainable parameters in the LoRA adapter matrices. A higher rank increases model capacity but also memory usage.</td><td>8, 16, 32, 64, 128<br><br>Choose 16 or 32</td></tr><tr><td><strong>LoRA Alpha</strong> (<code>lora_alpha</code>)</td><td>Scales the strength of the fine-tuned adjustments in relation to the rank (<code>r</code>).</td><td><code>r</code> (standard) or <code>r * 2</code> (common heuristic). <a href="#lora-alpha-and-rank-relationship">More details here</a>.</td></tr><tr><td><strong>LoRA Dropout</strong></td><td>A regularization technique that randomly sets a fraction of LoRA activations to zero during training to prevent overfitting. <strong>Not that useful</strong>, so we default set it to 0. </td><td>0 (default) to 0.1</td></tr><tr><td><strong>Weight Decay</strong></td><td>A regularization term that penalizes large weights to prevent overfitting and improve generalization. Don't use too large numbers!</td><td>0.01 (recommended) - 0.1</td></tr><tr><td><strong>Warmup Steps</strong></td><td>Gradually increases the learning rate at the start of training.</td><td>5-10% of total steps</td></tr><tr><td><strong>Scheduler Type</strong></td><td>Adjusts the learning rate dynamically during training.</td><td><code>linear</code> or <code>cosine</code></td></tr><tr><td><strong>Seed (<code>random_state</code>)</strong></td><td>A fixed number to ensure reproducibility of results.</td><td>Any integer (e.g., <code>42</code>, <code>3407</code>)</td></tr><tr><td><strong>Target Modules</strong></td><td><p>Specify which parts of the model you want to apply LoRA adapters to — either the attention, the MLP, or both.</p><p><br>Attention: <code>q_proj, k_proj, v_proj, o_proj</code><br><br>MLP: <code>gate_proj, up_proj, down_proj</code></p></td><td>Recommended to target all major linear layers: <code>q_proj, k_proj, v_proj, o_proj, gate_proj, up_proj, down_proj</code>.</td></tr></tbody></table>
+
+## :deciduous\_tree: Gradient Accumulation and Batch Size equivalency
+
+### Effective Batch Size
+
+Correctly configuring your batch size is critical for balancing training stability with your GPU's VRAM limitations. This is managed by two parameters whose product is the **Effective Batch Size**.\
+\
+**Effective Batch Size** = `batch_size * gradient_accumulation_steps`
+
+* A **larger Effective Batch Size** generally leads to smoother, more stable training.
+* A **smaller Effective Batch Size** may introduce more variance.
+
+While every task is different, the following configuration provides a great starting point for achieving a stable **Effective Batch Size** of 16, which works well for most fine-tuning tasks on modern GPUs.
+
+| Parameter                                                 | Description                                                                                                                                                                                                                                                                     | Recommended Setting                             |
+| --------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------- |
+| **Batch Size** (`batch_size`)                             | <p>The number of samples processed in a single forward/backward pass on one GPU. <br><br><strong>Primary Driver of VRAM Usage</strong>. Higher values can improve hardware utilization and speed up training, but only if they fit in memory.</p>                               | 2                                               |
+| **Gradient Accumulation** (`gradient_accumulation_steps`) | <p>The number of micro-batches to process before performing a single model weight update.<br><br><strong>Primary Driver of Training Time.</strong> Allows simulation of a larger <code>batch\_size</code> to conserve VRAM. Higher values increase training time per epoch.</p> | 8                                               |
+| **Effective Batch Size** (Calculated)                     | The true batch size used for each gradient update. It directly influences training stability, quality, and final model performance.                                                                                                                                             | <p>4 to 16<br>Recommended: 16 (from 2 \* 8)</p> |
+
+### The VRAM & Performance Trade-off
+
+Assume you want 32 samples of data per training step. Then you can use any of the following configurations:
+
+* `batch_size = 32,  gradient_accumulation_steps = 1`
+* `batch_size = 16,  gradient_accumulation_steps = 2`
+* `batch_size = 8,   gradient_accumulation_steps = 4`
+* `batch_size = 4,   gradient_accumulation_steps = 8`
+* `batch_size = 2,   gradient_accumulation_steps = 16`
+* `batch_size = 1,   gradient_accumulation_steps = 32`
+
+While all of these are equivalent for the model's weight updates, they have vastly different hardware requirements.
+
+The first configuration (`batch_size = 32`) uses the **most VRAM** and will likely fail on most GPUs.  The last configuration (`batch_size = 1`) uses the **least VRAM,** but at the cost of slightly slower trainin&#x67;**.** To avoid OOM (out of memory) errors, always prefer to set a smaller `batch_size` and increase `gradient_accumulation_steps` to reach your target **Effective Batch Size**.
+
+### :sloth: Unsloth Gradient Accumulation Fix
+
+Gradient accumulation and batch sizes <mark style="color:green;">**are now fully equivalent in Unsloth**</mark> due to our bug fixes for gradient accumulation. We have implemented specific bug fixes for gradient accumulation that resolve a common issue where the two methods did not produce the same results. This was a known challenge in the wider community, but for Unsloth users, the two methods are now interchangeable.
+
+[Read our blog post](https://unsloth.ai/blog/gradient) for more details.
+
+Prior to our fixes, combinations of `batch_size` and `gradient_accumulation_steps` that yielded the same **Effective Batch Size** (i.e., `batch_size × gradient_accumulation_steps = 16`) did not result in equivalent training behavior. For example, configurations like `b1/g16`, `b2/g8`, `b4/g4`, `b8/g2`, and `b16/g1` all have an **Effective Batch Size** of 16, but as shown in the graph, the loss curves did not align when using standard gradient accumulation:
+
+<figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FfbTkE4kv2tVwCIdyxWKe%2FBefore_-_Standard_gradient_accumulation_UQOFkUggudXuV9dzrh8MA.svg?alt=media&#x26;token=c3297fd4-a96b-45d0-9925-0010165d85c6" alt=""><figcaption><p>(Before - Standard Gradient Accumulation)</p></figcaption></figure>
+
+After applying our fixes, the loss curves now align correctly, regardless of how the **Effective Batch Size** of 16 is achieved:
+
+<figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FBtwCpRAye5yq1Yvhlwn2%2FAfter_-_Unsloth_gradient_accumulation_6Y4pJdJF0vruzradUpymY.svg?alt=media&#x26;token=3b53d4ca-44f2-45b2-af41-cbf6b24fc80b" alt=""><figcaption><p>(After - 🦥 <mark style="color:green;">Unsloth Gradient Accumulation</mark>)</p></figcaption></figure>
+
+## 🦥 **LoRA Hyperparameters in Unsloth**
+
+The following demonstrates a standard configuration. **While Unsloth provides optimized defaults**, understanding these parameters is key to manual tuning.
+
+<div data-full-width="false"><figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FmxdGwpEiv0XReahK4zDf%2Fnotebook_parameter_screenshott.png?alt=media&#x26;token=2e11c53c-9a23-4132-8c6e-cb81f3d78172" alt=""><figcaption></figcaption></figure></div>
+
+The rank (`r`) of the fine-tuning process. A larger rank uses more memory and will be slower, but can increase accuracy on complex tasks. We suggest ranks like 8 or 16 (for fast fine-tunes) and up to 128. Using a rank that is too large can cause overfitting and harm your model's quality.\\
+
+For optimal performance, <mark style="background-color:blue;">**LoRA should be applied to all major linear layers**</mark>. [Research has shown](#lora-target-modules-and-qlora-vs-lora) that targeting all major layers is crucial for matching the performance of full fine-tuning. While it's possible to remove modules to reduce memory usage, we strongly advise against it to preserve maximum quality as the savings are minimal.\\
+
+A scaling factor that controls the strength of the fine-tuned adjustments. Setting it equal to the rank (`r`) is a reliable baseline. A popular and effective heuristic is to set it to double the rank (`r * 2`), which makes the model learn more aggressively by giving more weight to the LoRA updates. [More details here](#lora-alpha-and-rank-relationship).\\
+
+A regularization technique that helps [prevent overfitting](#overfitting-poor-generalization-too-specialized) by randomly setting a fraction of the LoRA activations to zero during each training step. [Recent research suggests](https://arxiv.org/abs/2410.09692) that for **the short training runs** common in fine-tuning, `lora_dropout` may be an unreliable regularizer.\
+   🦥 *Unsloth's internal code can optimize training when* `lora_dropout = 0`*, making it slightly faster, but we recommend a non-zero value if you suspect overfitting.*\\
+
+Leave this as `"none"` for faster training and reduced memory usage. This setting avoids training the bias terms in the linear layers, which adds trainable parameters for little to no practical gain.\\
+
+Options are `True`, `False`, and `"unsloth"`. \
+   🦥 *We recommend* `"unsloth"` *as it reduces memory usage by an extra 30% and supports extremely long context fine-tunes. You can read more on* [*our blog post about long context training*](https://unsloth.ai/blog/long-context)*.*\\
+
+The seed to ensure deterministic, reproducible runs. Training involves random numbers, so setting a fixed seed is essential for consistent experiments.\\
+
+An advanced feature that implements [**Rank-Stabilized LoRA**](https://arxiv.org/abs/2312.03732). If set to `True`, the effective scaling becomes `lora_alpha / sqrt(r)` instead of the standard `lora_alpha / r`. This can sometimes improve stability, particularly for higher ranks. [More details here](#lora-alpha-and-rank-relationship).\\
+
+An advanced technique, as proposed in [**LoftQ**](https://arxiv.org/abs/2310.08659), initializes LoRA matrices with the top 'r' singular vectors from the pretrained weights. This can improve accuracy but may cause a significant memory spike at the start of training.
+
+### **Verifying LoRA Weight Updates:**
+
+When validating that **LoRA** adapter weights have been updated after fine-tuning, avoid using **np.allclose()** for comparison. This method can miss subtle but meaningful changes, particularly in **LoRA A**, which is initialized with small Gaussian values. These changes may not register as significant under loose numerical tolerances. Thanks to [contributors](https://github.com/unslothai/unsloth/issues/3035) for this section.
+
+To reliably confirm weight updates, we recommend:
+
+* Using **checksum or hash comparisons** (e.g., MD5)
+* Computing the **sum of absolute differences** between tensors
+* Inspecting t**ensor statistics** (e.g., mean, variance) manually
+* Or using **np.array\_equal()** if exact equality is expected
+
+## :triangular\_ruler:LoRA Alpha and Rank relationship
+
+{% hint style="success" %}
+It's best to set `lora_alpha = 2 * lora_rank` or `lora_alpha = lora_rank`&#x20;
+{% endhint %}
+
+{% columns %}
+{% column width="50%" %}
+$$
+\hat{W} = W + \frac{\alpha}{\text{rank}} \times AB
+$$
+
+<figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FfrlYmBPuCMy1GaXVYpIp%2Fimage.png?alt=media&#x26;token=b4cdfb81-8117-4852-a552-4869d27ea141" alt=""><figcaption><p>rsLoRA other scaling options. sqrt(r) is the best.</p></figcaption></figure>
+
+$$
+\hat{W}\_{\text{rslora}} = W + \frac{\alpha}{\sqrt{\text{rank}}} \times AB
+$$
+{% endcolumn %}
+
+{% column %}
+The formula for LoRA is on the left. We need to scale the thin matrices A and B by alpha divided by the rank. <mark style="background-color:blue;">**This means we should keep alpha/rank at least = 1**</mark>.
+
+According to the [rsLoRA (rank stabilized lora) paper](https://arxiv.org/abs/2312.03732), we should instead scale alpha by the sqrt of the rank. Other options exist, but theoretically this is the optimum. The left plot shows other ranks and their perplexities (lower is better). To enable this, set `use_rslora = True` in Unsloth.
+
+Our recommendation is to set the <mark style="background-color:green;">**alpha to equal to the rank, or at least 2 times the rank.**</mark> This means alpha/rank = 1 or 2.
+{% endcolumn %}
+{% endcolumns %}
+
+## :dart: LoRA Target Modules and QLoRA vs LoRA
+
+{% hint style="success" %}
+Use:\
+`target_modules = ["q_proj", "k_proj", "v_proj", "o_proj", "gate_proj", "up_proj", "down_proj",]` to target both **MLP** and **attention** layers to increase accuracy.
+
+**QLoRA uses 4-bit precision**, reducing VRAM usage by over 75%.
+
+**LoRA (16-bit)** is slightly more accurate and faster.
+{% endhint %}
+
+According to empirical experiments and research papers like the original [QLoRA paper](https://arxiv.org/pdf/2305.14314), it's best to apply LoRA to both attention and MLP layers.
+
+{% columns %}
+{% column %}
+
+<figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FeTeDWK5yQhRv1YxmKyQ5%2Fimage.png?alt=media&#x26;token=a4d21361-9128-46e0-bc17-a31d212d16a1" alt=""><figcaption></figcaption></figure>
+{% endcolumn %}
+
+{% column %}
+The chart shows RougeL scores (higher is better) for different target module configurations, comparing LoRA vs QLoRA.
+
+The first 3 dots show:
+
+1. **QLoRA-All:** LoRA applied to all FFN/MLP and Attention layers. \
+   :fire: *This performs best overall.*
+2. **QLoRA-FFN**: LoRA only on FFN. \
+   Equivalent to: `gate_proj`, `up_proj`, `down_proj.`
+3. **QLoRA-Attention**: LoRA applied only to Attention layers. \
+   Equivalent to: `q_proj`, `k_proj`, `v_proj`, `o_proj`.
+   {% endcolumn %}
+   {% endcolumns %}
+
+## :sunglasses: Training on completions only, masking out inputs
+
+The [QLoRA paper](https://arxiv.org/pdf/2305.14314) shows that masking out inputs and **training only on completions** (outputs or assistant messages) can further **increase accuracy** by a few percentage points (*1%*). Below demonstrates how this is done in Unsloth:
+
+{% columns %}
+{% column %}
+**NOT** training on completions only:
+
+**USER:** <mark style="background-color:green;">Hello what is 2+2?</mark>\
+**ASSISTANT:** <mark style="background-color:green;">The answer is 4.</mark>\
+**USER:** <mark style="background-color:green;">Hello what is 3+3?</mark>\
+**ASSISTANT:** <mark style="background-color:green;">The answer is 6.</mark>
+
+{% column %}
+**Training** on completions only:
+
+**USER:** ~~Hello what is 2+2?~~\
+**ASSISTANT:** <mark style="background-color:green;">The answer is 4.</mark>\
+**USER:** ~~Hello what is 3+3?~~\
+**ASSISTANT:** <mark style="background-color:green;">The answer is 6</mark><mark style="background-color:green;">**.**</mark>
+{% endcolumn %}
+{% endcolumns %}
+
+The QLoRA paper states that **training on completions only** increases accuracy by quite a bit, especially for multi-turn conversational finetunes! We do this in our [conversational notebooks here](https://colab.research.google.com/github/unslothai/notebooks/blob/main/nb/Llama3.2_\(1B_and_3B\)-Conversational.ipynb).
+
+<figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2Fe8oeF4J6Pe2kpDE4hosL%2Fimage.png?alt=media&#x26;token=7e59cb98-10d4-4563-9e25-26d3f3fb35cb" alt=""><figcaption></figcaption></figure>
+
+To enable **training on completions** in Unsloth, you will need to define the instruction and assistant parts. :sloth: *We plan to further automate this for you in the future!*
+
+For Llama 3, 3.1, 3.2, 3.3 and 4 models, you define the parts as follows:
+
+For Gemma 2, 3, 3n models, you define the parts as follows:
+
+## :key: **Avoiding Overfitting & Underfitting**
+
+### **Overfitting** (Poor Generalization/Too Specialized)
+
+The model memorizes the training data, including its statistical noise, and consequently fails to generalize to unseen data.
+
+{% hint style="success" %}
+If your training loss drops below 0.2, your model is likely **overfitting** — meaning it may perform poorly on unseen tasks.
+
+One simple trick is LoRA alpha scaling — just multiply the alpha value of each LoRA matrix by 0.5. This effectively scales down the impact of fine-tuning.
+
+**This is closely related to merging / averaging weights.** \
+You can take the original base (or instruct) model, add the LoRA weights, then divide the result by 2. This gives you an averaged model — which is functionally equivalent to reducing the `alpha` by half.
+{% endhint %}
+
+* **Adjust the learning rate:** A high learning rate often leads to overfitting, especially during short training runs. For longer training, a higher learning rate may work better. It’s best to experiment with both to see which performs best.
+* **Reduce the number of training epochs**. Stop training after 1, 2, or 3 epochs.
+* **Increase** `weight_decay`. A value of `0.01` or `0.1` is a good starting point.
+* **Increase** `lora_dropout`. Use a value like `0.1` to add regularization.
+* **Increase batch size or gradient accumulation steps**.
+* **Dataset expansion** - make your dataset larger by combining or concatenating open source datasets with your dataset. Choose higher quality ones.
+* **Evaluation early stopping** - enable evaluation and stop when the evaluation loss increases for a few steps.
+* **LoRA Alpha Scaling** - scale the alpha down after training and during inference - this will make the finetune less pronounced.
+* **Weight averaging** - literally add the original instruct model and the finetune and divide the weights by 2.
+
+### **Underfitting** (Too Generic)
+
+The model fails to capture the underlying patterns in the training data, often due to insufficient complexity or training duration.
+
+* **Adjust the Learning Rate:** If the current rate is too low, increasing it may speed up convergence, especially for short training runs. For longer runs, try lowering the learning rate instead. Test both approaches to see which works best.
+* **Increase Training Epochs:** Train for more epochs, but monitor validation loss to avoid overfitting.
+* **Increase LoRA Rank** (`r`) and alpha: Rank should at least equal to the alpha number, and rank should be bigger for smaller models/more complex datasets; it usually is between 4 and 64.
+* **Use a More Domain-Relevant Dataset**: Ensure the training data is high-quality and directly relevant to the target task.
+* **Decrease batch size to 1**. This will cause the model to update more vigorously.
+
+{% hint style="success" %}
+Fine-tuning has no single "best" approach, only best practices. Experimentation is key to finding what works for your specific needs. Our notebooks automatically set optimal parameters based on many papers research and our experiments, giving you a great starting point. Happy fine-tuning!
+{% endhint %}
+
+***Acknowledgements:** A huge thank you to* [*Eyera*](https://huggingface.co/Orenguteng) *for contributing to this guide!*
+
+**Examples:**
+
+Example 1 (python):
+```python
+r = 16, # Choose any number > 0 ! Suggested 8, 16, 32, 64, 128
+```
+
+Example 2 (python):
+```python
+target_modules = ["q_proj", "k_proj", "v_proj", "o_proj",
+                     "gate_proj", "up_proj", "down_proj",],
+```
+
+Example 3 (python):
+```python
+lora_alpha = 16,
+```
+
+Example 4 (python):
+```python
+lora_dropout = 0, # Supports any, but = 0 is optimized
+```
+
+---
+
+## Reinforcement Learning (RL) Guide
+
+**URL:** llms-txt#reinforcement-learning-(rl)-guide
+
+**Contents:**
+  - :sloth:What you will learn
+- :question:What is Reinforcement Learning (RL)?
+  - :person\_running:From RLHF, PPO to GRPO and RLVR
+  - :fingers\_crossed:Luck (well Patience) Is All You Need
+- :sloth:What Unsloth offers for RL
+  - GRPO notebooks:
+
+Learn all about Reinforcement Learning (RL) and how to train your own DeepSeek-R1 reasoning model with Unsloth using GRPO. A complete guide from beginner to advanced.
+
+Reinforcement Learning is where an "agent" learns to make decisions by interacting with an environment and receiving **feedback** in the form of **rewards** or **penalties**.
+
+* **Action:** What the model generates (e.g. a sentence).
+* **Reward:** A signal indicating how good or bad the model's action was (e.g. did the response follow instructions? was it helpful?).
+* **Environment:** The scenario or task the model is working on (e.g. answering a user’s question).
+
+{% hint style="success" %}
+For **advanced GRPO** documentation on batching, generation and training parameters, [read our guide!](https://docs.unsloth.ai/get-started/reinforcement-learning-rl-guide/advanced-rl-documentation)
+{% endhint %}
+
+### :sloth:What you will learn
+
+1. What is RL? RLVR? PPO? GRPO? RLHF? RFT? Is <mark style="background-color:green;">**"Luck is All You Need?"**</mark> for RL?
+2. What is an environment? Agent? Action? Reward function? Rewards?
+
+This article covers everything (from beginner to advanced) you need to know about GRPO, Reinforcement Learning (RL) and reward functions, along with tips, and the basics of using GRPO with [Unsloth](https://github.com/unslothai/unsloth). If you're looking for a step-by-step tutorial for using GRPO, see our guide [here](https://docs.unsloth.ai/get-started/reinforcement-learning-rl-guide/tutorial-train-your-own-reasoning-model-with-grpo).
+
+## :question:What is Reinforcement Learning (RL)?
+
+The goal of RL is to:
+
+1. **Increase the chance of seeing&#x20;**<mark style="background-color:green;">**"good"**</mark>**&#x20;outcomes.**
+2. **Decrease the chance of seeing&#x20;**<mark style="background-color:red;">**"bad"**</mark>**&#x20;outcomes.**
+
+**That's it!** There are intricacies on what "good" and "bad" means, or how do we go about "increasing" or "decreasing" it, or what even "outcomes" means.
+
+{% columns %}
+{% column width="50%" %}
+For example, in the **Pacman game**:
+
+1. The <mark style="background-color:green;">**environment**</mark> is the game world.
+2. The <mark style="background-color:blue;">**actions**</mark> you can take are UP, LEFT, RIGHT and DOWN.
+3. The <mark style="background-color:purple;">**rewards**</mark> are good if you eat a cookie, or bad if you hit one of the squiggly enemies.
+4. In RL, you can't know the "best action" you can take, but you can observe intermediate steps, or the final game state (win or lose)
+   {% endcolumn %}
+
+<figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FLYKyo5xU4mSvQRASnH1D%2FRL%20Game.png?alt=media&#x26;token=16e9a8c6-61f9-4baf-84a7-118e562eb6c5" alt=""><figcaption></figcaption></figure>
+{% endcolumn %}
+{% endcolumns %}
+
+{% columns %}
+{% column width="50%" %}
+
+<figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FVVJbst1Vn3Pg6jn0hXLA%2FMath%20RL.png?alt=media&#x26;token=855abbe8-d134-4246-ae5c-5108574aaa6e" alt=""><figcaption></figcaption></figure>
+{% endcolumn %}
+
+{% column %}
+Another example is imagine you are given the question: <mark style="background-color:blue;">**"What is 2 + 2?"**</mark> (4) An unaligned language model will spit out 3, 4, C, D, -10, literally anything.
+
+1. Numbers are better than C or D right?
+2. Getting 3 is better than say 8 right?
+3. Getting 4 is definitely correct.
+
+We just designed a <mark style="background-color:orange;">**reward function**</mark>!
+{% endcolumn %}
+{% endcolumns %}
+
+### :person\_running:From RLHF, PPO to GRPO and RLVR
+
+{% columns %}
+{% column %}
+
+<figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FU3NH5rSkI17fysvnMJHJ%2FRLHF.png?alt=media&#x26;token=53625e98-2949-45d1-b650-c5a7313b18a0" alt=""><figcaption></figcaption></figure>
+{% endcolumn %}
+
+{% column %}
+OpenAI popularized the concept of [RLHF](https://en.wikipedia.org/wiki/Reinforcement_learning_from_human_feedback) (Reinforcement Learning from Human Feedback), where we train an <mark style="background-color:red;">**"agent"**</mark> to produce outputs to a question (the <mark style="background-color:yellow;">**state**</mark>) that are rated more useful by human beings.
+
+The thumbs up and down in ChatGPT for example can be used in the RLHF process.
+{% endcolumn %}
+{% endcolumns %}
+
+{% columns %}
+{% column %}
+
+<figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2Fn5N2OBGIqk1oPbR9gRKn%2FPPO.png?alt=media&#x26;token=e9706260-6bee-4ef0-a7dc-f5f6d80471d5" alt=""><figcaption></figcaption></figure>
+
+<figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FplVZSTOwKSQv5zQYjkge%2FPPO%20formula.png?alt=media&#x26;token=8b1359c8-11d1-4ea8-91c0-cf4afe120166" alt=""><figcaption><p>PPO formula</p></figcaption></figure>
+
+The clip(..., 1-e, 1+e) term is used to force PPO not to take too large changes. There is also a KL term with beta set to > 0 to force the model not to deviate too much away.
+{% endcolumn %}
+
+{% column %}
+In order to do RLHF, [<mark style="background-color:red;">**PPO**</mark>](https://en.wikipedia.org/wiki/Proximal_policy_optimization) (Proximal policy optimization) was developed. The <mark style="background-color:blue;">**agent**</mark> is the language model in this case. In fact it's composed of 3 systems:
+
+1. The **Generating Policy (current trained model)**
+2. The **Reference Policy (original model)**
+3. The **Value Model (average reward estimator)**
+
+We use the **Reward Model** to calculate the reward for the current environment, and our goal is to **maximize this**!
+
+The formula for PPO looks quite complicated because it was designed to be stable. Visit our [AI Engineer talk](https://docs.unsloth.ai/ai-engineers-2025) we gave in 2025 about RL for more in depth maths derivations about PPO.
+{% endcolumn %}
+{% endcolumns %}
+
+{% columns %}
+{% column %}
+
+<figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FiQI4Yvv1KcvkK7g5V8vm%2FGRPO%20%2B%20RLVR.png?alt=media&#x26;token=2155a920-b986-4a08-871a-32b5bbcfdbe3" alt=""><figcaption></figcaption></figure>
+{% endcolumn %}
+
+{% column %}
+DeepSeek developed [<mark style="background-color:red;">**GRPO**</mark>](https://unsloth.ai/blog/grpo) (Group Relative Policy Optimization) to train their R1 reasoning models. The key differences to PPO are:
+
+1. The **Value Model is removed,** replaced with statistics from calling the reward model multiple times.
+2. The **Reward Model is removed** and replaced with just custom reward function which <mark style="background-color:blue;">**RLVR**</mark> can be used.
+   {% endcolumn %}
+   {% endcolumns %}
+
+This means GRPO is extremely efficient. Previously PPO needed to train multiple models - now with the reward model and value model removed, we can save memory and speed up everything.
+
+<mark style="background-color:orange;">**RLVR (Reinforcement Learning with Verifiable Rewards)**</mark> allows us to reward the model based on tasks with easy to verify solutions. For example:
+
+1. Maths equations can be easily verified. Eg 2+2 = 4.
+2. Code output can be verified as having executed correctly or not.
+3. Designing verifiable reward functions can be tough, and so most examples are math or code.
+4. Use-cases for GRPO isn’t just for code or math—its reasoning process can enhance tasks like email automation, database retrieval, law, and medicine, greatly improving accuracy based on your dataset and reward function - the trick is to define a <mark style="background-color:yellow;">**rubric - ie a list of smaller verifiable rewards, and not a final all consuming singular reward.**</mark> OpenAI popularized this in their [reinforcement learning finetuning (RFT)](https://platform.openai.com/docs/guides/reinforcement-fine-tuning) offering for example.
+
+{% columns %}
+{% column %} <mark style="background-color:red;">**Why "Group Relative"?**</mark>
+
+GRPO removes the value model entirely, but we still need to estimate the <mark style="background-color:yellow;">**"average reward"**</mark> given the current state.
+
+The **trick is to sample the LLM**! We then calculate the average reward through statistics of the sampling process across multiple different questions.
+{% endcolumn %}
+
+<figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FdXw9vYkjJaKFLTMx0Py6%2FGroup%20Relative.png?alt=media&#x26;token=9153caf5-402e-414b-b5b4-79fef1a2c2fa" alt=""><figcaption></figcaption></figure>
+{% endcolumn %}
+{% endcolumns %}
+
+{% columns %}
+{% column %}
+For example for "What is 2+2?" we sample 4 times. We might get 4, 3, D, C. We then calculate the reward for each of these answers, then calculate the **average reward** and **standard deviation**, then <mark style="background-color:red;">**Z-score standardize**</mark> this!
+
+This creates the <mark style="background-color:blue;">**advantages A**</mark>, which we will use in replacement of the value model. This saves a lot of memory!
+{% endcolumn %}
+
+<figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FVDdKLOBcLyLC3dwF1Idd%2FStatistics.png?alt=media&#x26;token=6c8eae5b-b063-4f49-b896-7f8de516a379" alt=""><figcaption><p>GRPO advantage calculation</p></figcaption></figure>
+{% endcolumn %}
+{% endcolumns %}
+
+### :fingers\_crossed:Luck (well Patience) Is All You Need
+
+The trick of RL is you need 2 things only:
+
+1. A question or instruction eg "What is 2+2?" "Create a Flappy Bird game in Python"
+2. A reward function and verifier to verify if the output is good or bad.
+
+With only these 2, we can essentially **call a language model an infinite times** until we get a good answer. For example for "What is 2+2?", an untrained bad language model will output:
+
+***0, cat, -10, 1928, 3, A, B, 122, 17, 182, 172, A, C, BAHS, %$, #, 9, -192, 12.31\*\*\*\*&#x20;**<mark style="color:green;">**then suddenly 4**</mark>**.***
+
+***The reward signal was 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0\*\*\*\*&#x20;**<mark style="color:green;">**then suddenly 1.**</mark>*
+
+So by luck and by chance, RL managed to find the correct answer across multiple <mark style="background-color:yellow;">**rollouts**</mark>. Our goal is we want to see the good answer 4 more, and the rest (the bad answers) much less.
+
+<mark style="color:blue;">**So the goal of RL is to be patient - in the limit, if the probability of the correct answer is at least a small number (not zero), it's just a waiting game - you will 100% for sure encounter the correct answer in the limit.**</mark>
+
+<mark style="background-color:blue;">**So I like to call it as "Luck Is All You Need" for RL.**</mark>
+
+<mark style="background-color:orange;">**Well a better phrase is "Patience is All You Need" for RL.**</mark>
+
+<figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FryuL3pCuF8pPIjPEASbx%2FLuck%20is%20all%20you%20need.png?alt=media&#x26;token=64d1a03a-6afc-49a9-b734-8ce8bc2b5ec1" alt="" width="375"><figcaption></figcaption></figure>
+
+RL essentially provides us a trick - instead of simply waiting for infinity, we do get "bad signals" ie bad answers, and we can essentially "guide" the model to already try not generating bad solutions. This means although you waited very long for a "good" answer to pop up, the model already has been changed to try its best not to output bad answers.
+
+In the "What is 2+2?" example - ***0, cat, -10, 1928, 3, A, B, 122, 17, 182, 172, A, C, BAHS, %$, #, 9, -192, 12.31\*\*\*\*&#x20;**<mark style="color:green;">**then suddenly 4**</mark>**.***
+
+Since we got bad answers, RL will influence the model to try NOT to output bad answers. This means over time, we are carefully "pruning" or moving the model's output distribution away from bad answers. This means RL is <mark style="color:blue;">**efficient**</mark>, since we are NOT just waiting for infinity, but we are actively trying to "push" the model to go as much as possible to the "correct answer space".
+
+{% hint style="danger" %}
+**If the probability is always 0, then RL will never work**. This is also why people like to do RL from an already instruction finetuned model, which can partially follow instructions reasonably well - this boosts the probability most likely above 0.
+{% endhint %}
+
+## :sloth:What Unsloth offers for RL
+
+* With 15GB VRAM, Unsloth allows you to transform any model up to 17B parameters like Llama 3.1 (8B), Phi-4 (14B), Mistral (7B) or Qwen2.5 (7B) into a reasoning model
+* **Unsloth now supports** [**RL for Vision/multimodal**](https://docs.unsloth.ai/new/vision-reinforcement-learning-vlm-rl) **models!**
+* **Minimum requirement:** Just  5GB VRAM is enough to train your own reasoning model locally (for any model with 1.5B parameters or less)
+
+{% content-ref url="reinforcement-learning-rl-guide/tutorial-train-your-own-reasoning-model-with-grpo" %}
+[tutorial-train-your-own-reasoning-model-with-grpo](https://docs.unsloth.ai/get-started/reinforcement-learning-rl-guide/tutorial-train-your-own-reasoning-model-with-grpo)
+{% endcontent-ref %}
+
+| [**gpt-oss-20b**](https://colab.research.google.com/github/unslothai/notebooks/blob/main/nb/gpt-oss-\(20B\)-GRPO.ipynb) **GSPO -** new | [**Qwen3-VL-8B**](https://colab.research.google.com/github/unslothai/notebooks/blob/main/nb/Qwen3_VL_\(8B\)-Vision-GRPO.ipynb) - Vision **GSPO** - new | [Gemma 3 (4B)](https://colab.research.google.com/github/unslothai/notebooks/blob/main/nb/Gemma3_\(4B\)-Vision-GRPO.ipynb) - Vision GSPO - new   |
+| -------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| [**Qwen3 (4B)**](https://colab.research.google.com/github/unslothai/notebooks/blob/main/nb/Qwen3_\(4B\)-GRPO.ipynb) - Advanced         | [**DeepSeek-R1-0528-Qwen3-8B**](https://colab.research.google.com/github/unslothai/notebooks/blob/main/nb/DeepSeek_R1_0528_Qwen3_\(8B\)_GRPO.ipynb)    | [Llama 3.2 (3B)](https://colab.research.google.com/github/unslothai/notebooks/blob/main/nb/Advanced_Llama3_2_\(3B\)_GRPO_LoRA.ipynb) - Advanced |
+| [Gemma 3 (1B)](https://colab.research.google.com/github/unslothai/notebooks/blob/main/nb/Gemma3_\(1B\)-GRPO.ipynb)                     | [Phi-4 (14B)](https://colab.research.google.com/github/unslothai/notebooks/blob/main/nb/Phi_4_\(14B\)-GRPO.ipynb)                                      | [Qwen2.5 (3B)](https://colab.research.google.com/github/unslothai/notebooks/blob/main/nb/Qwen2.5_\(3B\)-GRPO.ipynb)                             |
+| [Mistral v0.3 (7B)](https://colab.research.google.com/github/unslothai/notebooks/blob/main/nb/Mistral_v0.3_\(7B\)-GRPO.ipynb)          | [Llama 3.1 (8B)](https://colab.research.google.com/github/unslothai/notebooks/blob/main/nb/Llama3.1_\(8B\)-GRPO.ipynb)                                 |                                                                                                                                                 |
+
+{% hint style="success" %}
+**NEW!** We now support [**GSPO**](https://docs.unsloth.ai/get-started/reinforcement-learning-rl-guide/gspo-reinforcement-learning) and most other new GRPO techniques. You can play with the following arguments in GRPOConfig to enable:
+
+```python
+epsilon=0.2,
+epsilon_high=0.28, # one sided
+delta=1.5 # two sided
+
+---
+
+## (2) Continued training from a saved LoRA adapter
+
+**URL:** llms-txt#(2)-continued-training-from-a-saved-lora-adapter
+
+---
+
+## gpt-oss: How to Run & Fine-tune
+
+**URL:** llms-txt#gpt-oss:-how-to-run-&-fine-tune
+
+**Contents:**
+- :scroll:Unsloth fixes for gpt-oss
+  - :1234: Precision issues
+- 🖥️ **Running gpt-oss**
+  - :gear: Recommended Settings
+  - Run gpt-oss-20B
+
+Run & fine-tune OpenAI's new open-source models!
+
+OpenAI releases '**gpt-oss-120b'** and '**gpt-oss-20b'**, two SOTA open language models under the Apache 2.0 license. Both 128k context models outperform similarly sized open models in reasoning, tool use, and agentic tasks. You can now run & fine-tune them locally with Unsloth!
+
+<a href="#run-gpt-oss-20b" class="button secondary">Run gpt-oss-20b</a><a href="#run-gpt-oss-120b" class="button secondary">Run gpt-oss-120b</a><a href="#fine-tuning-gpt-oss-with-unsloth" class="button primary">Fine-tune gpt-oss</a>
+
+{% hint style="success" %}
+[**Aug 28 update**](https://docs.unsloth.ai/models/long-context-gpt-oss-training#new-saving-to-gguf-vllm-after-gpt-oss-training)**:** You can now export/save your QLoRA fine-tuned gpt-oss model to llama.cpp, vLLM, HF etc.
+
+We also introduced [Unsloth Flex Attention](https://docs.unsloth.ai/models/long-context-gpt-oss-training#introducing-unsloth-flex-attention-support) which enables **>8× longer context lengths**, **>50% less VRAM usage** and **>1.5× faster training** vs. all implementations. [Read more here](https://docs.unsloth.ai/models/long-context-gpt-oss-training#introducing-unsloth-flex-attention-support)
+{% endhint %}
+
+> [**Fine-tune**](#fine-tuning-gpt-oss-with-unsloth) **gpt-oss-20b for free with our** [**Colab notebook**](https://colab.research.google.com/github/unslothai/notebooks/blob/main/nb/gpt-oss-\(20B\)-Fine-tuning.ipynb)
+
+Trained with [RL](https://docs.unsloth.ai/get-started/reinforcement-learning-rl-guide), **gpt-oss-120b** rivals o4-mini and **gpt-oss-20b** rivals o3-mini. Both excel at function calling and CoT reasoning, surpassing o1 and GPT-4o.
+
+#### **gpt-oss - Unsloth GGUFs:**
+
+{% hint style="success" %}
+**Includes Unsloth's** [**chat template fixes**](#unsloth-fixes-for-gpt-oss)**. For best results, use our uploads & train with Unsloth!**
+{% endhint %}
+
+* 20B: [gpt-oss-**20B**](https://huggingface.co/unsloth/gpt-oss-20b-GGUF)
+* 120B: [gpt-oss-**120B**](https://huggingface.co/unsloth/gpt-oss-120b-GGUF)
+
+## :scroll:Unsloth fixes for gpt-oss
+
+OpenAI released a standalone parsing and tokenization library called [Harmony](https://github.com/openai/harmony) which allows one to tokenize conversations to OpenAI's preferred format for gpt-oss. The official OpenAI [cookbook article](https://app.gitbook.com/o/HpyELzcNe0topgVLGCZY/s/xhOjnexMCB3dmuQFQ2Zq/) provides many more details on how to use the Harmony library.
+
+Inference engines generally use the jinja chat template instead and not the Harmony package, and we found some issues with them after comparing with Harmony directly. If you see below, the top is the correct rendered form as from Harmony. The below is the one rendered by the current jinja chat template. There are quite a few differences!
+
+<figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FFqIrmxJhFtJutzMn5wLx%2FScreenshot%202025-08-08%20at%2008-19-49%20Untitled151.ipynb%20-%20Colab.png?alt=media&#x26;token=e740b75f-1634-45ad-9be7-55370d13cd7e" alt=""><figcaption></figcaption></figure>
+
+We also made some functions to directly allow you to use OpenAI's Harmony library directly without a jinja chat template if you desire - you can simply parse in normal conversations like below:
+
+Then use the `encode_conversations_with_harmony` function from Unsloth:
+
+The harmony format includes multiple interesting things:
+
+1. `reasoning_effort = "medium"` You can select low, medium or high, and this changes gpt-oss's reasoning budget - generally the higher the better the accuracy of the model.
+2. `developer_instructions` is like a system prompt which you can add.
+3. `model_identity` is best left alone - you can edit it, but we're unsure if custom ones will function.
+
+We find multiple issues with current jinja chat templates (there exists multiple implementations across the ecosystem):
+
+1. Function and tool calls are rendered with `tojson`, which is fine it's a dict, but if it's a string, speech marks and other **symbols become backslashed**.
+2. There are some **extra new lines** in the jinja template on some boundaries.
+3. Tool calling thoughts from the model should have the **`analysis` tag and not `final` tag**.
+4. Other chat templates seem to not utilize `<|channel|>final` at all - one should use this for the final assistant message. You should not use this for thinking traces or tool calls.
+
+Our chat templates for the GGUF, our BnB and BF16 uploads and all versions are fixed! For example when comparing both ours and Harmony's format, we get no different characters:
+
+<figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2Fq3pLyJyjBA7MTENhEX8S%2FScreenshot%202025-08-08%20at%2008-20-00%20Untitled151.ipynb%20-%20Colab.png?alt=media&#x26;token=a02d2626-c535-4aa3-bd72-09bf5829ac8e" alt=""><figcaption></figcaption></figure>
+
+### :1234: Precision issues
+
+We found multiple precision issues in Tesla T4 and float16 machines primarily since the model was trained using BF16, and so outliers and overflows existed. MXFP4 is not actually supported on Ampere and older GPUs, so Triton provides `tl.dot_scaled` for MXFP4 matrix multiplication. It upcasts the matrices to BF16 internally on the fly.
+
+We made a [MXFP4 inference notebook](https://colab.research.google.com/github/unslothai/notebooks/blob/main/nb/GPT_OSS_MXFP4_\(20B\)-Inference.ipynb) as well in Tesla T4 Colab!
+
+{% hint style="info" %}
+[Software emulation](https://triton-lang.org/main/python-api/generated/triton.language.dot_scaled.html) enables targeting hardware architectures without native microscaling operation support. Right now for such case, microscaled lhs/rhs are upcasted to `bf16` element type beforehand for dot computation,
+{% endhint %}
+
+We found if you use float16 as the mixed precision autocast data-type, you will get infinities after some time. To counteract this, we found doing the MoE in bfloat16, then leaving it in either bfloat16 or float32 precision. If older GPUs don't even have bfloat16 support (like T4), then float32 is used.
+
+We also change all precisions of operations (like the router) to float32 for float16 machines.
+
+## 🖥️ **Running gpt-oss**
+
+Below are guides for the [20B](#run-gpt-oss-20b) and [120B](#run-gpt-oss-120b) variants of the model.
+
+{% hint style="info" %}
+Any quant smaller than F16, including 2-bit has minimal accuracy loss, since only some parts (e.g., attention layers) are lower bit while most remain full-precision. That’s why sizes are close to the F16 model; for example, the 2-bit (11.5 GB) version performs nearly the same as the full 16-bit (14 GB) one. Once llama.cpp supports better quantization for these models, we'll upload them ASAP.
+{% endhint %}
+
+The `gpt-oss` models from OpenAI include a feature that allows users to adjust the model's "reasoning effort." This gives you control over the trade-off between the model's performance and its response speed (latency) which by the amount of token the model will use to think.
+
+The `gpt-oss` models offer three distinct levels of reasoning effort you can choose from:
+
+* **Low**: Optimized for tasks that need very fast responses and don't require complex, multi-step reasoning.
+* **Medium**: A balance between performance and speed.
+* **High**: Provides the strongest reasoning performance for tasks that require it, though this results in higher latency.
+
+### :gear: Recommended Settings
+
+OpenAI recommends these inference settings for both models:
+
+`temperature=1.0`, `top_p=1.0`, `top_k=0`
+
+* <mark style="background-color:green;">**Temperature of 1.0**</mark>
+* Top\_K = 0 (or experiment with 100 for possible better results)
+* Top\_P = 1.0
+* Recommended minimum context: 16,384
+* Maximum context length window: 131,072
+
+The end of sentence/generation token: EOS is `<|return|>`
+
+<figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2F5uMxZIFbSS7976wghYcR%2Fgpt-oss-20b.svg?alt=media&#x26;token=43e2694c-317b-49ec-9723-2c08e1cc9dd3" alt=""><figcaption></figcaption></figure>
+
+To achieve inference speeds of 6+ tokens per second for our Dynamic 4-bit quant, have at least **14GB of unified memory** (combined VRAM and RAM) or **14GB of system RAM** alone. As a rule of thumb, your available memory should match or exceed the size of the model you’re using. GGUF Link: [unsloth/gpt-oss-20b-GGUF](https://huggingface.co/unsloth/gpt-oss-20b-GGUF)
+
+**NOTE:** The model can run on less memory than its total size, but this will slow down inference. Maximum memory is only needed for the fastest speeds.&#x20;
+
+{% hint style="info" %}
+Follow the [**best practices above**](#recommended-settings). They're the same as the 120B model.
+{% endhint %}
+
+You can run the model on Google Colab, Docker, LM Studio or llama.cpp for now. See below:
+
+> **You can run gpt-oss-20b for free with our** [**Google Colab notebook**](https://colab.research.google.com/github/unslothai/notebooks/blob/main/nb/GPT_OSS_MXFP4_\(20B\)-Inference.ipynb)
+
+#### 🐋 Docker: Run gpt-oss-20b Tutorial
+
+If you already have Docker desktop, all you need to do is run the command below and you're done:
+
+#### :sparkles: Llama.cpp: Run gpt-oss-20b Tutorial
+
+1. Obtain the latest `llama.cpp` on [GitHub here](https://github.com/ggml-org/llama.cpp). You can follow the build instructions below as well. Change `-DGGML_CUDA=ON` to `-DGGML_CUDA=OFF` if you don't have a GPU or just want CPU inference.
+
+2. You can directly pull from Hugging Face via:
+
+3. Download the model via (after installing `pip install huggingface_hub hf_transfer` ).
+
+**Examples:**
+
+Example 1 (python):
+```python
+messages = [
+    {"role" : "user", "content" : "What is 1+1?"},
+    {"role" : "assistant", "content" : "2"},
+    {"role": "user",  "content": "What's the temperature in San Francisco now? How about tomorrow? Today's date is 2024-09-30."},
+    {"role": "assistant",  "content": "User asks: 'What is the weather in San Francisco?' We need to use get_current_temperature tool.", "thinking" : ""},
+    {"role": "assistant", "content": "", "tool_calls": [{"name": "get_current_temperature", "arguments": '{"location": "San Francisco, California, United States", "unit": "celsius"}'}]},
+    {"role": "tool", "name": "get_current_temperature", "content": '{"temperature": 19.9, "location": "San Francisco, California, United States", "unit": "celsius"}'},
+]
+```
+
+Example 2 (python):
+```python
+from unsloth_zoo import encode_conversations_with_harmony
+
+def encode_conversations_with_harmony(
+    messages,
+    reasoning_effort = "medium",
+    add_generation_prompt = True,
+    tool_calls = None,
+    developer_instructions = None,
+    model_identity = "You are ChatGPT, a large language model trained by OpenAI.",
+)
+```
+
+Example 3 (unknown):
+```unknown
+<|start|>system<|message|>You are ChatGPT, a large language model trained by OpenAI.\nKnowledge cutoff: 2024-06\nCurrent date: 2025-08-05\n\nReasoning: medium\n\n# Valid channels: analysis, commentary, final. Channel must be included for every message.<|end|><|start|>user<|message|>Hello<|end|><|start|>assistant<|channel|>final<|message|>Hi there!<|end|><|start|>user<|message|>What is 1+1?<|end|><|start|>assistant
+```
+
+Example 4 (bash):
+```bash
+docker model pull hf.co/unsloth/gpt-oss-20b-GGUF:F16
+```
+
+---
+
+## Constants
+
+**URL:** llms-txt#constants
+
+WIDTH, HEIGHT = 800, 600
+GROUND_HEIGHT = 20
+GRAVITY = 0.7
+PIPE_SPEED = -3
+BIRD_SIZE = 45
+MIN_GAP = 130
+MAX_GAP = 200
+PIPE_COLORS = [(0, 96, 0), (205, 133, 63), (89, 97, 107)]
+DARK_BROWN = (94, 72, 4)
+YELLOW = (252, 228, 6)
+
+screen = pygame.display.set_mode((WIDTH, HEIGHT))
+clock = pygame.time.Clock()
+
+def random_light_color():
+    return (
+        random.randint(180, 230),
+        random.randint(190, 300),
+        random.randint(250, 255)
+    )
+
+def reset_game():
+    global bird_x, bird_y
+    global pipes, score
+    global background_color, land_color
+    global bird_shape, bird_color
+
+# Bird properties
+    bird_x = WIDTH * 0.3
+    bird_y = HEIGHT // 2
+    bird_vel = -5  # Initial upward thrust
+
+pipes.clear() ### <<< NameError: name 'pipes' is not defined. Did you forget to import 'pipes'?
+python
+import pygame
+from random import randint  # For generating colors/shapes/positions randomly 
+pygame.init()
+
+**Examples:**
+
+Example 1 (unknown):
+```unknown
+{% endcode %}
+
+8. If you use `--repeat-penalty 1.5`, it gets even worse and more obvious, with actually totally incorrect syntax.
+```
+
+---
+
+## Generate output
+
+**URL:** llms-txt#generate-output
+
+model_outputs = llm.generate(model_input, sampling_param)
+
+---
+
+## Magistral: How to Run & Fine-tune
+
+**URL:** llms-txt#magistral:-how-to-run-&-fine-tune
+
+**Contents:**
+- 🖥️ **Running Magistral**
+  - :gear: Official Recommended Settings
+  - :question:Testing the model
+- :llama: Tutorial: How to Run Magistral in Ollama
+- 📖 Tutorial: How to Run Magistral in llama.cpp  <a href="#tutorial-how-to-run-llama-4-scout-in-llama.cpp" id="tutorial-how-to-run-llama-4-scout-in-llama.cpp"></a>
+
+Meet Magistral - Mistral's new reasoning models.
+
+**Magistral-Small-2509** is a reasoning LLM developed by Mistral AI. It excels at coding and mathematics and supports multiple languages.  Magistral supports a 128k token context window and was finetuned from [**Mistral-Small-3.2**](https://huggingface.co/unsloth/Mistral-Small-3.2-24B-Instruct-2506). Magistral runs perfectly well locally on a single RTX 4090 or a Mac with 16 to 24GB RAM.
+
+<a href="#running-magistral" class="button primary">Running Magistral Tutorial</a> <a href="#fine-tuning-magistral-with-unsloth" class="button secondary">Fine-tuning Magistral</a>
+
+{% hint style="success" %}
+Update: **Magistral-2509** new update is out as of September, 2025!\
+\
+Now with Vision support! We worked with Mistral again with the release of Magistral. Make sure to download Mistral's official uploads or Unsloth's uploads to get the correct implementation (ie correct system prompt, correct chat template etc.)
+
+**If you're using llama.cpp, please use `--jinja` to enable the system prompt!**
+{% endhint %}
+
+All uploads use Unsloth [Dynamic 2.0](https://docs.unsloth.ai/basics/unsloth-dynamic-2.0-ggufs) for SOTA 5-shot MMLU and KL Divergence performance, meaning you can run & fine-tune quantized Mistral LLMs with minimal accuracy loss.
+
+#### Magistral-Small **- Unsloth Dynamic** uploads:
+
+<table><thead><tr><th width="255.64999389648438">Dynamic 2.0 GGUF (to run)</th><th width="305.25">Dynamic 4-bit (to finetune/deploy)</th><th>Dynamic Float8</th></tr></thead><tbody><tr><td><ul><li><a href="https://huggingface.co/unsloth/Magistral-Small-2509-GGUF">Magistral-Small-2509-GGUF</a> - new</li></ul><ul><li><a href="https://huggingface.co/unsloth/Magistral-Small-2507-GGUF">Magistral-Small-2507-GGUF</a></li><li><a href="https://huggingface.co/unsloth/Magistral-Small-2506-GGUF">Magistral-Small-2506-GGUF</a></li></ul></td><td><ul><li><a href="https://huggingface.co/unsloth/Magistral-Small-2509-unsloth-bnb-4bit">Magistral-Small-2509-unsloth-bnb-4bit</a> - new</li><li><a href="https://huggingface.co/unsloth/Magistral-Small-2507-unsloth-bnb-4bit">Magistral-Small-2507-unsloth-bnb-4bit</a></li><li><a href="https://huggingface.co/unsloth/Magistral-Small-2506-unsloth-bnb-4bit">Magistral-Small-2506-unsloth-bnb-4bit</a></li></ul></td><td><ul><li><a href="https://huggingface.co/unsloth/Magistral-Small-2509-FP8-Dynamic">Magistral-Small-2509-FP8-Dynamic</a></li><li><a href="https://huggingface.co/unsloth/Magistral-Small-2509-FP8-torchao">Magistral-Small-2509-FP8-torchao</a></li></ul></td></tr></tbody></table>
+
+## 🖥️ **Running Magistral**
+
+### :gear: Official Recommended Settings
+
+According to Mistral AI, these are the recommended settings for inference:
+
+* <mark style="background-color:blue;">**Temperature of: 0.7**</mark>
+* Min\_P of: 0.01 (optional, but 0.01 works well, llama.cpp default is 0.1)
+* Set <mark style="background-color:green;">**top\_p to: 0.95**</mark>
+* A 128k context window is supported, **but** performance might degrade past **40k**. So we recommend setting the maximum length to 40k if you see bad performance.
+
+**This is the recommended system prompt for Magistral 2509, 2507:**
+
+{% code overflow="wrap" %}
+
+**This is the recommended system prompt for Magistral 2506:**
+
+{% hint style="success" %}
+Our dynamic uploads have the '`UD`' prefix in them. Those without are not dynamic however still utilize our calibration dataset.
+{% endhint %}
+
+* **Multilingual:** Magistral supports many languages including: English, French, German, Greek, Hindi, Indonesian, Italian, Japanese, Korean, Malay, Nepali, Polish, Portuguese, Romanian, Russian, Serbian, Spanish, Swedish, Turkish, Ukrainian, Vietnamese, Arabic, Bengali, Chinese, and Farsi.
+
+### :question:Testing the model
+
+Mistral has their own vibe checking prompts which can be used to evaluate Magistral. Keep in mind these tests are based on running the full unquantized version of the model, however you could also test them on quantized versions:
+
+**Easy -** *Make sure they always work*
+
+**Medium** - *Should most of the time be correct*
+
+**Hard** - *Should sometimes get them right*
+
+<mark style="color:green;">**We provide some**</mark> [<mark style="color:green;">**example outputs**</mark>](#sample-outputs) <mark style="color:green;">**at the end of the blog.**</mark>
+
+## :llama: Tutorial: How to Run Magistral in Ollama
+
+1. Install `ollama` if you haven't already!&#x20;
+
+2. Run the model with our dynamic quant. We did not set the context length automatically, so it will just use Ollama's default set context length.\
+   Note you can call `ollama serve &`in another terminal if it fails! We include all suggested parameters (temperature etc) in `params` in our Hugging Face upload!
+3. Also Magistral supports 40K context lengths, so best to enable [**KV cache quantization**](https://github.com/ollama/ollama/blob/main/docs/faq.md#how-can-i-set-the-quantization-type-for-the-kv-cache). We use 8bit quantization which saves 50% memory usage. You can also try `"q4_0"` or `"q8_0"`
+4. **Ollama also sets the default context length to 4096**, as [mentioned here](https://github.com/ollama/ollama/blob/main/docs/faq.md#how-can-i-specify-the-context-window-size). Use `OLLAMA_CONTEXT_LENGTH=8192` to change it to 8192. Magistral supports up to 128K, but 40K (40960) is tested most.
+
+## 📖 Tutorial: How to Run Magistral in llama.cpp  <a href="#tutorial-how-to-run-llama-4-scout-in-llama.cpp" id="tutorial-how-to-run-llama-4-scout-in-llama.cpp"></a>
+
+1. Obtain the latest `llama.cpp` on [GitHub here](https://github.com/ggml-org/llama.cpp). You can follow the build instructions below as well. Change `-DGGML_CUDA=ON` to `-DGGML_CUDA=OFF` if you don't have a GPU or just want CPU inference.
+
+2. If you want to use `llama.cpp` directly to load models, you can do the below: (:Q4\_K\_XL) is the quantization type. You can also download via Hugging Face (point 3). This is similar to `ollama run`
+
+{% code overflow="wrap" %}
+
+{% hint style="warning" %}
+In llama.cpp, please use `--jinja` to enable the system prompt!
+{% endhint %}
+
+3. **OR** download the model via (after installing `pip install huggingface_hub hf_transfer` ). You can choose UD-Q4\_K\_XL, (Unsloth Dynamic), Q4\_K\_M, or other quantized versions (like BF16 full precision).
+
+**Examples:**
+
+Example 1 (unknown):
+```unknown
+First draft your thinking process (inner monologue) until you arrive at a response. Format your response using Markdown, and use LaTeX for any mathematical equations. Write both your thoughts and the response in the same language as the input.
+
+Your thinking process must follow the template below:[THINK]Your thoughts or/and draft, like working through an exercise on scratch paper. Be as casual and as long as you want until you are confident to generate the response. Use the same language as the input.[/THINK]Here, provide a self-contained response.
+```
+
+Example 2 (unknown):
+```unknown
+A user will ask you to solve a task. You should first draft your thinking process (inner monologue) until you have derived the final answer. Afterwards, write a self-contained summary of your thoughts (i.e. your summary should be succinct but contain all the critical steps you needed to reach the conclusion). You should use Markdown to format your response. Write both your thoughts and summary in the same language as the task posed by the user. NEVER use \boxed{} in your response.
+
+Your thinking process must follow the template below:
+<think>
+Your thoughts or/and draft, like working through an exercise on scratch paper. Be as casual and as long as you want until you are confident to generate a correct answer.
+</think>
+
+Here, provide a concise summary that reflects your reasoning and presents a clear final answer to the user. Don't mention that this is a summary.
+
+Problem:
+```
+
+Example 3 (py):
+```py
+prompt_1 = 'How many "r" are in strawberry?'
+
+prompt_2 = 'John is one of 4 children. The first sister is 4 years old. Next year, the second sister will be twice as old as the first sister. The third sister is two years older than the second sister. The third sister is half the ago of her older brother. How old is John?'
+
+prompt_3 = '9.11 and 9.8, which is greater?'
+```
+
+Example 4 (py):
+```py
+prompt_4 = "Think about 5 random numbers. Verify if you can combine them with addition, multiplication, subtraction or division to 133"
+
+prompt_5 = "Write 4 sentences, each with at least 8 words. Now make absolutely sure that every sentence has exactly one word less than the previous sentence."
+
+prompt_6 = "If it takes 30 minutes to dry 12 T-shirts in the sun, how long does it take to dry 33 T-shirts?"
+```
+
+---
+
+## From https://mlabonne.github.io/blog/posts/Quantize_Llama_2_models_using_ggml.html
+
+**URL:** llms-txt#from-https://mlabonne.github.io/blog/posts/quantize_llama_2_models_using_ggml.html
+
+**Contents:**
+  - Running in Unsloth works well, but after exporting & running on other platforms, the results are poor
+  - Saving to GGUF / vLLM 16bit crashes
+  - How do I manually save to GGUF?
+
+ALLOWED_QUANTS = \
+{
+    "not_quantized"  : "Recommended. Fast conversion. Slow inference, big files.",
+    "fast_quantized" : "Recommended. Fast conversion. OK inference, OK file size.",
+    "quantized"      : "Recommended. Slow conversion. Fast inference, small files.",
+    "f32"     : "Not recommended. Retains 100% accuracy, but super slow and memory hungry.",
+    "f16"     : "Fastest conversion + retains 100% accuracy. Slow and memory hungry.",
+    "q8_0"    : "Fast conversion. High resource use, but generally acceptable.",
+    "q4_k_m"  : "Recommended. Uses Q6_K for half of the attention.wv and feed_forward.w2 tensors, else Q4_K",
+    "q5_k_m"  : "Recommended. Uses Q6_K for half of the attention.wv and feed_forward.w2 tensors, else Q5_K",
+    "q2_k"    : "Uses Q4_K for the attention.vw and feed_forward.w2 tensors, Q2_K for the other tensors.",
+    "q3_k_l"  : "Uses Q5_K for the attention.wv, attention.wo, and feed_forward.w2 tensors, else Q3_K",
+    "q3_k_m"  : "Uses Q4_K for the attention.wv, attention.wo, and feed_forward.w2 tensors, else Q3_K",
+    "q3_k_s"  : "Uses Q3_K for all tensors",
+    "q4_0"    : "Original quant method, 4-bit.",
+    "q4_1"    : "Higher accuracy than q4_0 but not as high as q5_0. However has quicker inference than q5 models.",
+    "q4_k_s"  : "Uses Q4_K for all tensors",
+    "q4_k"    : "alias for q4_k_m",
+    "q5_k"    : "alias for q5_k_m",
+    "q5_0"    : "Higher accuracy, higher resource usage and slower inference.",
+    "q5_1"    : "Even higher accuracy, resource usage and slower inference.",
+    "q5_k_s"  : "Uses Q5_K for all tensors",
+    "q6_k"    : "Uses Q8_K for all tensors",
+    "iq2_xxs" : "2.06 bpw quantization",
+    "iq2_xs"  : "2.31 bpw quantization",
+    "iq3_xxs" : "3.06 bpw quantization",
+    "q3_k_xs" : "3-bit extra small quantization",
+}
+python
+model.save_pretrained_merged("merged_model", tokenizer, save_method = "merged_16bit",)
+bash
+apt-get update
+apt-get install pciutils build-essential cmake curl libcurl4-openssl-dev -y
+git clone https://github.com/ggerganov/llama.cpp
+cmake llama.cpp -B llama.cpp/build \
+    -DBUILD_SHARED_LIBS=ON -DGGML_CUDA=ON -DLLAMA_CURL=ON
+cmake --build llama.cpp/build --config Release -j --clean-first --target llama-quantize llama-cli llama-gguf-split llama-mtmd-cli
+cp llama.cpp/build/bin/llama-* llama.cpp
+
+python llama.cpp/convert-hf-to-gguf.py FOLDER --outfile OUTPUT --outtype f16
+python
+model.save_pretrained_merged("merged_model", tokenizer, save_method = "merged_16bit",)
+bash
+apt-get update
+apt-get install pciutils build-essential cmake curl libcurl4-openssl-dev -y
+git clone https://github.com/ggerganov/llama.cpp
+cmake llama.cpp -B llama.cpp/build \
+    -DBUILD_SHARED_LIBS=ON -DGGML_CUDA=ON -DLLAMA_CURL=ON
+cmake --build llama.cpp/build --config Release -j --clean-first --target llama-quantize llama-cli llama-gguf-split llama-mtmd-cli
+cp llama.cpp/build/bin/llama-* llama.cpp
+bash
+python llama.cpp/convert_hf_to_gguf.py merged_model \
+    --outfile model-F16.gguf --outtype f16 \
+    --split-max-size 50G
+bash
+
+**Examples:**
+
+Example 1 (unknown):
+```unknown
+{% endtab %}
+
+{% tab title="Manual Saving" %}
+First save your model to 16bit:
+```
+
+Example 2 (unknown):
+```unknown
+Then use the terminal and do:
+```
+
+Example 3 (unknown):
+```unknown
+Or follow the steps at <https://rentry.org/llama-cpp-conversions#merging-loras-into-a-model> using the model name "merged\_model" to merge to GGUF.
+{% endtab %}
+{% endtabs %}
+
+### Running in Unsloth works well, but after exporting & running on other platforms, the results are poor
+
+You might sometimes encounter an issue where your model runs and produces good results on Unsloth, but when you use it on another platform like Ollama or vLLM, the results are poor or you might get gibberish, endless/infinite generations *or* repeated output&#x73;**.**
+
+* The most common cause of this error is using an <mark style="background-color:blue;">**incorrect chat template**</mark>**.** It’s essential to use the SAME chat template that was used when training the model in Unsloth and later when you run it in another framework, such as llama.cpp or Ollama. When inferencing from a saved model, it's crucial to apply the correct template.
+* You must use the correct `eos token`. If not, you might get gibberish on longer generations.
+* It might also be because your inference engine adds an unnecessary "start of sequence" token (or the lack of thereof on the contrary) so ensure you check both hypotheses!
+* <mark style="background-color:green;">**Use our conversational notebooks to force the chat template - this will fix most issues.**</mark>
+  * Qwen-3 14B Conversational notebook [**Open in Colab**](https://colab.research.google.com/github/unslothai/notebooks/blob/main/nb/Qwen3_\(14B\)-Reasoning-Conversational.ipynb)
+  * Gemma-3 4B Conversational notebook [**Open in Colab**](https://colab.research.google.com/github/unslothai/notebooks/blob/main/nb/Gemma3_\(4B\).ipynb)
+  * Llama-3.2 3B Conversational notebook [**Open in Colab**](https://colab.research.google.com/github/unslothai/notebooks/blob/main/nb/Llama3.2_\(1B_and_3B\)-Conversational.ipynb)
+  * Phi-4 14B Conversational notebook [**Open in Colab**](https://colab.research.google.com/github/unslothai/notebooks/blob/main/nb/Phi_4-Conversational.ipynb)
+  * Mistral v0.3 7B Conversational notebook [**Open in Colab**](https://colab.research.google.com/github/unslothai/notebooks/blob/main/nb/Mistral_v0.3_\(7B\)-Conversational.ipynb)
+  * **More notebooks in our** [**notebooks docs**](https://docs.unsloth.ai/get-started/unsloth-notebooks)
+
+### Saving to GGUF / vLLM 16bit crashes
+
+You can try reducing the maximum GPU usage during saving by changing `maximum_memory_usage`.
+
+The default is `model.save_pretrained(..., maximum_memory_usage = 0.75)`. Reduce it to say 0.5 to use 50% of GPU peak memory or lower. This can reduce OOM crashes during saving.
+
+### How do I manually save to GGUF?
+
+First save your model to 16bit via:
+```
+
+Example 4 (unknown):
+```unknown
+Compile llama.cpp from source like below:
+```
+
+---
+
+## Phi-4 Reasoning: How to Run & Fine-tune
+
+**URL:** llms-txt#phi-4-reasoning:-how-to-run-&-fine-tune
+
+**Contents:**
+- 🖥️ **Running Phi-4 reasoning**
+  - :gear: Official Recommended Settings
+  - **Phi-4 reasoning Chat templates**
+  - 🦙 Ollama: Run Phi-4 reasoning Tutorial
+  - 📖 Llama.cpp: Run Phi-4 reasoning Tutorial
+
+Learn to run & fine-tune Phi-4 reasoning models locally with Unsloth + our Dynamic 2.0 quants
+
+Microsoft's new Phi-4 reasoning models are now supported in Unsloth. The 'plus' variant performs on par with OpenAI's o1-mini, o3-mini and Sonnet 3.7. The 'plus' and standard reasoning models are 14B parameters while the 'mini' has 4B parameters.\
+\
+All Phi-4 reasoning uploads use our [Unsloth Dynamic 2.0](https://docs.unsloth.ai/basics/unsloth-dynamic-2.0-ggufs) methodology.
+
+#### **Phi-4 reasoning - Unsloth Dynamic 2.0 uploads:**
+
+| Dynamic 2.0 GGUF (to run)                                                                                                                                                                                                                                                                                                      | Dynamic 4-bit Safetensor (to finetune/deploy)                                                                                                                                                                                                                                                                                                   |
+| ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| <ul><li><a href="https://huggingface.co/unsloth/Phi-4-reasoning-plus-GGUF/">Reasoning-plus</a> (14B)</li></ul><ul><li><a href="https://huggingface.co/unsloth/Phi-4-reasoning-GGUF">Reasoning</a> (14B)</li></ul><ul><li><a href="https://huggingface.co/unsloth/Phi-4-mini-reasoning-GGUF/">Mini-reasoning</a> (4B)</li></ul> | <ul><li><a href="https://huggingface.co/unsloth/Phi-4-reasoning-plus-unsloth-bnb-4bit">Reasoning-plus</a></li></ul><ul><li><a href="https://huggingface.co/unsloth/phi-4-reasoning-unsloth-bnb-4bit">Reasoning</a></li></ul><ul><li><a href="https://huggingface.co/unsloth/Phi-4-mini-reasoning-unsloth-bnb-4bit">Mini-reasoning</a></li></ul> |
+
+## 🖥️ **Running Phi-4 reasoning**
+
+### :gear: Official Recommended Settings
+
+According to Microsoft, these are the recommended settings for inference:
+
+* <mark style="background-color:blue;">**Temperature = 0.8**</mark>
+* Top\_P = 0.95
+
+### **Phi-4 reasoning Chat templates**
+
+Please ensure you use the correct chat template as the 'mini' variant has a different one.
+
+{% code overflow="wrap" %}
+
+#### **Phi-4-reasoning and Phi-4-reasoning-plus:**
+
+This format is used for general conversation and instructions:
+
+{% code overflow="wrap" %}
+
+{% hint style="info" %}
+Yes, the chat template/prompt format is this long!
+{% endhint %}
+
+### 🦙 Ollama: Run Phi-4 reasoning Tutorial
+
+1. Install `ollama` if you haven't already!
+
+2. Run the model! Note you can call `ollama serve`in another terminal if it fails. We include all our fixes and suggested parameters (temperature etc) in `params` in our Hugging Face upload.
+
+### 📖 Llama.cpp: Run Phi-4 reasoning Tutorial
+
+{% hint style="warning" %}
+You must use `--jinja` in llama.cpp to enable reasoning for the models, expect for the 'mini' variant. Otherwise no token will be provided.
+{% endhint %}
+
+1. Obtain the latest `llama.cpp` on [GitHub here](https://github.com/ggml-org/llama.cpp). You can follow the build instructions below as well. Change `-DGGML_CUDA=ON` to `-DGGML_CUDA=OFF` if you don't have a GPU or just want CPU inference.
+
+2. Download the model via (after installing `pip install huggingface_hub hf_transfer` ). You can choose Q4\_K\_M, or other quantized versions.
+
+**Examples:**
+
+Example 1 (unknown):
+```unknown
+<|system|>Your name is Phi, an AI math expert developed by Microsoft.<|end|><|user|>How to solve 3*x^2+4*x+5=1?<|end|><|assistant|>
+```
+
+Example 2 (unknown):
+```unknown
+<|im_start|>system<|im_sep|>You are Phi, a language model trained by Microsoft to help users. Your role as an assistant involves thoroughly exploring questions through a systematic thinking process before providing the final precise and accurate solutions. This requires engaging in a comprehensive cycle of analysis, summarizing, exploration, reassessment, reflection, backtracing, and iteration to develop well-considered thinking process. Please structure your response into two main sections: Thought and Solution using the specified format: <think> {Thought section} </think> {Solution section}. In the Thought section, detail your reasoning process in steps. Each step should include detailed considerations such as analysing questions, summarizing relevant findings, brainstorming new ideas, verifying the accuracy of the current steps, refining any errors, and revisiting previous steps. In the Solution section, based on various attempts, explorations, and reflections from the Thought section, systematically present the final solution that you deem correct. The Solution section should be logical, accurate, and concise and detail necessary steps needed to reach the conclusion. Now, try to solve the following question through the above guidelines:<|im_end|><|im_start|>user<|im_sep|>What is 1+1?<|im_end|><|im_start|>assistant<|im_sep|>
+```
+
+Example 3 (bash):
+```bash
+apt-get update
+apt-get install pciutils -y
+curl -fsSL https://ollama.com/install.sh | sh
+```
+
+Example 4 (bash):
+```bash
+ollama run hf.co/unsloth/Phi-4-mini-reasoning-GGUF:Q4_K_XL
+```
+
+---
+
+## Vision Fine-tuning
+
+**URL:** llms-txt#vision-fine-tuning
+
+**Contents:**
+  - Vision Fine-tuning Dataset
+  - Multi-image training
+
+Learn how to fine-tune vision/multimodal LLMs with Unsloth
+
+Fine-tuning vision models enables model to excel at certain tasks normal LLMs won't be as good as such as object/movement detection. **You can also train** [**VLMs with RL**](https://docs.unsloth.ai/new/vision-reinforcement-learning-vlm-rl)**.** We have many free notebooks for vision fine-tuning:
+
+* **NEW: Qwen3-VL (8B) Vision:** [**Notebook**](https://colab.research.google.com/github/unslothai/notebooks/blob/main/nb/Qwen3_VL_\(8B\)-Vision.ipynb)
+* **Gemma 3 (4B) Vision:** [Notebook](https://colab.research.google.com/github/unslothai/notebooks/blob/main/nb/Gemma3_\(4B\)-Vision.ipynb)
+* **Llama 3.2 Vision** fine-tuning for radiography: [Notebook](https://colab.research.google.com/github/unslothai/notebooks/blob/main/nb/Llama3.2_\(11B\)-Vision.ipynb)\
+  How can we assist medical professionals in analyzing Xrays, CT Scans & ultrasounds faster.
+* **Qwen2.5 VL** fine-tuning for converting handwriting to LaTeX: [Notebook](https://colab.research.google.com/github/unslothai/notebooks/blob/main/nb/Qwen2.5_VL_\(7B\)-Vision.ipynb)\
+  This allows complex math formulas to be easily transcribed as LaTeX without manually writing it.
+* **Pixtral 12B 2409** vision fine-tuning for general Q\&A: [Notebook](https://colab.research.google.com/github/unslothai/notebooks/blob/main/nb/Pixtral_\(12B\)-Vision.ipynb)\
+  One can concatenate general Q\&A datasets with more niche datasets to make the finetune not forget base model skills.
+
+{% hint style="info" %}
+It is best to ensure your dataset has images of all the same size/dimensions. Use dimensions of 300-1000px to ensure your training does not take too long or use too many resources.
+{% endhint %}
+
+To finetune vision models, we now allow you to select which parts of the mode to finetune. You can select to only finetune the vision layers, or the language layers, or the attention / MLP layers! We set them all on by default!
+
+### Vision Fine-tuning Dataset
+
+The dataset for fine-tuning a vision or multimodal model is similar to standard question & answer pair [datasets ](https://docs.unsloth.ai/get-started/fine-tuning-llms-guide/datasets-guide), but this time, they also includes image inputs. For example, the [Llama 3.2 Vision Notebook](https://colab.research.google.com/github/unslothai/notebooks/blob/main/nb/Llama3.2_\(11B\)-Vision.ipynb#scrollTo=vITh0KVJ10qX) uses a radiography case to show how AI can help medical professionals analyze X-rays, CT scans, and ultrasounds more efficiently.
+
+We'll be using a sampled version of the ROCO radiography dataset. You can access the dataset [here](https://www.google.com/url?q=https%3A%2F%2Fhuggingface.co%2Fdatasets%2Funsloth%2FRadiology_mini). The dataset includes X-rays, CT scans and ultrasounds showcasing medical conditions and diseases. Each image has a caption written by experts describing it. The goal is to finetune a VLM to make it a useful analysis tool for medical professionals.
+
+Let's take a look at the dataset, and check what the 1st example shows:
+
+| Image                                                                                                                                                                                                                                                                                                        | Caption                                                                                                                                       |
+| ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| <p></p><div><figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FrjdETiyi6jqzAao7vg8I%2Fxray.png?alt=media&#x26;token=f66fdd7f-5e10-4eff-a280-5b3d63ed7849" alt="" width="164"><figcaption></figcaption></figure></div> | Panoramic radiography shows an osteolytic lesion in the right posterior maxilla with resorption of the floor of the maxillary sinus (arrows). |
+
+To format the dataset, all vision finetuning tasks should be formatted as follows:
+
+We will craft an custom instruction asking the VLM to be an expert radiographer. Notice also instead of just 1 instruction, you can add multiple turns to make it a dynamic conversation.
+
+Let's convert the dataset into the "correct" format for finetuning:
+
+The first example is now structured like below:
+
+{% code overflow="wrap" %}
+
+Before we do any finetuning, maybe the vision model already knows how to analyse the images? Let's check if this is the case!
+
+For more details, view our dataset section in the [notebook here](https://colab.research.google.com/github/unslothai/notebooks/blob/main/nb/Llama3.2_\(11B\)-Vision.ipynb#scrollTo=vITh0KVJ10qX).
+
+### Multi-image training
+
+In order to fine-tune or train a VLM like Qwen3-VL with multi-images the most straightforward change is to swap
+
+Using map kicks in dataset standardization and arrow processing rules which can be strict and more complicated to define.
+
+**Examples:**
+
+Example 1 (python):
+```python
+model = FastVisionModel.get_peft_model(
+    model,
+    finetune_vision_layers     = True, # False if not finetuning vision layers
+    finetune_language_layers   = True, # False if not finetuning language layers
+    finetune_attention_modules = True, # False if not finetuning attention layers
+    finetune_mlp_modules       = True, # False if not finetuning MLP layers
+
+    r = 16,                           # The larger, the higher the accuracy, but might overfit
+    lora_alpha = 16,                  # Recommended alpha == r at least
+    lora_dropout = 0,
+    bias = "none",
+    random_state = 3407,
+    use_rslora = False,               # We support rank stabilized LoRA
+    loftq_config = None,               # And LoftQ
+    target_modules = "all-linear",    # Optional now! Can specify a list if needed
+    modules_to_save=[
+        "lm_head",
+        "embed_tokens",
+    ],
+)
+```
+
+Example 2 (unknown):
+```unknown
+Dataset({
+    features: ['image', 'image_id', 'caption', 'cui'],
+    num_rows: 1978
+})
+```
+
+Example 3 (python):
+```python
+[
+{ "role": "user",
+  "content": [{"type": "text",  "text": instruction}, {"type": "image", "image": image} ]
+},
+{ "role": "assistant",
+  "content": [{"type": "text",  "text": answer} ]
+},
+]
+```
+
+Example 4 (unknown):
+```unknown
+Let's convert the dataset into the "correct" format for finetuning:
+```
+
+---
+
+## model.push_to_hub("your_name/lora_model", token = "...") # Online saving
+
+**URL:** llms-txt#model.push_to_hub("your_name/lora_model",-token-=-"...")-#-online-saving
+
+---
+
+## Function to prepare the GSM8K dataset
+
+**URL:** llms-txt#function-to-prepare-the-gsm8k-dataset
+
+**Contents:**
+  - Reward Functions/Verifier
+  - Train your model
+
+def get_gsm8k_questions(split="train") -> Dataset:
+    data = load_dataset("openai/gsm8k", "main")[split]
+    data = data.map(
+        lambda x: {
+            "prompt": [
+                {"role": "system", "content": SYSTEM_PROMPT},
+                {"role": "user", "content": x["question"]},
+            ],
+            "answer": extract_hash_answer(x["answer"]),
+        }
+    )
+    return data
+
+dataset = get_gsm8k_questions()
+python
+epsilon=0.2,
+epsilon_high=0.28, # one sided
+delta=1.5 # two sided
+
+**Examples:**
+
+Example 1 (unknown):
+```unknown
+The dataset is prepared by extracting the answers and formatting them as structured strings.
+{% endstep %}
+
+{% step %}
+
+### Reward Functions/Verifier
+
+[Reward Functions/Verifiers](https://docs.unsloth.ai/get-started/reinforcement-learning-rl-guide/..#reward-functions-verifier) lets us know if the model is doing well or not according to the dataset you have provided. Each generation run will be assessed on how it performs to the score of the average of the rest of generations. You can create your own reward functions however we have already pre-selected them for you with [Will's GSM8K](https://docs.unsloth.ai/get-started/reinforcement-learning-rl-guide/..#gsm8k-reward-functions) reward functions. With this, we have 5 different ways which we can reward each generation.
+
+You can input your generations into an LLM like ChatGPT 4o or Llama 3.1 (8B) and design a reward function and verifier to evaluate it. For example, feed your generations into a LLM of your choice and set a rule: "If the answer sounds too robotic, deduct 3 points." This helps refine outputs based on quality criteria. **See examples** of what they can look like [here](https://docs.unsloth.ai/get-started/reinforcement-learning-rl-guide/..#reward-function-examples).
+
+**Example Reward Function for an Email Automation Task:**
+
+* **Question:** Inbound email
+* **Answer:** Outbound email
+* **Reward Functions:**
+  * If the answer contains a required keyword → **+1**
+  * If the answer exactly matches the ideal response → **+1**
+  * If the response is too long → **-1**
+  * If the recipient's name is included → **+1**
+  * If a signature block (phone, email, address) is present → **+1**
+
+<figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2F6GRcqgUKmKn2dWCk4nWK%2Fimage.png?alt=media&#x26;token=ac153141-03f8-4795-9074-ad592289bd70" alt=""><figcaption></figcaption></figure>
+{% endstep %}
+
+{% step %}
+
+### Train your model
+
+We have pre-selected hyperparameters for the most optimal results however you could change them. Read all about [parameters here](https://docs.unsloth.ai/get-started/fine-tuning-llms-guide/lora-hyperparameters-guide). For **advanced GRPO** documentation on batching, generation and training parameters, [read our guide!](https://docs.unsloth.ai/get-started/reinforcement-learning-rl-guide/advanced-rl-documentation)
+
+<figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2F1MpLSyaOH3j8MhQvquqX%2Fimage.png?alt=media&#x26;token=818034b1-f2db-464d-a108-3b2c6897edb7" alt="" width="563"><figcaption></figcaption></figure>
+
+The **GRPOConfig** defines key hyperparameters for training:
+
+* `use_vllm`: Activates fast inference using vLLM.
+* `learning_rate`: Determines the model's learning speed.
+* `num_generations`: Specifies the number of completions generated per prompt.
+* `max_steps`: Sets the total number of training steps.
+
+{% hint style="success" %}
+**NEW!** We now support DAPO, Dr. GRPO and most other new GRPO techniques. You can play with the following arguments in GRPOConfig to enable:
+```
+
+---
+
+## Tutorial: How to Train gpt-oss with RL
+
+**URL:** llms-txt#tutorial:-how-to-train-gpt-oss-with-rl
+
+**Contents:**
+  - Install Unsloth
+  - Load gpt-oss with Unsloth
+  - 2048 game environment (minimal)
+  - Safe code execution & anti‑cheat checks
+  - Prompt & dataset
+  - Reward function time!
+  - Configure GRPO
+  - Train your model
+  - Inference (after training)
+  - Save / Export your fine-tuned mode
+
+Learn to train OpenAI gpt-oss with GRPO to autonomously beat 2048 locally or on Colab.
+
+LLMs often struggle with tasks that involve complex environments. However, by applying [reinforcement learning](https://docs.unsloth.ai/get-started/reinforcement-learning-rl-guide) (RL) and designing a custom [reward function](https://docs.unsloth.ai/get-started/reinforcement-learning-rl-guide#reward-functions-verifiers), these challenges can be overcome.
+
+RL can be adapted for tasks such as auto kernel or strategy creation. This tutorial shows how to train **gpt-oss** with [**GRPO**](https://docs.unsloth.ai/get-started/reinforcement-learning-rl-guide#from-rlhf-ppo-to-grpo-and-rlvr) and Unsloth to autonomously beat 2048.
+
+| [2048 notebook](https://colab.research.google.com/github/openai/gpt-oss/blob/main/examples/reinforcement-fine-tuning.ipynb) (Official OpenAI example) | [Kernel generation notebook](https://colab.research.google.com/github/unslothai/notebooks/blob/main/nb/gpt-oss-\(20B\)-GRPO.ipynb) |
+| ----------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+
+**What you’ll build:**
+
+* Train gpt-oss-20b so the model can automatically win 2048
+* Create a minimal 2048 environment the model can interact with
+* Define **reward functions** that:
+  1. Check the generated strategy compiles and runs,
+  2. Prevent reward hacking (disallow external imports), and
+  3. Reward actual game success
+* Run inference and export the model (MXFP4 4‑bit or merged FP16)
+
+{% hint style="info" %}
+**Hardware:** The 2048 example runs on a free Colab T4, but training will be slow. A100/H100 is much faster. 4‑bit loading + LoRA lets you fit a 20B model into modest VRAM.
+{% endhint %}
+
+{% stepper %}
+{% step %}
+
+Run this cell at the top of a notebook (works on Colab).
+
+### Load gpt-oss with Unsloth
+
+Load the 20B model in 4‑bit QLoRA for memory efficiency, then wrap it with a LoRA adapter. You can also train it in 16-bit LoRA but it will use 4x more memory. For more settings view our [configuration guide](https://docs.unsloth.ai/get-started/fine-tuning-llms-guide#id-2.-choose-the-right-model--method).
+
+{% hint style="info" %}
+If you hit OOM, try lowering `max_seq_length`, `lora_rank`, or `num_generations` (later), and keep `load_in_4bit=True`.
+{% endhint %}
+{% endstep %}
+
+### 2048 game environment (minimal)
+
+* A `GameBoard` class supporting **W/A/S/D** moves
+* Merge/score logic
+* `execute_with_time_limit` wrapper so poorly written strategies can’t hang the kernel
+
+You can quickly smoke‑test with a trivial policy:
+
+### Safe code execution & anti‑cheat checks
+
+Generated strategies are **Python functions**. To keep execution safe and prevent reward hacking:
+
+* **Module whitelist check** — only allow Python stdlib symbols:
+
+* **Block disallowed imports** (e.g., NumPy):
+
+* **Lock down execution** to a sandboxed function:
+
+* **Enforce a hard wall‑clock limit** on strategy runs:
+
+We prompt the model to **emit a short strategy function** inside triple backticks:
+
+python
+def strategy(board):
+    return "W"  # Example
+`
+
+Create a tiny synthetic dataset (reusing the same prompt) and compute the prompt length so GRPO knows how many completion tokens to sample:
+
+{% hint style="info" %}
+You can replace this dataset with real prompts for your own RL task.
+{% endhint %}
+{% endstep %}
+
+### Reward function time!
+
+1. **Extract the code block** from the model’s reply:
+
+") >= 2:
+           first = text.find("", first)
+           fx = text[first:second].strip()
+           fx = fx.removeprefix("python\n")
+           fx = fx[fx.find("def"):]
+           if fx.startswith("def strategy(board):"):
+               return fx
+       return None
+   python
+   from unsloth import create_locked_down_function, check_python_modules
+
+def function_works(completions, **kwargs):
+       scores = []
+       for completion in completions:
+           response = completion[0]["content"]
+           function = extract_function(response)
+           if function is None:
+               scores.append(-2.0)
+               continue
+           ok, info = check_python_modules(function)
+           if "error" in info:
+               scores.append(-2.0)
+               continue
+           try:
+               _ = create_locked_down_function(function)
+               scores.append(1.0)
+           except Exception:
+               scores.append(-0.5)
+       return scores
+   python
+   def no_cheating(completions, **kwargs):
+       scores = []
+       for completion in completions:
+           response = completion[0]["content"]
+           function = extract_function(response)
+           if function is None:
+               scores.append(-1.0)
+               continue
+           ok, _ = check_python_modules(function)
+           scores.append(1.0 if ok else -20.0)  # heavy penalty if cheating
+       return scores
+   python
+   import numpy as np
+
+PRINTER = 0  # occasionally print for debugging
+
+def strategy_succeeds(completions, **kwargs):
+       global PRINTER
+       scores = []
+       seed = np.random.randint(10000)
+       for completion in completions:
+           response = completion[0]["content"]
+           function = extract_function(response)
+           if function is None:
+               scores.append(-2.0)
+               continue
+           try:
+               new_strategy = create_locked_down_function(function)
+           except Exception:
+               scores.append(0.0)
+               continue
+           try:
+               game = GameBoard(size=6, seed=seed, target=2048, probability_fours=0.10)
+               steps, state = execute_strategy(new_strategy, game)
+               if PRINTER % 5 == 0:
+                   print(function)
+                   print(f"Steps={steps} State={state}")
+                   print(game.board().pretty())
+               PRINTER += 1
+               if state == "success":
+                   scores.append(20.0)
+               else:
+                   scores.append(2.0)   # worked but didn’t reach 2048
+           except TimeoutError:
+               scores.append(-1.0)      # timed out
+           except Exception:
+               scores.append(-3.0)      # crashed
+       return scores
+   python
+from trl import GRPOConfig, GRPOTrainer
+
+max_prompt_length     = maximum_length + 1
+max_completion_length = max_seq_length - max_prompt_length
+
+training_args = GRPOConfig(
+    temperature=1.0,
+    learning_rate=5e-5,
+    weight_decay=0.01,
+    warmup_ratio=0.1,
+    lr_scheduler_type="linear",
+    optim="adamw_8bit",
+    logging_steps=1,
+    per_device_train_batch_size=1,
+    gradient_accumulation_steps=1,    # bump to 4 for smoother reward signals
+    num_generations=2,                # lower if you OOM
+    max_prompt_length=max_prompt_length,
+    max_completion_length=max_completion_length,
+    max_steps=1000,                   # or set num_train_epochs=1
+    save_steps=100,
+    report_to="none",
+    output_dir="outputs",
+)
+
+trainer = GRPOTrainer(
+    model=model,
+    processing_class=tokenizer,
+    reward_funcs=[function_works, no_cheating, strategy_succeeds],
+    args=training_args,
+    train_dataset=dataset,
+    # Optional eval split:
+    # train_dataset=new_dataset["train"],
+    # eval_dataset=new_dataset["test"],
+)
+python
+trainer.train()
+python
+from transformers import TextStreamer
+
+text = tokenizer.apply_chat_template(
+    [{"role": "user", "content": prompt}],
+    tokenize=False,
+    add_generation_prompt=True,
+    reasoning_effort="low",
+)
+
+_ = model.generate(
+    **tokenizer(text, return_tensors="pt").to("cuda"),
+    temperature=1.0,
+    max_new_tokens=1024,
+    streamer=TextStreamer(tokenizer, skip_prompt=False)
+python
+  model.save_pretrained_merged("finetuned_model", tokenizer, save_method="mxfp4")
+  # or push
+  model.push_to_hub_merged("<org_or_user>/<repo>", tokenizer, token="<hf_token>", save_method="mxfp4")
+  python
+  model.save_pretrained_merged("finetuned_model", tokenizer, save_method="merged_16bit")
+  # or push
+  model.push_to_hub_merged("<org_or_user>/<repo>", tokenizer, token="<hf_token>", save_method="merged_16bit")
+  ```
+
+### Troubleshooting & tips
+
+* **OOM / slow**: reduce `max_seq_length`, `num_generations`, `lora_rank`; keep 4‑bit; try A100 if available.
+* **No reward improvement**: increase training steps, soften penalties, or add curriculum (start with smaller boards / lower targets).
+* **Reward hacking**: keep `check_python_modules` strict; validate strategy behavior across multiple random seeds.
+* **Unstable training**: raise `gradient_accumulation_steps` to smooth updates; lower `learning_rate` (e.g., 2e‑5).
+* **Long hangs**: ensure `execute_with_time_limit` wraps any strategy execution.
+  {% endstep %}
+
+### Adapt to your own RL task
+
+* Replace the 2048 env with your own environment and **three rewards**: (a) syntax/compilation, (b) anti‑cheat/safety, (c) task success.
+* Update the **prompt** to request the kind of function or output you need.
+* Keep the same Unsloth + GRPO scaffolding; only swap the env and rewards.
+  {% endstep %}
+  {% endstepper %}
+
+**Examples:**
+
+Example 1 (bash):
+```bash
+!pip install --upgrade -qqq uv
+try: import numpy; get_numpy = f"numpy=={numpy.__version__}"
+except: get_numpy = "numpy"
+!uv pip install -qqq \
+    "torch>=2.8.0" "triton>=3.4.0" {get_numpy} torchvision bitsandbytes "transformers==4.56.2" \
+    "unsloth_zoo[base] @ git+https://github.com/unslothai/unsloth-zoo" \
+    "unsloth[base] @ git+https://github.com/unslothai/unsloth" \
+    git+https://github.com/triton-lang/triton.git@05b2c186c1b6c9a08375389d5efe9cb4c401c075#subdirectory=python/triton_kernels
+!uv pip install --upgrade --no-deps transformers==4.56.2 tokenizers
+!uv pip install --no-deps trl==0.22.2
+```
+
+Example 2 (python):
+```python
+from unsloth import FastLanguageModel
+import torch
+
+max_seq_length = 768        # Increase if your task needs longer outputs
+lora_rank      = 4          # Higher rank → better but more VRAM/compute
+
+model, tokenizer = FastLanguageModel.from_pretrained(
+    model_name        = "unsloth/gpt-oss-20b",  # or unsloth/gpt-oss-20b-BF16 on H100
+    max_seq_length    = max_seq_length,
+    load_in_4bit      = True,                    # False for 16‑bit
+    offload_embedding = True,                    # saves ~1GB VRAM
+)
+
+model = FastLanguageModel.get_peft_model(
+    model,
+    r = lora_rank,
+    target_modules = [
+        "q_proj", "k_proj", "v_proj", "o_proj",
+        "gate_proj", "up_proj", "down_proj",
+    ],
+    lora_alpha = lora_rank * 2,
+    use_gradient_checkpointing = "unsloth",     # big memory saver
+    random_state = 3407,
+)
+```
+
+Example 3 (python):
+```python
+def always_move_left(board):
+    return "W"
+
+steps, outcome = execute_strategy(always_move_left, GameBoard(size=8, seed=42, target=2048, probability_fours=0.10))
+```
+
+Example 4 (python):
+```python
+from unsloth import check_python_modules
+  ok, info = check_python_modules("""
+  def strategy(board):
+      import math
+      from typing import Callable
+      return "W"
+  """)
+  # ok == True means only Python‑level imports were used
+```
+
+---
+
+## DeepSeek-V3.1: How to Run Locally
+
+**URL:** llms-txt#deepseek-v3.1:-how-to-run-locally
+
+**Contents:**
+- :gear: Recommended Settings
+- :butterfly:Chat template bug fixes
+  - 🐳Official Recommended Settings
+- :arrow\_forward:Run DeepSeek-V3.1 Tutorials:
+  - :llama: Run in Ollama/Open WebUI
+  - ✨ Run in llama.cpp
+
+A guide on how to run DeepSeek-V3.1 and Terminus on your own local device!
+
+DeepSeek’s V3.1 and **Terminus** update introduces hybrid reasoning inference, combining 'think' and 'non-think' into one model. The full 671B parameter model requires 715GB of disk space. The quantized dynamic 2-bit version uses 245GB (-75% reduction in size). GGUF: [**DeepSeek-V3.1-GGUF**](https://huggingface.co/unsloth/DeepSeek-V3.1-GGUF)
+
+{% hint style="success" %}
+**NEW:** DeepSeek-V3.1-Terminus out now: [DeepSeek-V3.1-Terminus-GGUF](https://huggingface.co/unsloth/DeepSeek-V3.1-Terminus-GGUF)\
+\
+[**Sept 10, 2025 update:**](https://docs.unsloth.ai/new/unsloth-dynamic-ggufs-on-aider-polyglot) You asked for tougher benchmarks, so we’re showcasing Aider Polyglot results! Our Dynamic 3-bit DeepSeek V3.1 GGUF scores **75.6%**, surpassing many full-precision SOTA LLMs. [Read more.](https://docs.unsloth.ai/new/unsloth-dynamic-ggufs-on-aider-polyglot)
+
+Our DeepSeek-V3.1 GGUFs include Unsloth [chat template fixes](#chat-template-bug-fixes) for llama.cpp supported backends.
+{% endhint %}
+
+All uploads use Unsloth [Dynamic 2.0](https://docs.unsloth.ai/basics/unsloth-dynamic-2.0-ggufs) for SOTA 5-shot MMLU and KL Divergence performance, meaning you can run & fine-tune quantized DeepSeek LLMs with minimal accuracy loss.
+
+**Tutorials navigation:**
+
+<a href="#run-in-llama.cpp" class="button secondary">Run in llama.cpp</a><a href="#run-in-ollama-open-webui" class="button secondary">Run in Ollama/Open WebUI</a>
+
+## :gear: Recommended Settings
+
+The 1-bit dynamic quant TQ1\_0 (1bit for unimportant MoE layers, 2-4bit for important MoE, and 6-8bit for rest) uses 170GB of disk space - this works well in a **1x24GB card and 128GB of RAM** with MoE offloading - it also **works natively in Ollama**!
+
+{% hint style="info" %}
+You must use `--jinja` for llama.cpp quants - this uses our [fixed chat templates](#chat-template-bug-fixes) and enables the correct template! You might get incorrect results if you do not use `--jinja`
+{% endhint %}
+
+The 2-bit quants will fit in a 1x 24GB GPU (with MoE layers offloaded to RAM). Expect around 5 tokens/s with this setup if you have bonus 128GB RAM as well. It is recommended to have at least 226GB RAM to run this 2-bit. For optimal performance you will need at least 226GB unified memory or 226GB combined RAM+VRAM for 5+ tokens/s. To learn how to increase generation speed and fit longer contexts, [read here](#improving-generation-speed).
+
+{% hint style="success" %}
+Though not a must, for best performance, have your VRAM + RAM combined equal to the size of the quant you're downloading. If not, hard drive / SSD offloading will work with llama.cpp, just inference will be slower.
+{% endhint %}
+
+## :butterfly:Chat template bug fixes
+
+We fixed a few issues with DeepSeek V3.1's chat template since they did not function correctly in llama.cpp and other engines:
+
+1. DeepSeek V3.1 is a hybrid reasoning model, meaning you can change the chat template to enable reasoning. The chat template introduced `thinking = True` , but other models use `enable_thinking = True` . We added the option to use `enable_thinking` as a keyword instead.
+2. llama.cpp's jinja renderer via [minja](https://github.com/google/minja) does not allow the use of extra arguments in the `.split()` command, so using `.split(text, 1)` works in Python, but not in minja. We had to change this to make llama.cpp function correctly without erroring out.\
+   \
+   You will get the following error when using other quants:\
+   `terminate called after throwing an instance of 'std::runtime_error' what(): split method must have between 1 and 1 positional arguments and between 0 and 0 keyword arguments at row 3, column 1908`  We fixed it in all our quants!
+
+### 🐳Official Recommended Settings
+
+According to [DeepSeek](https://huggingface.co/deepseek-ai/DeepSeek-V3.1), these are the recommended settings for V3.1 inference:
+
+* Set the <mark style="background-color:green;">**temperature 0.6**</mark> to reduce repetition and incoherence.
+* Set <mark style="background-color:green;">**top\_p to 0.95**</mark> (recommended)
+* **128K context length** or less
+* Use `--jinja` for llama.cpp variants - we **fixed some chat template issues as well!**
+* **Use** `enable_thinking = True` to use reasoning/ thinking mode. By default it's set to non reasoning.
+
+#### :1234: Chat template/prompt format
+
+You do not need to force `<think>\n` , but you can still add it in! With the given prefix, DeepSeek V3.1 generates responses to queries in non-thinking mode. Unlike DeepSeek V3, it introduces an additional token `</think>`.
+
+A BOS is forcibly added, and an EOS separates each interaction. To counteract double BOS tokens during inference, you should only call `tokenizer.encode(..., add_special_tokens = False)` since the chat template auto adds a BOS token as well. For llama.cpp / GGUF inference, you should skip the BOS since it’ll auto add it.
+
+#### :notebook\_with\_decorative\_cover: Non-Thinking Mode (use `thinking = False`or `enable_thinking = False` and is by default)
+
+Prefix: `<｜begin▁of▁sentence｜>{system prompt}<｜User｜>{query}<｜Assistant｜></think>`
+
+With the given prefix, DeepSeek V3.1 generates responses to queries in non-thinking mode. Unlike DeepSeek V3, it introduces an additional token `</think>`.
+
+Context: `<｜begin▁of▁sentence｜>{system prompt}<｜User｜>{query}<｜Assistant｜></think>{response}<｜end▁of▁sentence｜>...<｜User｜>{query}<｜Assistant｜></think>{response}<｜end▁of▁sentence｜>`
+
+Prefix: `<｜User｜>{query}<｜Assistant｜></think>`
+
+By concatenating the context and the prefix, we obtain the correct prompt for the query.
+
+#### :books: Thinking Mode (use `thinking = True`or `enable_thinking = True` and is by default)
+
+Prefix: `<｜begin▁of▁sentence｜>{system prompt}<｜User｜>{query}<｜Assistant｜><think>`
+
+The prefix of thinking mode is similar to DeepSeek-R1.
+
+Context: `<｜begin▁of▁sentence｜>{system prompt}<｜User｜>{query}<｜Assistant｜></think>{response}<｜end▁of▁sentence｜>...<｜User｜>{query}<｜Assistant｜></think>{response}<｜end▁of▁sentence｜>`
+
+Prefix: `<｜User｜>{query}<｜Assistant｜><think>`
+
+The multi-turn template is the same with non-thinking multi-turn chat template. It means the thinking token in the last turn will be dropped but the `</think>` is retained in every turn of context.
+
+#### :bow\_and\_arrow: Tool Calling
+
+Tool calling is supported in non-thinking mode. The format is:
+
+`<｜begin▁of▁sentence｜>{system prompt}{tool_description}<｜User｜>{query}<｜Assistant｜></think>` where we populate the tool\_description is area after the system prompt.
+
+## :arrow\_forward:Run DeepSeek-V3.1 Tutorials:
+
+### :llama: Run in Ollama/Open WebUI
+
+{% stepper %}
+{% step %}
+Install `ollama` if you haven't already! To run more variants of the model, [see here](#run-in-llama.cpp).
+
+{% step %}
+Run the model! Note you can call `ollama serve`in another terminal if it fails! We include all our fixes and suggested parameters (temperature etc) in `params` in our Hugging Face upload!\ <mark style="background-color:$success;">**(NEW) To run the full R1-0528 model in Ollama, you can use our TQ1\_0 (170GB quant):**</mark>
+
+{% step %}
+To run other quants, you need to first merge the GGUF split files into 1 like the code below. Then you will need to run the model locally.
+
+{% step %}
+Open WebUI also made a [step-by-step tutorial](https://docs.openwebui.com/tutorials/integrations/deepseekr1-dynamic/) on how to run R1 and for V3.1, you will just need to replace R1 with the new V3.1 quant.
+{% endstep %}
+{% endstepper %}
+
+### ✨ Run in llama.cpp
+
+{% stepper %}
+{% step %}
+Obtain the latest `llama.cpp` on [GitHub here](https://github.com/ggml-org/llama.cpp). You can follow the build instructions below as well. Change `-DGGML_CUDA=ON` to `-DGGML_CUDA=OFF` if you don't have a GPU or just want CPU inference.
+
+{% step %}
+If you want to use `llama.cpp` directly to load models, you can do the below: (:Q2\_K\_XL) is the quantization type. You can also download via Hugging Face (point 3). This is similar to `ollama run` . Use `export LLAMA_CACHE="folder"` to force `llama.cpp` to save to a specific location. Remember the model has only a maximum of 128K context length.
+
+{% hint style="success" %}
+Please try out `-ot ".ffn_.*_exps.=CPU"` to offload all MoE layers to the CPU! This effectively allows you to fit all non MoE layers on 1 GPU, improving generation speeds. You can customize the regex expression to fit more layers if you have more GPU capacity.
+
+If you have a bit more GPU memory, try `-ot ".ffn_(up|down)_exps.=CPU"` This offloads up and down projection MoE layers.
+
+Try `-ot ".ffn_(up)_exps.=CPU"` if you have even more GPU memory. This offloads only up projection MoE layers.
+
+And finally offload all layers via `-ot ".ffn_.*_exps.=CPU"` This uses the least VRAM.
+
+You can also customize the regex, for example `-ot "\.(6|7|8|9|[0-9][0-9]|[0-9][0-9][0-9])\.ffn_(gate|up|down)_exps.=CPU"` means to offload gate, up and down MoE layers but only from the 6th layer onwards.
+{% endhint %}
+
+{% step %}
+Download the model via (after installing `pip install huggingface_hub hf_transfer` ). You can choose `UD-`Q2\_K\_XL (dynamic 2bit quant) or other quantized versions like `Q4_K_M` . We <mark style="background-color:green;">**recommend using our 2.7bit dynamic quant**</mark><mark style="background-color:green;">**&#x20;**</mark><mark style="background-color:green;">**`UD-Q2_K_XL`**</mark><mark style="background-color:green;">**&#x20;**</mark><mark style="background-color:green;">**to balance size and accuracy**</mark>.
+
+**Examples:**
+
+Example 1 (unknown):
+```unknown
+<｜begin▁of▁sentence｜>{system prompt}<｜User｜>{query}<｜Assistant｜></think>
+```
+
+Example 2 (bash):
+```bash
+apt-get update
+apt-get install pciutils -y
+curl -fsSL https://ollama.com/install.sh | sh
+```
+
+Example 3 (unknown):
+```unknown
+OLLAMA_MODELS=unsloth ollama serve &
+
+OLLAMA_MODELS=unsloth ollama run hf.co/unsloth/DeepSeek-V3.1-Terminus-GGUF:TQ1_0
+```
+
+Example 4 (bash):
+```bash
+./llama.cpp/llama-gguf-split --merge \
+  DeepSeek-V3.1-Terminus-GGUF/DeepSeek-V3.1-Terminus-UD-Q2_K_XL/DeepSeek-V3.1-Terminus-UD-Q2_K_XL-00001-of-00006.gguf \
+	merged_file.gguf
+```
+
+---
+
+## Get LAION dataset
+
+**URL:** llms-txt#get-laion-dataset
+
+url = "https://huggingface.co/datasets/laion/OIG/resolve/main/unified_chip2.jsonl"
+dataset = load_dataset("json", data_files = {"train" : url}, split = "train")
+
+---
+
+## For Q8_0:
+
+**URL:** llms-txt#for-q8_0:
+
+**Contents:**
+- :question:Why is Q8\_K\_XL slower than Q8\_0 GGUF?
+- :question:How to do Evaluation
+- :question:Evaluation Loop - Out of Memory or crashing.
+- :question:How do I do Early Stopping?
+- :question:Downloading gets stuck at 90 to 95%
+- :question:RuntimeError: CUDA error: device-side assert triggered
+- :question:All labels in your dataset are -100. Training losses will be all 0.
+- :question:Some weights of Gemma3nForConditionalGeneration were not initialized from the model checkpoint
+- :question:NotImplementedError: A UTF-8 locale is required. Got ANSI
+- :green\_book:Citing Unsloth
+
+python llama.cpp/convert_hf_to_gguf.py merged_model \
+    --outfile model-Q8_0.gguf --outtype q8_0 \
+    --split-max-size 50G
+python
+new_dataset = dataset.train_test_split(
+    test_size = 0.01, # 1% for test size can also be an integer for # of rows
+    shuffle = True, # Should always set to True!
+    seed = 3407,
+)
+
+train_dataset = new_dataset["train"] # Dataset for training
+eval_dataset = new_dataset["test"] # Dataset for evaluation
+python
+from trl import SFTTrainer, SFTConfig
+trainer = SFTTrainer(
+    args = SFTConfig(
+        fp16_full_eval = True,         # Set this to reduce memory usage
+        per_device_eval_batch_size = 2,# Increasing this will use more memory
+        eval_accumulation_steps = 4,   # You can increase this include of batch_size
+        eval_strategy = "steps",       # Runs eval every few steps or epochs.
+        eval_steps = 1,                # How many evaluations done per # of training steps
+    ),
+    train_dataset = new_dataset["train"],
+    eval_dataset = new_dataset["test"],
+    ...
+)
+trainer.train()
+python
+new_dataset = dataset.train_test_split(test_size = 0.01)
+
+from trl import SFTTrainer, SFTConfig
+trainer = SFTTrainer(
+    args = SFTConfig(
+        fp16_full_eval = True,
+        per_device_eval_batch_size = 2,
+        eval_accumulation_steps = 4,
+        eval_strategy = "steps",
+        eval_steps = 1,
+    ),
+    train_dataset = new_dataset["train"],
+    eval_dataset = new_dataset["test"],
+    ...
+)
+python
+from trl import SFTConfig, SFTTrainer
+trainer = SFTTrainer(
+    args = SFTConfig(
+        fp16_full_eval = True,
+        per_device_eval_batch_size = 2,
+        eval_accumulation_steps = 4,
+        output_dir = "training_checkpoints", # location of saved checkpoints for early stopping
+        save_strategy = "steps",             # save model every N steps
+        save_steps = 10,                     # how many steps until we save the model
+        save_total_limit = 3,                # keep ony 3 saved checkpoints to save disk space
+        eval_strategy = "steps",             # evaluate every N steps
+        eval_steps = 10,                     # how many steps until we do evaluation
+        load_best_model_at_end = True,       # MUST USE for early stopping
+        metric_for_best_model = "eval_loss", # metric we want to early stop on
+        greater_is_better = False,           # the lower the eval loss, the better
+    ),
+    model = model,
+    tokenizer = tokenizer,
+    train_dataset = new_dataset["train"],
+    eval_dataset = new_dataset["test"],
+)
+python
+from transformers import EarlyStoppingCallback
+early_stopping_callback = EarlyStoppingCallback(
+    early_stopping_patience = 3,     # How many steps we will wait if the eval loss doesn't decrease
+                                     # For example the loss might increase, but decrease after 3 steps
+    early_stopping_threshold = 0.0,  # Can set higher - sets how much loss should decrease by until
+                                     # we consider early stopping. For eg 0.01 means if loss was
+                                     # 0.02 then 0.01, we consider to early stop the run.
+)
+trainer.add_callback(early_stopping_callback)
+python
+import os
+os.environ["UNSLOTH_STABLE_DOWNLOADS"] = "1"
+
+from unsloth import FastLanguageModel
+python
+import os
+os.environ["UNSLOTH_COMPILE_DISABLE"] = "1"
+os.environ["UNSLOTH_DISABLE_FAST_GENERATION"] = "1"
+python
+from unsloth.chat_templates import train_on_responses_only
+trainer = train_on_responses_only(
+    trainer,
+    instruction_part = "<|start_header_id|>user<|end_header_id|>\n\n",
+    response_part = "<|start_header_id|>assistant<|end_header_id|>\n\n",
+)
+python
+from unsloth.chat_templates import train_on_responses_only
+trainer = train_on_responses_only(
+    trainer,
+    instruction_part = "<start_of_turn>user\n",
+    response_part = "<start_of_turn>model\n",
+)
+python
+import locale
+locale.getpreferredencoding = lambda: "UTF-8"
+
+@misc{unsloth_2025_qwen3_30b_a3b,
+  author       = {Unsloth AI and Han-Chen, Daniel and Han-Chen, Michael},
+  title        = {Qwen3-30B-A3B-GGUF:Q8\_K\_XL},
+  year         = {2025},
+  publisher    = {Hugging Face},
+  howpublished = {\url{https://huggingface.co/unsloth/Qwen3-30B-A3B-GGUF}}
+}
+
+@misc{unsloth,
+  author       = {Unsloth AI and Han-Chen, Daniel and Han-Chen, Michael},
+  title        = {Unsloth},
+  year         = {2025},
+  publisher    = {Github},
+  howpublished = {\url{https://github.com/unslothai/unsloth}}
+}
+```
+
+**Examples:**
+
+Example 1 (unknown):
+```unknown
+## :question:Why is Q8\_K\_XL slower than Q8\_0 GGUF?
+
+On Mac devices, it seems like that BF16 might be slower than F16. Q8\_K\_XL upcasts some layers to BF16, so hence the slowdown, We are actively changing our conversion process to make F16 the default choice for Q8\_K\_XL to reduce performance hits.&#x20;
+
+## :question:How to do Evaluation
+
+To set up evaluation in your training run, you first have to split your dataset into a training and test split. You should <mark style="background-color:green;">**always shuffle the selection of the dataset**</mark>, otherwise your evaluation is wrong!
+```
+
+Example 2 (unknown):
+```unknown
+Then, we can set the training arguments to enable evaluation. Reminder evaluation can be very very slow especially if you set `eval_steps = 1`  which means you are evaluating every single step. If you are, try reducing the eval\_dataset size to say 100 rows or something.
+```
+
+Example 3 (unknown):
+```unknown
+## :question:Evaluation Loop - Out of Memory or crashing.
+
+A common issue when you OOM is because you set your batch size too high. Set it lower than 2 to use less VRAM. Also use `fp16_full_eval=True` to use float16 for evaluation which cuts memory by 1/2.
+
+First split your training dataset into a train and test split. Set the trainer settings for evaluation to:
+```
+
+Example 4 (unknown):
+```unknown
+This will cause no OOMs and make it somewhat faster. You can also use `bf16_full_eval=True` for bf16 machines. By default Unsloth should have set these flags on by default as of June 2025.
+
+## :question:How do I do Early Stopping?
+
+If you want to stop the finetuning / training run since the evaluation loss is not decreasing, then you can use early stopping which stops the training process. Use `EarlyStoppingCallback`.
+
+As usual, set up your trainer and your evaluation dataset. The below is used to stop the training run if the `eval_loss` (the evaluation loss) is not decreasing after 3 steps or so.
+```
+
+---
+
+## Unsloth Benchmarks
+
+**URL:** llms-txt#unsloth-benchmarks
+
+**Contents:**
+- Context length benchmarks
+  - **Llama 3.1 (8B) max. context length**
+  - **Llama 3.3 (70B) max. context length**
+
+Unsloth recorded benchmarks on NVIDIA GPUs.
+
+* For more detailed benchmarks, read our [Llama 3.3 Blog](https://unsloth.ai/blog/llama3-3).&#x20;
+* Benchmarking of Unsloth was also conducted by [🤗Hugging Face](https://huggingface.co/blog/unsloth-trl).
+
+Tested on H100 and [Blackwell](https://docs.unsloth.ai/basics/fine-tuning-llms-with-blackwell-rtx-50-series-and-unsloth) GPUs. We tested using the Alpaca Dataset, a batch size of 2, gradient accumulation steps of 4, rank = 32, and applied QLoRA on all linear layers (q, k, v, o, gate, up, down):
+
+<table data-full-width="false"><thead><tr><th>Model</th><th>VRAM</th><th>🦥Unsloth speed</th><th>🦥VRAM reduction</th><th>🦥Longer context</th><th>😊Hugging Face + FA2</th></tr></thead><tbody><tr><td>Llama 3.3 (70B)</td><td>80GB</td><td>2x</td><td>>75%</td><td>13x longer</td><td>1x</td></tr><tr><td>Llama 3.1 (8B)</td><td>80GB</td><td>2x</td><td>>70%</td><td>12x longer</td><td>1x</td></tr></tbody></table>
+
+## Context length benchmarks
+
+{% hint style="info" %}
+The more data you have, the less VRAM Unsloth uses due to our [gradient checkpointing](https://unsloth.ai/blog/long-context) algorithm + Apple's CCE algorithm!
+{% endhint %}
+
+### **Llama 3.1 (8B) max. context length**
+
+We tested Llama 3.1 (8B) Instruct and did 4bit QLoRA on all linear layers (Q, K, V, O, gate, up and down) with rank = 32 with a batch size of 1. We padded all sequences to a certain maximum sequence length to mimic long context finetuning workloads.
+
+| GPU VRAM | 🦥Unsloth context length | Hugging Face + FA2 |
+| -------- | ------------------------ | ------------------ |
+| 8 GB     | 2,972                    | OOM                |
+| 12 GB    | 21,848                   | 932                |
+| 16 GB    | 40,724                   | 2,551              |
+| 24 GB    | 78,475                   | 5,789              |
+| 40 GB    | 153,977                  | 12,264             |
+| 48 GB    | 191,728                  | 15,502             |
+| 80 GB    | 342,733                  | 28,454             |
+
+### **Llama 3.3 (70B) max. context length**
+
+We tested Llama 3.3 (70B) Instruct on a 80GB A100 and did 4bit QLoRA on all linear layers (Q, K, V, O, gate, up and down) with rank = 32 with a batch size of 1. We padded all sequences to a certain maximum sequence length to mimic long context finetuning workloads.
+
+| GPU VRAM | 🦥Unsloth context length | Hugging Face + FA2 |
+| -------- | ------------------------ | ------------------ |
+| 48 GB    | 12,106                   | OOM                |
+| 80 GB    | 89,389                   | 6,916              |
+
+---
+
+## Fine-tuning LLMs with NVIDIA DGX Spark and Unsloth
+
+**URL:** llms-txt#fine-tuning-llms-with-nvidia-dgx-spark-and-unsloth
+
+**Contents:**
+  - ⚡ Step-by-Step Tutorial
+
+Tutorial on how to fine-tune and do reinforcement learning (RL) with OpenAI gpt-oss on NVIDIA DGX Spark.
+
+Unsloth enables local fine-tuning of LLMs with up to **200B parameters** on the NVIDIA DGX™ Spark. With 128 GB of unified memory, you can train massive models such as **gpt-oss-120b**, and run or deploy inference directly on DGX Spark.
+
+As shown at [OpenAI DevDay](https://x.com/UnslothAI/status/1976284209842118714), gpt-oss-20b was trained with RL and Unsloth on DGX Spark to auto-win 2048. You can train using Unsloth in a Docker container or virtual environment on DGX Spark.
+
+<div align="center" data-full-width="false"><figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FupFB7CQgzOvR4nJO9pAS%2Funsloth%20nvidia%20dgx%20spark.png?alt=media&#x26;token=1f14c0ff-99a9-40e9-ba7f-30b462ab4f5f" alt="" width="375"><figcaption></figcaption></figure> <figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FjgfO6NvzOLLtw5xVQEHs%2FNotebooks%20on%20dgx.png?alt=media&#x26;token=88a067a5-c16c-4c73-b073-4b4917551069" alt="" width="375"><figcaption></figcaption></figure></div>
+
+In this tutorial, we’ll train gpt-oss-20b with RL using Unsloth notebooks after installing Unsloth on your DGX Spark. gpt-oss-120b will use around **68GB** of unified memory.
+
+After 1,000 steps and 4 hours of RL training, the gpt-oss model greatly outperforms the original on 2048, and longer training would further improve results.
+
+<div><figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FtzJW3WE7SKKyQ7HqJ4mS%2Fopenai%20devday%20unsloth%20feature.png?alt=media&#x26;token=fe2e0f9a-012f-4022-b57b-cdadf364ca7d" alt="" width="375"><figcaption><p>You can watch Unsloth featured on OpenAI DevDay 2025 <a href="https://youtu.be/1HL2YHRj270?si=8SR6EChF34B1g-5r&#x26;t=1080">here</a>.</p></figcaption></figure> <figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FJRXY3YyhIzc283oy7e4H%2FScreenshot%202025-10-13%20at%204.22.32%E2%80%AFPM.png?alt=media&#x26;token=c06b9bb5-89b3-49ea-b8d5-11124dbd317b" alt="" width="375"><figcaption><p>gpt-oss trained with RL consistently outperforms on 2048.</p></figcaption></figure></div>
+
+### ⚡ Step-by-Step Tutorial
+
+{% stepper %}
+{% step %}
+
+#### Start with Unsloth Docker image for DGX Spark
+
+First, build the Docker image using the DGX Spark Dockerfile which can be [found here](https://raw.githubusercontent.com/unslothai/notebooks/main/Dockerfile_DGX_Spark). You can also run the below in a Terminal in the DGX Spark:
+
+Then, build the training Docker image using saved Dockerfile:
+
+<figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FVb6XRji1VVvJQRg7zFRD%2Fdgx1.png?alt=media&#x26;token=463990ee-e96b-4a77-882a-8b9532f2848a" alt="" width="563"><figcaption></figcaption></figure>
+
+<summary>You can also click to see the full DGX Spark Dockerfile</summary>
+
+```python
+FROM nvcr.io/nvidia/pytorch:25.09-py3
+
+**Examples:**
+
+Example 1 (bash):
+```bash
+sudo apt update && sudo apt install -y wget
+wget -O Dockerfile "https://raw.githubusercontent.com/unslothai/notebooks/main/Dockerfile_DGX_Spark"
+```
+
+Example 2 (bash):
+```bash
+docker build -f Dockerfile -t unsloth-dgx-spark .
+```
+
+---
+
+## DeepSeek-OCR: How to Run & Fine-tune
+
+**URL:** llms-txt#deepseek-ocr:-how-to-run-&-fine-tune
+
+**Contents:**
+- 🖥️ **Running DeepSeek-OCR**
+  - :gear: Recommended Settings
+  - 📖 vLLM: Run DeepSeek-OCR Tutorial
+
+Guide on how to run and fine-tune DeepSeek-OCR locally.
+
+**DeepSeek-OCR** is a 3B-parameter vision model for OCR and document understanding. It uses *context optical compression* to convert 2D layouts into vision tokens, enabling efficient long-context processing.
+
+Capable of handling tables, papers, and handwriting, DeepSeek-OCR achieves 97% precision while using 10× fewer vision tokens than text tokens - making it 10× more efficient than text-based LLMs.
+
+You can fine-tune DeepSeek-OCR to enhance its vision or language performance. In our Unsloth [**free fine-tuning notebook**](https://colab.research.google.com/github/unslothai/notebooks/blob/main/nb/Deepseek_OCR_\(3B\).ipynb), we demonstrated a [88.26% improvement](#fine-tuning-deepseek-ocr) for language understanding.
+
+<a href="#running-deepseek-ocr" class="button primary">Running DeepSeek-OCR</a><a href="#fine-tuning-deepseek-ocr" class="button primary">Fine-tuning DeepSeek-OCR</a>
+
+> **Our model upload that enables fine-tuning + more inference support:** [**DeepSeek-OCR**](https://huggingface.co/unsloth/DeepSeek-OCR)
+
+## 🖥️ **Running DeepSeek-OCR**
+
+To run the model in [vLLM](#vllm-run-deepseek-ocr-tutorial) or [Unsloth](#unsloth-run-deepseek-ocr-tutorial), here are the recommended settings:
+
+### :gear: Recommended Settings
+
+DeepSeek recommends these settings:
+
+* <mark style="background-color:blue;">**Temperature = 0.0**</mark>
+* `max_tokens = 8192`
+* `ngram_size = 30`
+* `window_size = 90`
+
+### 📖 vLLM: Run DeepSeek-OCR Tutorial
+
+1. Obtain the latest `vLLM` via:
+
+```bash
+uv venv
+source .venv/bin/activate
+
+---
+
+## Tutorial: How to Fine-tune gpt-oss
+
+**URL:** llms-txt#tutorial:-how-to-fine-tune-gpt-oss
+
+**Contents:**
+- 🌐 Colab gpt-oss Fine-tuning
+  - Install Unsloth (in Colab)
+  - Configuring gpt-oss and Reasoning Effort
+  - Fine-tuning Hyperparameters (LoRA)
+  - Try Inference
+  - Data Preparation
+  - Train the model
+  - Inference: Run your trained model
+  - Save/export your model
+  - :sparkles: Saving to Llama.cpp
+
+Learn step-by-step how to train OpenAI gpt-oss locally with Unsloth.
+
+In this guide with screenshots, you'll learn to fine-tune your own custom gpt-oss model either [locally](#local-gpt-oss-fine-tuning) on your machine or for free using [Google Colab](#colab-gpt-oss-fine-tuning). We'll walk you through the entire process, from setup to running and saving your trained model.
+
+{% hint style="success" %}
+[**Aug 28 update**](https://docs.unsloth.ai/models/long-context-gpt-oss-training#introducing-unsloth-flex-attention-support)**:** You can now export/save your QLoRA fine-tuned gpt-oss model to llama.cpp, vLLM, HF etc.
+
+We also introduced [Unsloth Flex Attention](https://docs.unsloth.ai/models/long-context-gpt-oss-training#introducing-unsloth-flex-attention-support) which enables **>8× longer context lengths**, **>50% less VRAM usage** and **>1.5× faster training** vs. all implementations. [Read more here](https://docs.unsloth.ai/models/long-context-gpt-oss-training#introducing-unsloth-flex-attention-support)
+{% endhint %}
+
+> **Quickstart:** Fine-tune gpt-oss-20b for free with our: [Colab notebook](https://colab.research.google.com/github/unslothai/notebooks/blob/main/nb/gpt-oss-\(20B\)-Fine-tuning.ipynb)
+
+Unsloth gpt-oss fine-tuning, when compared to all other FA2 implementations, achieves 1.5× faster training, 70% reduction in VRAM use, and 10x longer context lengths - with no accuracy loss.
+
+* **QLoRA requirements:** gpt-oss-20b = 14GB VRAM • gpt-oss-120b = 65GB VRAM.
+* **BF16 LoRA requirements:** gpt-oss-20b = 44GB VRAM • gpt-oss-120b = 210GB VRAM.
+
+<a href="#local-gpt-oss-fine-tuning" class="button secondary">Local Guide</a><a href="#colab-gpt-oss-fine-tuning" class="button secondary">Colab Guide</a>
+
+## 🌐 Colab gpt-oss Fine-tuning
+
+This section covers fine-tuning gpt-oss using our Google Colab [notebooks](https://docs.unsloth.ai/get-started/unsloth-notebooks). You can also save and use the gpt-oss notebook into your favorite code editor and follow our [local gpt-oss guide](#local-gpt-oss-fine-tuning).
+
+{% stepper %}
+{% step %}
+
+### Install Unsloth (in Colab)
+
+In Colab, run cells **from top to bottom**. Use **Run all** for the first pass. The first cell installs Unsloth (and related dependencies) and prints GPU/memory info. If a cell throws an error, simply re-run it.
+
+<figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FnVWahTM3dRcNxUl7yNlw%2Fchrome_wTbzfmSI21.png?alt=media&#x26;token=fe257ba6-512d-4000-bdf7-9a9a586c85a4" alt=""><figcaption></figcaption></figure>
+
+<figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FwSOux9qJpXmROoriYA4U%2Fchrome_yPnb553OGW.png?alt=media&#x26;token=c14a59e6-709e-44b5-9aa3-6ab8eeb610da" alt=""><figcaption></figcaption></figure>
+{% endstep %}
+
+### Configuring gpt-oss and Reasoning Effort
+
+We’ll load **`gpt-oss-20b`**  using Unsloth's [linearized version](https://docs.unsloth.ai/models/gpt-oss-how-to-run-and-fine-tune/..#making-efficient-gpt-oss-fine-tuning-work) (as no other version will work).&#x20;
+
+Configure the following parameters:
+
+* `max_seq_length = 1024`
+  * Recommended for quick testing and initial experiments.
+* `load_in_4bit = True`&#x20;
+  * Use `False` for LoRA training (note: setting this to `False` will need at least 43GB VRAM). You ***MUST*** also set **`model_name = "unsloth/gpt-oss-20b-BF16"`**
+
+<figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FndJWBQP3WUW5tR6CNyrP%2Fchrome_3qSe2UIFN0.png?alt=media&#x26;token=b43534ee-0d71-495a-b89c-91f52317354f" alt=""><figcaption></figcaption></figure>
+
+You should see output similar to the example below. Note: We explicitly change the `dtype` to `float32` to ensure correct training behavior.
+
+<figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FOMNOnDuWl2c95WuxSkDA%2Fchrome_DGMDHldw0J.png?alt=media&#x26;token=a086266b-7b88-4fcf-a7cd-5a17cc57e7f9" alt=""><figcaption></figcaption></figure>
+{% endstep %}
+
+### Fine-tuning Hyperparameters (LoRA)
+
+Now it's time to adjust your training hyperparameters. For a deeper dive into how, when, and what to tune, check out our [detailed hyperparameters guide](https://docs.unsloth.ai/get-started/fine-tuning-llms-guide/lora-hyperparameters-guide).
+
+{% hint style="info" %}
+To avoid [overfitting](https://docs.unsloth.ai/get-started/fine-tuning-llms-guide/lora-hyperparameters-guide#avoiding-overfitting-and-underfitting), monitor your training loss and avoid setting these values too high.&#x20;
+{% endhint %}
+
+This step adds LoRA adapters for parameter-efficient fine-tuning. Only about 1% of the model’s parameters are trained, which makes the process significantly more efficient.
+
+<figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2Fwkbdee4FuThTM09oqUkL%2Fchrome_ucj0VKT1lh.png?alt=media&#x26;token=40b5ae77-31f8-4e13-841d-e4cc52e1436b" alt=""><figcaption></figcaption></figure>
+{% endstep %}
+
+In the notebook, there's a section called *"Reasoning Effort"* that demonstrates gpt-oss inference running in Colab. You can skip this step, but you'll still need to run the model later once you've finished fine-tuning it.
+
+<figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FfXyFmwpMF1AgRRhnOQR8%2Fchrome_o2rLNfES8e.png?alt=media&#x26;token=6ef340fa-2ac0-4e82-9338-d91f66d1557a" alt=""><figcaption></figcaption></figure>
+{% endstep %}
+
+For this example, we will use the [`HuggingFaceH4/Multilingual-Thinking`](https://huggingface.co/datasets/HuggingFaceH4/Multilingual-Thinking). This dataset contains chain-of-thought reasoning examples derived from user questions translated from English into four additional languages.&#x20;
+
+This is the same dataset referenced in OpenAI's fine-tuning cookbook.
+
+The goal of using a multilingual dataset is to help the model learn and generalize reasoning patterns across multiple languages.
+
+<figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2Fii6rqKAKqBYea2ZLoXKJ%2Fchrome_rRKmU99f0T.png?alt=media&#x26;token=74547cc7-0be9-4687-b128-1ff4b87d544f" alt=""><figcaption></figcaption></figure>
+
+gpt-oss introduces a reasoning effort system that controls how much reasoning the model performs. By default, the reasoning effort is set to `low`, but you can change it by setting the `reasoning_effort` parameter to `low`, `medium` or `high`.
+
+To format the dataset, we apply a customized version of the gpt-oss prompt:
+
+Let's inspect the dataset by printing the first example:
+
+<figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FDoRtTfO0oSVDg99Dm3dc%2Fchrome_sjbDtIhP5e.png?alt=media&#x26;token=c0fb44b6-861c-47b1-86a5-75c55771936e" alt=""><figcaption></figcaption></figure>
+
+One unique feature of gpt-oss is its use of the [**OpenAI Harmony format**](https://github.com/openai/harmony)**,** which supports structured conversations, reasoning output, and tool calling. This format includes tags such as `<|start|>` , `<|message|>` , and `<|return|>` .&#x20;
+
+{% hint style="info" %}
+🦥 Unsloth fixes the chat template to ensure it is correct. See this [tweet](https://x.com/danielhanchen/status/1953901104150065544) for technical details on our template fix.
+{% endhint %}
+
+Feel free to adapt the prompt and structure to suit your own dataset or use-case. For more guidance, refer to our [dataset guide](https://docs.unsloth.ai/get-started/fine-tuning-llms-guide/datasets-guide).
+{% endstep %}
+
+We've pre-selected training hyperparameters for optimal results. However, you can modify them based on your specific use case. Refer to our [hyperparameters guide](https://docs.unsloth.ai/get-started/fine-tuning-llms-guide/lora-hyperparameters-guide).&#x20;
+
+In this example, we train for 60 steps to speed up the process. For a full training run, set `num_train_epochs=1` and disable the step limiting by setting `max_steps=None`.
+
+<figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FcQroeXLcHOHaRsUiCyYL%2Fchrome_R85PmZRHMQ.png?alt=media&#x26;token=e2069d2e-ef15-4179-ba49-fc484cf26b0b" alt=""><figcaption></figcaption></figure>
+
+During training, monitor the loss to ensure that it is decreasing over time. This confirms that the training process is functioning correctly.
+
+<figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FmcHwJsR2kzTpab4gTgUY%2Fimage.png?alt=media&#x26;token=03b873b3-8e1c-42ee-826e-d62feab7d703" alt=""><figcaption></figcaption></figure>
+{% endstep %}
+
+### Inference: Run your trained model
+
+Now it's time to run inference with your fine-tuned model. You can modify the instruction and input, but leave the output blank.
+
+In this example, we test the model's ability to reason in French by adding a specific instruction to the system prompt, following the same structure used in our dataset.
+
+<figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2F2oDtZBxHXle9KsWSqTzT%2Fchrome_jbJmBTaY7B.png?alt=media&#x26;token=9a2bcba5-9e60-4a5e-836c-27e5f45a9bf4" alt=""><figcaption></figcaption></figure>
+
+This should produce an output similar to:
+
+<figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2F9RTKGdSeuca5QfDhVXFw%2Fchrome_ORco4bpZZ6.png?alt=media&#x26;token=1d5bf29e-c57c-41f0-a2e5-162408d80690" alt=""><figcaption></figcaption></figure>
+{% endstep %}
+
+### Save/export your model
+
+To save your fine-tuned model, you can export your fine-tuned model both in **bf16 format ,** with our **on-demand dequantization of MXFP4** base models using `save_method="merged_16bit"`or in native **MXFP4** Safetensors format using `save_method="mxfp4"` .
+
+The **MXFP4** native merge format offers significant performance improvements compared to the **bf16 format**: it uses up to 75% less disk space, reduces VRAM consumption by 50%, accelerates merging by 5-10x, and enables much faster conversion to **GGUF** format.
+
+{% hint style="success" %}
+New: Saving or merging QLoRA fine-tuned models to GGUF is now supported for use in other frameworks (e.g. Hugging Face, llama.cpp with GGUF).
+{% endhint %}
+
+After fine-tuning your gpt-oss model, you can merge it into **MXFP4** format with:
+
+If you prefer to merge the model and push to the hugging-face hub directly:
+
+### :sparkles: Saving to Llama.cpp
+
+1. Obtain the latest `llama.cpp` on [GitHub here](https://github.com/ggml-org/llama.cpp). You can follow the build instructions below as well. Change `-DGGML_CUDA=ON` to `-DGGML_CUDA=OFF` if you don't have a GPU or just want CPU inference.
+
+2. Convert the **MXFP4** merged model:
+
+3. Run inference on the quantized model:
+
+<figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FVHzhTH5oCJZKPXpqmuOQ%2Fchrome_fKEKXHti5r.png?alt=media&#x26;token=c470698a-80e5-4c52-92e2-bff901fc2746" alt=""><figcaption></figcaption></figure>
+{% endstep %}
+{% endstepper %}
+
+## 🖥️ Local gpt-oss Fine-tuning
+
+This chapter covers fine-tuning gpt-oss on your local device. While **gpt-oss-20b** fine-tuning can operate on just 14GB VRAM, we recommend having at least 16GB VRAM available to ensure stable and reliable training runs.
+
+{% hint style="info" %}
+We recommend downloading or incorporating elements from our Colab [notebooks](https://docs.unsloth.ai/get-started/unsloth-notebooks) into your local setup for easier use.
+{% endhint %}
+
+{% stepper %}
+{% step %}
+
+### Install Unsloth Locally
+
+Ensure your device is [Unsloth compatible](https://docs.unsloth.ai/get-started/beginner-start-here/unsloth-requirements) and you can read our detailed [installation guide](https://docs.unsloth.ai/get-started/install-and-update).
+
+Note that `pip install unsloth` will not work for this setup, as we need to use the latest PyTorch, Triton and related packages. Install Unsloth using this specific command:
+
+**Examples:**
+
+Example 1 (python):
+```python
+tokenizer.apply_chat_template(
+    text, 
+    tokenize = False, 
+    add_generation_prompt = False,
+    reasoning_effort = "medium",
+)
+```
+
+Example 2 (python):
+```python
+from unsloth.chat_templates import standardize_sharegpt
+dataset = standardize_sharegpt(dataset)
+dataset = dataset.map(formatting_prompts_func, batched = True,)
+```
+
+Example 3 (unknown):
+```unknown
+<figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FDoRtTfO0oSVDg99Dm3dc%2Fchrome_sjbDtIhP5e.png?alt=media&#x26;token=c0fb44b6-861c-47b1-86a5-75c55771936e" alt=""><figcaption></figcaption></figure>
+
+One unique feature of gpt-oss is its use of the [**OpenAI Harmony format**](https://github.com/openai/harmony)**,** which supports structured conversations, reasoning output, and tool calling. This format includes tags such as `<|start|>` , `<|message|>` , and `<|return|>` .&#x20;
+
+{% hint style="info" %}
+🦥 Unsloth fixes the chat template to ensure it is correct. See this [tweet](https://x.com/danielhanchen/status/1953901104150065544) for technical details on our template fix.
+{% endhint %}
+
+Feel free to adapt the prompt and structure to suit your own dataset or use-case. For more guidance, refer to our [dataset guide](https://docs.unsloth.ai/get-started/fine-tuning-llms-guide/datasets-guide).
+{% endstep %}
+
+{% step %}
+
+### Train the model
+
+We've pre-selected training hyperparameters for optimal results. However, you can modify them based on your specific use case. Refer to our [hyperparameters guide](https://docs.unsloth.ai/get-started/fine-tuning-llms-guide/lora-hyperparameters-guide).&#x20;
+
+In this example, we train for 60 steps to speed up the process. For a full training run, set `num_train_epochs=1` and disable the step limiting by setting `max_steps=None`.
+
+<figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FcQroeXLcHOHaRsUiCyYL%2Fchrome_R85PmZRHMQ.png?alt=media&#x26;token=e2069d2e-ef15-4179-ba49-fc484cf26b0b" alt=""><figcaption></figcaption></figure>
+
+During training, monitor the loss to ensure that it is decreasing over time. This confirms that the training process is functioning correctly.
+
+<figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FmcHwJsR2kzTpab4gTgUY%2Fimage.png?alt=media&#x26;token=03b873b3-8e1c-42ee-826e-d62feab7d703" alt=""><figcaption></figcaption></figure>
+{% endstep %}
+
+{% step %}
+
+### Inference: Run your trained model
+
+Now it's time to run inference with your fine-tuned model. You can modify the instruction and input, but leave the output blank.
+
+In this example, we test the model's ability to reason in French by adding a specific instruction to the system prompt, following the same structure used in our dataset.
+
+<figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2F2oDtZBxHXle9KsWSqTzT%2Fchrome_jbJmBTaY7B.png?alt=media&#x26;token=9a2bcba5-9e60-4a5e-836c-27e5f45a9bf4" alt=""><figcaption></figcaption></figure>
+
+This should produce an output similar to:
+
+<figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2F9RTKGdSeuca5QfDhVXFw%2Fchrome_ORco4bpZZ6.png?alt=media&#x26;token=1d5bf29e-c57c-41f0-a2e5-162408d80690" alt=""><figcaption></figcaption></figure>
+{% endstep %}
+
+{% step %}
+
+### Save/export your model
+
+To save your fine-tuned model, you can export your fine-tuned model both in **bf16 format ,** with our **on-demand dequantization of MXFP4** base models using `save_method="merged_16bit"`or in native **MXFP4** Safetensors format using `save_method="mxfp4"` .
+
+The **MXFP4** native merge format offers significant performance improvements compared to the **bf16 format**: it uses up to 75% less disk space, reduces VRAM consumption by 50%, accelerates merging by 5-10x, and enables much faster conversion to **GGUF** format.
+
+{% hint style="success" %}
+New: Saving or merging QLoRA fine-tuned models to GGUF is now supported for use in other frameworks (e.g. Hugging Face, llama.cpp with GGUF).
+{% endhint %}
+
+After fine-tuning your gpt-oss model, you can merge it into **MXFP4** format with:
+```
+
+Example 4 (unknown):
+```unknown
+If you prefer to merge the model and push to the hugging-face hub directly:
+```
+
+---
+
+## Advanced RL Documentation
+
+**URL:** llms-txt#advanced-rl-documentation
+
+**Contents:**
+- Training Parameters
+- Generation Parameters
+- Batch & Throughput Parameters
+  - Parameters that control batches
+  - GRPO Batch Examples
+  - Quick Formula Reference
+
+Advanced documentation settings when using Unsloth with GRPO.
+
+Detailed guides on doing GRPO with Unsloth for Batching, Generation & Training Parameters:
+
+## Training Parameters
+
+* **`beta`** *(float, default 0.0)*: KL coefficient.
+  * `0.0` ⇒ no reference model loaded (lower memory, faster).
+  * Higher `beta` constrains the policy to stay closer to the ref policy.
+* **`num_iterations`** *(int, default 1)*: PPO epochs per batch (μ in the algorithm).\
+  Replays data within each gradient accumulation step; e.g., `2` = two forward passes per accumulation step.
+* **`epsilon`** *(float, default 0.2)*: Clipping value for token-level log-prob ratios (typical ratio range ≈ \[-1.2, 1.2] with default ε).
+* **`delta`** *(float, optional)*: Enables **upper** clipping bound for **two-sided GRPO** when set. If `None`, standard GRPO clipping is used. Recommended `> 1 + ε` when enabled (per INTELLECT-2 report).
+* **`epsilon_high`** *(float, optional)*: Upper-bound epsilon; defaults to `epsilon` if unset. DAPO recommends **0.28**.
+* **`importance_sampling_level`** *(“token” | “sequence”, default "token")*:
+  * `"token"`: raw per-token ratios (one weight per token).
+  * `"sequence"`: average per-token ratios to a single sequence-level ratio.\
+    GSPO shows sequence-level sampling often gives more stable training for sequence-level rewards.
+* **`reward_weights`** *(list\[float], optional)*: One weight per reward. If `None`, all weights = 1.0.
+* **`scale_rewards`** *(str|bool, default "group")*:
+  * `True` or `"group"`: scale by **std within each group** (unit variance in group).
+  * `"batch"`: scale by **std across the entire batch** (per PPO-Lite).
+  * `False` or `"none"`: **no scaling**. Dr. GRPO recommends not scaling to avoid difficulty bias from std scaling.
+* **`loss_type`** *(str, default "dapo")*:
+  * `"grpo"`: normalizes over sequence length (length bias; not recommended).
+  * `"dr_grpo"`: normalizes by a **global constant** (introduced in Dr. GRPO; removes length bias). Constant ≈ `max_completion_length`.
+  * `"dapo"` **(default)**: normalizes by **active tokens in the global accumulated batch** (introduced in DAPO; removes length bias).
+  * `"bnpo"`: normalizes by **active tokens in the local batch** only (results can vary with local batch size; equals GRPO when `per_device_train_batch_size == 1`).
+* **`mask_truncated_completions`** *(bool, default False)*:\
+  When `True`, truncated completions are excluded from loss (recommended by DAPO for stability).\
+  **Note**: There are some KL issues with this flag, so we recommend to disable it.
+
+This can zero out all `completion_mask` entries when many completions are truncated, making `n_mask_per_reward = 0` and causing KL to become NaN. [See](https://github.com/unslothai/unsloth-zoo/blob/e705f7cb50aa3470a0b6e36052c61b7486a39133/unsloth_zoo/rl_replacements.py#L184)
+* **`vllm_importance_sampling_correction`** *(bool, default True)*:\
+  Applies **Truncated Importance Sampling (TIS)** to correct off-policy effects when generation (e.g., vLLM / fast\_inference) differs from training backend.\
+  In Unsloth, this is **auto-set to True** if you’re using vLLM/fast\_inference; otherwise **False**.
+* **`vllm_importance_sampling_cap`** *(float, default 2.0)*:\
+  Truncation parameter **C** for TIS; sets an upper bound on the importance sampling ratio to improve stability.
+
+## Generation Parameters
+
+* `temperature (float, defaults to 1.0):`\
+  Temperature for sampling. The higher the temperature, the more random the completions. Make sure you use a relatively high (1.0) temperature to have diversity in generations which helps learning.
+* `top_p (float, optional, defaults to 1.0):`\
+  Float that controls the cumulative probability of the top tokens to consider. Must be in (0, 1]. Set to 1.0 to consider all tokens.
+* `top_k (int, optional):`\
+  Number of highest probability vocabulary tokens to keep for top-k-filtering. If None, top-k-filtering is disabled and all tokens are considered.
+* `min_p (float, optional):`\
+  Minimum token probability, which will be scaled by the probability of the most likely token. It must be a value between 0.0 and 1.0. Typical values are in the 0.01-0.2 range.
+* `repetition_penalty (float, optional, defaults to 1.0):`\
+  Float that penalizes new tokens based on whether they appear in the prompt and the generated text so far. Values > 1.0 encourage the model to use new tokens, while values < 1.0 encourage the model to repeat tokens.
+* `steps_per_generation: (int, optional):`\
+  Number of steps per generation. If None, it defaults to `gradient_accumulation_steps`. Mutually exclusive with `generation_batch_size`.
+
+{% hint style="info" %}
+It is a bit confusing to mess with this parameter, it is recommended to edit `per_device_train_batch_size` and gradient accumulation for the batch sizes
+{% endhint %}
+
+## Batch & Throughput Parameters
+
+### Parameters that control batches
+
+* **`train_batch_size`**: Number of samples **per process** per step.\
+  If this integer is **less than `num_generations`**, it will default to `num_generations`.
+* **`steps_per_generation`**: Number of **microbatches** that contribute to **one generation’s** loss calculation (forward passes only).\
+  A new batch of data is generated every `steps_per_generation` steps; backpropagation timing depends on `gradient_accumulation_steps`.
+* **`num_processes`**: Number of distributed training processes (e.g., GPUs / workers).
+* **`gradient_accumulation_steps`** (aka `gradient_accumulation`): Number of microbatches to accumulate **before** applying backpropagation and optimizer update.
+* **Effective batch size**:
+
+Total samples contributing to gradients before an update (across all processes and steps).
+* **Optimizer steps per generation**:
+
+Example: `4 / 2 = 2`.
+* **`num_generations`**: Number of generations produced **per prompt** (applied **after** computing `effective_batch_size`).\
+  The number of **unique prompts** in a generation cycle is:
+
+**Must be > 2** for GRPO to work.
+
+### GRPO Batch Examples
+
+The tables below illustrate how batches flow through steps, when optimizer updates occur, and how new batches are generated.
+
+**Generation cycle A**
+
+| Step | Batch    | Notes                                  |
+| ---: | -------- | -------------------------------------- |
+|    0 | \[0,0,0] |                                        |
+|    1 | \[1,1,1] | → optimizer update (accum = 2 reached) |
+|    2 | \[2,2,2] |                                        |
+|    3 | \[3,3,3] | optimizer update                       |
+
+**Generation cycle B**
+
+| Step | Batch    | Notes                                  |
+| ---: | -------- | -------------------------------------- |
+|    0 | \[4,4,4] |                                        |
+|    1 | \[5,5,5] | → optimizer update (accum = 2 reached) |
+|    2 | \[6,6,6] |                                        |
+|    3 | \[7,7,7] | optimizer update                       |
+
+**Generation cycle A**
+
+| Step | Batch    | Notes                                |
+| ---: | -------- | ------------------------------------ |
+|    0 | \[0,0,0] |                                      |
+|    1 | \[1,1,1] |                                      |
+|    2 | \[2,2,2] |                                      |
+|    3 | \[3,3,3] | optimizer update (accum = 4 reached) |
+
+**Generation cycle B**
+
+| Step | Batch    | Notes                                |
+| ---: | -------- | ------------------------------------ |
+|    0 | \[4,4,4] |                                      |
+|    1 | \[5,5,5] |                                      |
+|    2 | \[6,6,6] |                                      |
+|    3 | \[7,7,7] | optimizer update (accum = 4 reached) |
+
+**Generation cycle A**
+
+| Step | Batch    | Notes                                |
+| ---: | -------- | ------------------------------------ |
+|    0 | \[0,0,0] |                                      |
+|    1 | \[0,1,1] |                                      |
+|    2 | \[1,1,3] |                                      |
+|    3 | \[3,3,3] | optimizer update (accum = 4 reached) |
+
+**Generation cycle B**
+
+| Step | Batch    | Notes                                |
+| ---: | -------- | ------------------------------------ |
+|    0 | \[4,4,4] |                                      |
+|    1 | \[4,5,5] |                                      |
+|    2 | \[5,5,6] |                                      |
+|    3 | \[6,6,6] | optimizer update (accum = 4 reached) |
+
+**Generation cycle A**
+
+| Step | Batch           | Notes                                |
+| ---: | --------------- | ------------------------------------ |
+|    0 | \[0,0,0, 1,1,1] |                                      |
+|    1 | \[2,2,2, 3,3,3] | optimizer update (accum = 2 reached) |
+
+**Generation cycle B**
+
+| Step | Batch           | Notes                                |
+| ---: | --------------- | ------------------------------------ |
+|    0 | \[4,4,4, 5,5,5] |                                      |
+|    1 | \[6,6,6, 7,7,7] | optimizer update (accum = 2 reached) |
+
+### Quick Formula Reference
+
+**Examples:**
+
+Example 1 (python):
+```python
+# If mask_truncated_completions is enabled, zero out truncated completions in completion_mask
+  if self.mask_truncated_completions:
+      truncated_completions = ~is_eos.any(dim=1)
+      completion_mask = completion_mask * (~truncated_completions).unsqueeze(1).int()
+```
+
+Example 2 (unknown):
+```unknown
+effective_batch_size = steps_per_generation * num_processes * train_batch_size
+```
+
+Example 3 (unknown):
+```unknown
+optimizer_steps_per_generation = steps_per_generation / gradient_accumulation_steps
+```
+
+Example 4 (unknown):
+```unknown
+unique_prompts = effective_batch_size / num_generations
+```
+
+---
+
+## Chat Templates
+
+**URL:** llms-txt#chat-templates
+
+**Contents:**
+  - List of Colab chat template notebooks:
+- Multi turn conversations
+- Customizable Chat Templates
+- Applying Chat Templates with Unsloth
+- More Information
+
+Learn the fundamentals and customization options of chat templates, including Conversational, ChatML, ShareGPT, Alpaca formats, and more!
+
+In our GitHub, we have a list of every chat template Unsloth uses including for Llama, Mistral, Phi-4 etc. So if you need any pointers on the formatting or use case, you can view them here: [github.com/unslothai/unsloth/blob/main/unsloth/chat\_templates.py](https://github.com/unslothai/unsloth/blob/main/unsloth/chat_templates.py)
+
+### List of Colab chat template notebooks:
+
+* [Conversational](https://colab.research.google.com/github/unslothai/notebooks/blob/main/nb/Llama3.2_\(1B_and_3B\)-Conversational.ipynb)
+* [ChatML](https://colab.research.google.com/github/unslothai/notebooks/blob/main/nb/Llama3_\(8B\)-Ollama.ipynb)
+* [Ollama](https://colab.research.google.com/drive/1WZDi7APtQ9VsvOrQSSC5DDtxq159j8iZ?usp=sharing)
+* [Text Classification](https://github.com/timothelaborie/text_classification_scripts/blob/main/unsloth_classification.ipynb) by Timotheeee
+* [Multiple Datasets](https://colab.research.google.com/drive/1njCCbE1YVal9xC83hjdo2hiGItpY_D6t?usp=sharing) by Flail
+
+## Multi turn conversations
+
+A bit issue if you didn't notice is the Alpaca dataset is single turn, whilst remember using ChatGPT was interactive and you can talk to it in multiple turns. For example, the left is what we want, but the right which is the Alpaca dataset only provides singular conversations. We want the finetuned language model to somehow learn how to do multi turn conversations just like ChatGPT.
+
+<figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FWCAN7bYUt6QWwCWUxisL%2Fdiff.png?alt=media&#x26;token=29821fd9-2181-4d1d-8b93-749b69bcf400" alt=""><figcaption></figcaption></figure>
+
+So we introduced the `conversation_extension` parameter, which essentially selects some random rows in your single turn dataset, and merges them into 1 conversation! For example, if you set it to 3, we randomly select 3 rows and merge them into 1! Setting them too long can make training slower, but could make your chatbot and final finetune much better!
+
+<figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FWi1rRNBFC2iDmCvSJsZt%2Fcombine.png?alt=media&#x26;token=bef37a55-b272-4be3-89b5-9767c219a380" alt=""><figcaption></figcaption></figure>
+
+Then set `output_column_name` to the prediction / output column. For the Alpaca dataset dataset, it would be the output column.
+
+We then use the `standardize_sharegpt` function to just make the dataset in a correct format for finetuning! Always call this!
+
+<figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FE75C4Y848VNF6luLuPRR%2Fimage.png?alt=media&#x26;token=aac1d79b-ecca-4e56-939d-d97dcbbf30eb" alt=""><figcaption></figcaption></figure>
+
+## Customizable Chat Templates
+
+We can now specify the chat template for finetuning itself. The very famous Alpaca format is below:
+
+<figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2F8SWcsgH47Uhkm0IclDs5%2Fimage.png?alt=media&#x26;token=fa03d7aa-d568-468d-9884-18e925a0551f" alt=""><figcaption></figcaption></figure>
+
+But remember we said this was a bad idea because ChatGPT style finetunes require only 1 prompt? Since we successfully merged all dataset columns into 1 using Unsloth, we essentially can create the below style chat template with 1 input column (instruction) and 1 output:
+
+<figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FyuMpSLIpPLEbcdh970UJ%2Fimage.png?alt=media&#x26;token=87c4d5e1-accf-4847-9971-63e3a47b4a5f" alt=""><figcaption></figcaption></figure>
+
+We just require you must put a `{INPUT}` field for the instruction and an `{OUTPUT}` field for the model's output field. We in fact allow an optional `{SYSTEM}` field as well which is useful to customize a system prompt just like in ChatGPT. For example, below are some cool examples which you can customize the chat template to be:
+
+<figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2Fi6B8IP1OZmmxBYr6k4W3%2Fimage.png?alt=media&#x26;token=061d1b4c-4b22-4d1b-a423-8d4c15e40efa" alt=""><figcaption></figcaption></figure>
+
+For the ChatML format used in OpenAI models:
+
+<figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2F3OEJaXooJCICJR6DJIJP%2Fimage.png?alt=media&#x26;token=4fa85cf1-463d-4090-a838-591c4f94efea" alt=""><figcaption></figcaption></figure>
+
+Or you can use the Llama-3 template itself (which only functions by using the instruct version of Llama-3): We in fact allow an optional `{SYSTEM}` field as well which is useful to customize a system prompt just like in ChatGPT.
+
+<figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2F4qQXd0hIvh9fJNO2cJ04%2Fimage.png?alt=media&#x26;token=614b9200-7375-47f5-ac15-ce9aa891ede4" alt=""><figcaption></figcaption></figure>
+
+Or in the Titanic prediction task where you had to predict if a passenger died or survived in this Colab  notebook which includes CSV and Excel uploading: <https://colab.research.google.com/drive/1VYkncZMfGFkeCEgN2IzbZIKEDkyQuJAS?usp=sharing>
+
+<figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2F1iQitC3PwcuV0LpHEhdP%2Fimage.png?alt=media&#x26;token=d117f681-afb0-4d5f-b534-f51013fe772a" alt=""><figcaption></figcaption></figure>
+
+## Applying Chat Templates with Unsloth
+
+For datasets that usually follow the common chatml format, the process of preparing the dataset for training or finetuning, consists of four simple steps:
+
+* Check the chat templates that Unsloth currently supports:\\
+
+\
+  This will print out the list of templates currently supported by Unsloth. Here is an example output:\\
+
+* Use `get_chat_template` to apply the right chat template to your tokenizer:\\
+
+* Define your formatting function. Here's an example:\\
+
+\
+  \
+  This function loops through your dataset applying the chat template you defined to each sample.\\
+
+* Finally, let's load the dataset and apply the required modifications to our dataset: \\
+
+\
+  If your dataset uses the ShareGPT format with "from"/"value" keys instead of the ChatML "role"/"content" format, you can use the `standardize_sharegpt` function to convert it first. The revised code will now look as follows:\
+  \\
+
+Assuming your dataset is a list of list of dictionaries like the below:
+
+You can use our `get_chat_template` to format it. Select `chat_template` to be any of `zephyr, chatml, mistral, llama, alpaca, vicuna, vicuna_old, unsloth`, and use `mapping` to map the dictionary values `from`, `value` etc. `map_eos_token` allows you to map `<|im_end|>` to EOS without any training.
+
+You can also make your own custom chat templates! For example our internal chat template we use is below. You must pass in a `tuple` of `(custom_template, eos_token)` where the `eos_token` must be used inside the template.
+
+**Examples:**
+
+Example 1 (unknown):
+```unknown
+from unsloth.chat_templates import CHAT_TEMPLATES
+  print(list(CHAT_TEMPLATES.keys()))
+```
+
+Example 2 (unknown):
+```unknown
+['unsloth', 'zephyr', 'chatml', 'mistral', 'llama', 'vicuna', 'vicuna_old', 'vicuna old', 'alpaca', 'gemma', 'gemma_chatml', 'gemma2', 'gemma2_chatml', 'llama-3', 'llama3', 'phi-3', 'phi-35', 'phi-3.5', 'llama-3.1', 'llama-31', 'llama-3.2', 'llama-3.3', 'llama-32', 'llama-33', 'qwen-2.5', 'qwen-25', 'qwen25', 'qwen2.5', 'phi-4', 'gemma-3', 'gemma3']
+```
+
+Example 3 (unknown):
+```unknown
+from unsloth.chat_templates import get_chat_template
+
+  tokenizer = get_chat_template(
+      tokenizer,
+      chat_template = "gemma-3", # change this to the right chat_template name
+  )
+```
+
+Example 4 (unknown):
+```unknown
+def formatting_prompts_func(examples):
+     convos = examples["conversations"]
+     texts = [tokenizer.apply_chat_template(convo, tokenize = False, add_generation_prompt = False) for convo in convos]
+     return { "text" : texts, }
+```
+
+---
+
+## Unsloth Dynamic GGUFs on Aider Polyglot
+
+**URL:** llms-txt#unsloth-dynamic-ggufs-on-aider-polyglot
+
+**Contents:**
+  - ⭐**Key results**
+- 🦥Unsloth Dynamic Quantization
+  - ⚙️Benchmark setup
+- :sparkler:Comparison to other quants
+  - :cake:Dynamic quantization ablations
+  - :bug:Chat Template Bug Fixes
+  - :bar\_chart:Pass Rate 1
+- :computer:Run DeepSeek V3.1 Dynamic quants
+
+Performance of Unsloth Dynamic GGUFs on Aider Polyglot Benchmarks
+
+We’re excited to share that Unsloth Dynamic GGUFs shows how it's possible to quantize LLMs like [DeepSeek-V3.1](https://docs.unsloth.ai/models/deepseek-v3.1-how-to-run-locally) (671B) down to just **1-bit** or **3-bit**, and still be able to outperform SOTA models like **GPT-4.5, GPT-4.1** (April 2025) and **Claude-4-Opus** (May 2025).
+
+Previously, [we demonstrated](https://docs.unsloth.ai/basics/unsloth-dynamic-2.0-ggufs) how Unsloth Dynamic GGUFs outperform other quantization methods on 5-shot MMLU and KL Divergence. Now, we’re showcasing their performance on independent third-party evaluations using the **Aider Polyglot** **benchmark.**
+
+<div><figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2F4PkEKacoiSyJj5JIysXt%2Faider%20thinking.png?alt=media&#x26;token=41d888bb-8d46-4b3e-9624-78034bb3d7e4" alt="" width="563"><figcaption><p>Thinking Aider Benchmarks</p></figcaption></figure> <figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FTG2xW8wGD2hQTuT4437N%2Faider%20non.png?alt=media&#x26;token=ab73810b-b584-4d46-b056-07594ada2845" alt="" width="563"><figcaption><p>No Thinking Aider Benchmarks</p></figcaption></figure></div>
+
+* Our **1-bit** Unsloth Dynamic GGUF shrinks DeepSeek-V3.1 from **671GB → 192GB (-75% size)** and no-thinking mode greatly outperforms GPT-4.1 (Apr 2025), GPT-4.5, and DeepSeek-V3-0324.
+* **3-bit** Unsloth DeepSeek-V3.1 (thinking) GGUF: Outperforms Claude-4-Opus-20250514 (thinking).
+* **5-bit** Unsloth DeepSeek-V3.1 (non-thinking) GGUF: Matches Claude-4-Opus-20250514 (non-thinking) performance.
+* Unsloth Dynamic GGUFs perform consistently better than other non-Unsloth Dynamic imatrix GGUFs
+* Other non-Unsloth 1-bit and 2-bit DeepSeek-V3.1 quantizations, as well as standard 1-bit quantization without selective layer quantization, either failed to load or produced gibberish and looping outputs. This highlights how Unsloth Dynamic GGUFs are able to largely retain accuracy whereas other methods do not even function.
+
+**Why the** [**Aider Polyglot**](https://aider.chat/docs/leaderboards/) **benchmark?** Aider is one of the most comprehensive measures of how well LLMs can write, code, follow instructions, and apply changes without human intervention, making it one of the hardest and most valuable benchmarks for real-world use.
+
+{% hint style="success" %}
+The **key advantage** of using the Unsloth package and models is our active role in ***fixing critical bugs*** in major models. We've collaborated directly with teams behind [Qwen3](https://www.reddit.com/r/LocalLLaMA/comments/1kaodxu/qwen3_unsloth_dynamic_ggufs_128k_context_bug_fixes/), [Meta (Llama 4)](https://github.com/ggml-org/llama.cpp/pull/12889), [Mistral (Devstral)](https://app.gitbook.com/o/HpyELzcNe0topgVLGCZY/s/xhOjnexMCB3dmuQFQ2Zq/~/changes/618/basics/tutorials-how-to-fine-tune-and-run-llms/devstral-how-to-run-and-fine-tune), [Google (Gemma 1–3)](https://news.ycombinator.com/item?id=39671146) and [Microsoft (Phi-3/4)](https://simonwillison.net/2025/Jan/11/phi-4-bug-fixes), contributing essential fixes that significantly boost accuracy.
+{% endhint %}
+
+## 🦥Unsloth Dynamic Quantization
+
+{% hint style="success" %}
+**Dynamic 1 bit makes important layers in 8 or 16 bits and un-important layers in 1,2,3,4,5 or 6bits.**
+{% endhint %}
+
+In Nov 2024, our [4-bit Dynamic](https://unsloth.ai/blog/dynamic-4bit) Quants showcased how you could largely restore QLoRA fine-tuning & model accuracy by just <mark style="background-color:green;">**selectively quantizing layers**</mark>. We later studied [DeepSeek-R1](https://docs.unsloth.ai/models/tutorials-how-to-fine-tune-and-run-llms/deepseek-r1-how-to-run-locally)'s architecture and applied this similar methodology, where we quantized some layers to as low as 1-bit and important layers to higher bits (6, 8-bit). This approach quickly gained popularity and has proven especially effective for MoE models, making dynamic quantization the de facto for MoE quantization.
+
+Our Dynamic GGUFs are even more effective when paired with our [imatrix calibration dataset](https://docs.unsloth.ai/basics/unsloth-dynamic-2.0-ggufs#whats-new-in-dynamic-v2.0), designed for chat and coding performance. All of this enabled extreme LLM compression without catastrophic loss in quality.
+
+For example in Qwen2-VL-2B-Instruct, naively quantizing all layers to 4bit causes the model to fail understanding the image below. It's a train, not a coastal scene!
+
+{% columns %}
+{% column width="33.33333333333333%" %}
+
+<figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FIV4nxeGuvTLjWeovJfyO%2FTrain_NPovU814oJVjqy9Gu3BSm.avif?alt=media&#x26;token=64abbcc2-2f55-46b0-8af9-2521739307ed" alt=""><figcaption></figcaption></figure>
+{% endcolumn %}
+
+{% column width="66.66666666666667%" %}
+
+<figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FYlZ0xqGMnRXWJREjk62K%2Fimage.png?alt=media&#x26;token=0e00dad0-d3ba-4ff6-885e-d14997c3160e" alt=""><figcaption></figcaption></figure>
+{% endcolumn %}
+{% endcolumns %}
+
+We also showed dynamic benchmarks in <https://docs.unsloth.ai/basics/unsloth-dynamic-2.0-ggufs> for Gemma 3 and Llama 4 Scout, showing how effective our methodology is:
+
+{% columns %}
+{% column %}
+
+<figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FouYgVrbGQyNkzXljy7IW%2Fimage.avif?alt=media&#x26;token=a3edc7cf-747f-43d0-8d2c-3db7a4fb01cd" alt=""><figcaption></figcaption></figure>
+{% endcolumn %}
+
+<figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2F8kTGxAfcLmWUCUts7POR%2Fimage.avif?alt=media&#x26;token=a8a0ddb2-1e45-4236-a7ae-632986e8c99c" alt=""><figcaption></figcaption></figure>
+{% endcolumn %}
+{% endcolumns %}
+
+### ⚙️Benchmark setup
+
+For our DeepSeek-V3.1 experiments, we compared different bits of **Unsloth Dynamic GGUFs** against:
+
+* **Full-precision, unquantized LLMs** including GPT 4.5, 4.1, Claude-4-Opus, DeepSeek-V3-0324 etc.
+* ***Other*****&#x20;dynamic imatrix V3.1 GGUFs**
+* ***Semi-*****dynamic** (some selective layer quantization) imatrix V3.1 GGUFs for **ablation purposes**.
+
+Benchmark experiments were mainly conducted by [David Sluys](https://www.linkedin.com/in/david-sluys-231348208/) (neolithic5452 on [Aider Discord](https://discord.com/channels/1131200896827654144/1408293692074360914)), a trusted community contributor to Aider Polyglot evaluations. Tests were run \~3 times and averaged for a median score, and the Pass-2 accuracy is reported as by convention. There are some reproducible benchmark code snippets in Aider's Discord.
+
+<summary>Expand for Reasoning model Aider benchmarks</summary>
+
+| Model                             | Accuracy |
+| --------------------------------- | -------- |
+| GPT-5                             | 86.7     |
+| Gemini 2.5 Pro (June)             | 83.1     |
+| o3                                | 76.9     |
+| DeepSeek V3.1                     | 76.1     |
+| **(3 bit) DeepSeek V3.1 Unsloth** | **75.6** |
+| Claude-4-Opus (May)               | 72       |
+| o4-mini (High)                    | 72       |
+| DeepSeek R1 0528                  | 71.4     |
+| **(2 bit) DeepSeek V3.1 Unsloth** | **66.7** |
+| Claude-3.7-Sonnet (Feb)           | 64.9     |
+| **(1 bit) DeepSeek V3.1 Unsloth** | **57.8** |
+| DeepSeek R1                       | 56.9     |
+
+<summary>Expand for Non Reasoning model Aider benchmarks</summary>
+
+| Model                             | Accuracy |
+| --------------------------------- | -------- |
+| DeepSeek V3.1                     | 71.6     |
+| Claude-4-Opus (May)               | 70.7     |
+| **(5 bit) DeepSeek V3.1 Unsloth** | **70.7** |
+| **(4 bit) DeepSeek V3.1 Unsloth** | **69.7** |
+| **(3 bit) DeepSeek V3.1 Unsloth** | **68.4** |
+| **(2 bit) DeepSeek V3.1 Unsloth** | **65.8** |
+| Qwen3 235B A22B                   | 59.6     |
+| Kimi K2                           | 59.1     |
+| **(1 bit) DeepSeek V3.1 Unsloth** | **55.7** |
+| DeepSeek V3-0324                  | 55.1     |
+| GPT-4.1 (April, 2025)             | 52.4     |
+| ChatGPT 4o (March, 2025)          | 45.3     |
+| GPT-4.5                           | 44.9     |
+
+DeepSeek V3.1 has both a reasoning and a non reasoning mode, and we test both. For non reasoning, we see a clear trend of how our dynamic quantizations perform below. dynamic 5-bit attains 70.7% on Aider Pass-2, whilst dynamic 1-bit attains 55.7%. In terms of size and accuracy, the 3 and 4bit are extremely powerful!
+
+<figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FTG2xW8wGD2hQTuT4437N%2Faider%20non.png?alt=media&#x26;token=ab73810b-b584-4d46-b056-07594ada2845" alt=""><figcaption></figcaption></figure>
+
+## :sparkler:Comparison to other quants
+
+We also run the Aider Polyglot benchmark on other dynamic imatrix GGUFs from the community and compare it to ours. To ensure a **fair comparison**, we do the following:
+
+1. We select similar sized files and bit types to each Unsloth quant.
+2. We use our <mark style="background-color:$primary;">**fixed chat template**</mark> if the community quant fails to execute the benchmark. We found some community quants `{"code":500,"message":"split method must have between 1 and 1 positional arguments and between 0 and 0 keyword arguments at row 3, column 1908"}`, and this gets fixed by using our fixed chat template.
+
+We see Unsloth dynamic quants doing remarkably well when compared to other community quantization for the same model size and quant type!
+
+<figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FTQMHMnk7bEHOikEuckra%2FOther%20quants.png?alt=media&#x26;token=8e2bd333-4709-49ae-a6f1-cc9ace3de0a6" alt=""><figcaption></figcaption></figure>
+
+<summary>Expand for raw numerical data comparison to other quants</summary>
+
+<table><thead><tr><th width="109.25">Quant</th><th width="171.25006103515625">Quant Size (GB)</th><th>Unsloth Accuracy %</th><th>Comparison Accuracy %</th></tr></thead><tbody><tr><td>IQ2_XXS</td><td>164</td><td></td><td>43.6</td></tr><tr><td>TQ1_0</td><td>170</td><td>50.7</td><td></td></tr><tr><td>IQ1_M</td><td>206</td><td>55.7</td><td></td></tr><tr><td>IQ2_M</td><td>215</td><td></td><td>56.6</td></tr><tr><td>IQ2_XXS</td><td>225</td><td>61.2</td><td></td></tr><tr><td>IQ2_M</td><td>235</td><td>64.3</td><td></td></tr><tr><td>Q2_K_L</td><td>239</td><td></td><td>64.0</td></tr><tr><td>Q2_K_XL</td><td>255</td><td>65.8</td><td></td></tr><tr><td>IQ3_XXS</td><td>268</td><td>65.6</td><td>65.6</td></tr><tr><td>IQ3_XXS</td><td>279</td><td>66.8</td><td></td></tr><tr><td>Q3_K_S</td><td>293</td><td></td><td>65.2</td></tr><tr><td>Q3_K_XL</td><td>300</td><td>68.4</td><td></td></tr><tr><td>IQ4_XS</td><td>357</td><td>69.2</td><td></td></tr><tr><td>IQ4_XS</td><td>360</td><td></td><td>66.3</td></tr><tr><td>Q4_K_XL</td><td>387</td><td>69.7</td><td></td></tr><tr><td>Q4_K_M</td><td>405</td><td>69.7</td><td></td></tr><tr><td>Q4_K_M</td><td>409</td><td></td><td>67.7</td></tr><tr><td>Q5_K_M</td><td>478</td><td></td><td>68.9</td></tr><tr><td>Q5_K_XL</td><td>484</td><td>70.7</td><td></td></tr></tbody></table>
+
+### :cake:Dynamic quantization ablations
+
+We did some ablations as well to confirm if our calibration dataset and our dynamic quantization methodology actually works. The trick of Unsloth's dynamic method is to quantize **important layers to higher bits** say 8bits, whilst **un-important layers are left in lower bis like 2bits**.
+
+To test our method, we leave specific tensors in lower precision like 4bit vs higher precision. For example below we leave `attn_k_b` tensors in 4bit (semi-dynamic) vs 8bit (Unsloth current), and by increasing the quant size by only \~100MB or so (<0.1%), accuracy shoots up dramatically!
+
+{% hint style="success" %}
+`attn_k_b` and other tensors in DeepSeek V3.1 are highly important / sensitive to quantization and should left in higher precision to retain accuracy!
+{% endhint %}
+
+<figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FHJRLbMSACPorrR8bQl4P%2FSemi%20Dynamic.png?alt=media&#x26;token=98bfcbe1-4f90-4052-a8aa-a9ee45db2c46" alt=""><figcaption></figcaption></figure>
+
+### :bug:Chat Template Bug Fixes
+
+During testing of DeepSeek-V3.1 quants, we found some lower bit quants not enclosing `<think> </think>` properly or doing some weird formatting. This caused some community quants to not work on lower bits, and so this caused unfair comparisons. We found llama.cpp's usage of minja (a simpler version of jinja) does not accept positional argument in `.split`. We had to change:
+
+See [here](https://huggingface.co/unsloth/DeepSeek-V3.1-GGUF?chat_template=default\&format=true) for our fixed chat template or [here](https://huggingface.co/unsloth/DeepSeek-V3.1/raw/main/chat_template.jinja) for a raw jinja file.
+
+### :bar\_chart:Pass Rate 1
+
+Aider is reported mainly on pass rate 2. We also report pass rate 1 to compare community quants of the same size. We see our dynamic quants do much better than other community quants of similar sizes especially on smaller than 2 bit and larger than 4bits. 3 and 4 bit perform similarly well.
+
+<figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FiLqGWhz0tYP55eFOExpS%2FPass%20Rate%201%20Non%20Thinking.png?alt=media&#x26;token=6c6e5965-8f15-40f5-9722-7d03103b5e1f" alt=""><figcaption></figcaption></figure>
+
+## :computer:Run DeepSeek V3.1 Dynamic quants
+
+Head over to our [DeepSeek V3.1 guide](https://docs.unsloth.ai/models/tutorials-how-to-fine-tune-and-run-llms/deepseek-r1-how-to-run-locally/deepseek-r1-dynamic-1.58-bit) or to quickly get the dynamic 2bit version, do:
+
+then use `llama.cpp` to directly download the weights. We set the optimal suggested parameters like temperature, the chat template etc already as well:
+
+**Examples:**
+
+Example 1 (unknown):
+```unknown
+{%- set content = content.split("</think>", 1)[1] -%}
+```
+
+Example 2 (unknown):
+```unknown
+{%- set splitted = content.split("</think>") -%}
+{%- set content = splitted[1:] | join("</think>") -%}
+```
+
+Example 3 (bash):
+```bash
+apt-get update
+apt-get install pciutils build-essential cmake curl libcurl4-openssl-dev -y
+git clone https://github.com/ggml-org/llama.cpp
+cmake llama.cpp -B llama.cpp/build \
+    -DBUILD_SHARED_LIBS=OFF -DGGML_CUDA=ON -DLLAMA_CURL=ON
+cmake --build llama.cpp/build --config Release -j --clean-first --target llama-quantize llama-cli llama-gguf-split llama-mtmd-cli llama-server
+cp llama.cpp/build/bin/llama-* llama.cpp
+```
+
+Example 4 (bash):
+```bash
+export LLAMA_CACHE="unsloth/DeepSeek-V3.1-GGUF"
+./llama.cpp/llama-cli \
+    -hf unsloth/DeepSeek-V3.1-GGUF:Q2_K_XL \
+    --jinja \
+    --n-gpu-layers 99 \
+    --temp 0.6 \
+    --top_p 0.95 \
+    --min_p 0.01 \
+    --ctx-size 8192 \
+    --seed 3407 \
+    -ot ".ffn_.*_exps.=CPU"
+```
+
+---
+
+## Tokenize the text transcripts
+
+**URL:** llms-txt#tokenize-the-text-transcripts
+
+def preprocess_function(example):
+    # Tokenize the text (keep the special tokens like <laugh> intact)
+    tokens = tokenizer(example["text"], return_tensors="pt")
+    # Flatten to list of token IDs
+    input_ids = tokens["input_ids"].squeeze(0)
+    # The model will generate audio tokens after these text tokens.
+    # For training, we can set labels equal to input_ids (so it learns to predict next token).
+    # But that only covers text tokens predicting the next text token (which might be an audio token or end).
+    # A more sophisticated approach: append a special token indicating start of audio, and let the model generate the rest.
+    # For simplicity, use the same input as labels (the model will learn to output the sequence given itself).
+    return {"input_ids": input_ids, "labels": input_ids}
+
+train_data = dataset.map(preprocess_function, remove_columns=dataset.column_names)
+python
+from transformers import TrainingArguments,Trainer,DataCollatorForSeq2Seq
+from unsloth import is_bfloat16_supported
+
+trainer = Trainer(
+    model = model,
+    train_dataset = dataset,
+    args = TrainingArguments(
+        per_device_train_batch_size = 1,
+        gradient_accumulation_steps = 4,
+        warmup_steps = 5,
+        # num_train_epochs = 1, # Set this for 1 full training run.
+        max_steps = 60,
+        learning_rate = 2e-4,
+        fp16 = not is_bfloat16_supported(),
+        bf16 = is_bfloat16_supported(),
+        logging_steps = 1,
+        optim = "adamw_8bit",
+        weight_decay = 0.01,
+        lr_scheduler_type = "linear",
+        seed = 3407,
+        output_dir = "outputs",
+        report_to = "none", # Use this for WandB etc
+    ),
+)
+python
+model.save_pretrained("lora_model")  # Local saving
+tokenizer.save_pretrained("lora_model")
+
+**Examples:**
+
+Example 1 (unknown):
+```unknown
+{% hint style="info" %}
+The above is a simplification. In reality, to fine-tune Orpheus properly, you would need the *audio tokens as part of the training labels*. Orpheus’s pre-training likely involved converting audio to discrete tokens (via an audio codec) and training the model to predict those given the preceding text. For fine-tuning on new voice data, you would similarly need to obtain the audio tokens for each clip (using Orpheus’s audio codec). The Orpheus GitHub provides a script for data processing – it encodes audio into sequences of `<custom_token_x>` tokens.
+{% endhint %}
+
+However, **Unsloth may abstract this away**: if the model is a FastModel with an associated processor that knows how to handle audio, it might automatically encode the audio in the dataset to tokens. If not, you’d have to manually encode each audio clip to token IDs (using Orpheus’s codebook). This is an advanced step beyond this guide, but keep in mind that simply using text tokens won’t teach the model the actual audio – it needs to match the audio patterns.
+
+Let's assume Unsloth provides a way to feed audio directly (for example, by setting `processor` and passing the audio array). If Unsloth does not yet support automatic audio tokenization, you might need to use the Orpheus repository’s `encode_audio` function to get token sequences for the audio, then use those as labels. (The dataset entries do have `phonemes` and some acoustic features which suggests a pipeline.)
+
+**Step 3: Set up training arguments and Trainer**
+```
+
+Example 2 (unknown):
+```unknown
+&#x20;We do 60 steps to speed things up, but you can set `num_train_epochs=1` for a full run, and turn off `max_steps=None`. Using a per\_device\_train\_batch\_size >1 may lead to errors if multi-GPU setup to avoid issues, ensure CUDA\_VISIBLE\_DEVICES is set to a single GPU (e.g., CUDA\_VISIBLE\_DEVICES=0). Adjust as needed.
+
+**Step 4: Begin fine-tuning**
+
+This will start the training loop. You should see logs of loss every 50 steps (as set by `logging_steps`). The training might take some time depending on GPU – for example, on a Colab T4 GPU, a few epochs on 3h of data may take 1-2 hours. Unsloth’s optimizations will make it faster than standard HF training.
+
+**Step 5: Save the fine-tuned model**
+
+After training completes (or if you stop it mid-way when you feel it’s sufficient), save the model. This ONLY saves the LoRA adapters, and not the full model. To save to 16bit or GGUF, scroll down!
+```
+
+---
+
+## Fine-tuning LLMs Guide
+
+**URL:** llms-txt#fine-tuning-llms-guide
+
+**Contents:**
+- 1. Understand Fine-tuning
+- 2. Choose the Right Model + Method
+- 3. Your Dataset
+- 4. Understand Training Hyperparameters
+- 5. Installing + Requirements
+- 6. Training + Evaluation
+  - Evaluation
+- 7. Running + Saving the model
+  - Saving the model
+- 8. We're done!
+
+Learn all the basics and best practices of fine-tuning. Beginner-friendly.
+
+## 1. Understand Fine-tuning
+
+Fine-tuning an LLM customizes its behavior, enhances + injects knowledge, and optimizes performance for domains/specific tasks. For example:
+
+* **GPT-4** serves as a base model; however, OpenAI fine-tuned it to better comprehend instructions and prompts, leading to the creation of ChatGPT-4 which everyone uses today.
+* ​**DeepSeek-R1-Distill-Llama-8B** is a fine-tuned version of Llama-3.1-8B. DeepSeek utilized data generated by DeepSeek-R1, to fine-tune Llama-3.1-8B. This process, known as distillation (a subcategory of fine-tuning), injects the data into the Llama model to learn reasoning capabilities.
+
+With [Unsloth](https://github.com/unslothai/unsloth), you can fine-tune for free on Colab, Kaggle, or locally with just 3GB VRAM by using our [notebooks](https://docs.unsloth.ai/get-started/unsloth-notebooks). By fine-tuning a pre-trained model (e.g. Llama-3.1-8B) on a specialized dataset, you can:
+
+* **Update + Learn New Knowledge**: Inject and learn new domain-specific information.
+* **Customize Behavior**: Adjust the model’s tone, personality, or response style.
+* **Optimize for Tasks**: Improve accuracy and relevance for specific use cases.
+
+**Example usecases**:
+
+* Train LLM to predict if a headline impacts a company positively or negatively.
+* Use historical customer interactions for more accurate and custom responses.
+* Fine-tune LLM on legal texts for contract analysis, case law research, and compliance.
+
+You can think of a fine-tuned model as a specialized agent designed to do specific tasks more effectively and efficiently. **Fine-tuning can replicate all of RAG's capabilities**, but not vice versa.
+
+#### Fine-tuning misconceptions:
+
+You may have heard that fine-tuning does not make a model learn new knowledge or RAG performs better than fine-tuning. That is **false**. Read more FAQ + misconceptions [here](https://docs.unsloth.ai/beginner-start-here/faq-+-is-fine-tuning-right-for-me#fine-tuning-vs.-rag-whats-the-difference):
+
+{% content-ref url="beginner-start-here/faq-+-is-fine-tuning-right-for-me" %}
+[faq-+-is-fine-tuning-right-for-me](https://docs.unsloth.ai/get-started/beginner-start-here/faq-+-is-fine-tuning-right-for-me)
+{% endcontent-ref %}
+
+## 2. Choose the Right Model + Method
+
+If you're a beginner, it is best to start with a small instruct model like Llama 3.1 (8B) and experiment from there. You'll also need to decide between QLoRA and LoRA training:
+
+* **LoRA:** Fine-tunes small, trainable matrices in 16-bit without updating all model weights. &#x20;
+* **QLoRA:** Combines LoRA with 4-bit quantization to handle very large models with minimal resources.&#x20;
+
+<figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FDpWv59wCNJUR38sVMjT6%2Fmodel%20name%20change.png?alt=media&#x26;token=1283a92d-9df7-4de0-b1a1-9fc7cc483381" alt="" width="563"><figcaption></figcaption></figure>
+
+You can change the model name to whichever model you like by matching it with model's name on Hugging Face e.g. 'unsloth/llama-3.1-8b-unsloth-bnb-4bit'.
+
+We recommend starting with **Instruct models**, as they allow direct fine-tuning using conversational chat templates (ChatML, ShareGPT etc.) and require less data compared to **Base models** (which uses Alpaca, Vicuna etc). Learn more about the differences between [instruct and base models here](https://docs.unsloth.ai/get-started/what-model-should-i-use#instruct-or-base-model).
+
+* Model names ending in **`unsloth-bnb-4bit`** indicate they are [**Unsloth dynamic 4-bit**](https://unsloth.ai/blog/dynamic-4bit) **quants**. These models consume slightly more VRAM than standard BitsAndBytes 4-bit models but offer significantly higher accuracy.
+* If a model name ends with just **`bnb-4bit`**, without "unsloth", it refers to a standard BitsAndBytes 4-bit quantization.
+* Models with **no suffix** are in their original **16-bit or 8-bit formats**. While they are the original models from the official model creators, we sometimes include important fixes - such as chat template or tokenizer fixes. So it's recommended to use our versions when available.
+
+There are other settings which you can toggle:
+
+* **`max_seq_length = 2048`** – Controls context length. While Llama-3 supports 8192, we recommend 2048 for testing. Unsloth enables 4× longer context fine-tuning.
+* **`dtype = None`** – Defaults to None; use `torch.float16` or `torch.bfloat16` for newer GPUs.
+* **`load_in_4bit = True`** – Enables 4-bit quantization, reducing memory use 4× for fine-tuning. Disabling it enables LoRA 16-bit fine-tuning. You can also enable 16-bit LoRA with `load_in_16bit = True`
+* To enable full fine-tuning (FFT), set `full_finetuning = True`. For 8-bit fine-tuning, set `load_in_8bit = True`.
+* **Note:** Only one training method can be set to `True` at a time.
+
+We recommend starting with QLoRA, as it is one of the most accessible and effective methods for training models. Our [dynamic 4-bit](https://unsloth.ai/blog/dynamic-4bit) quants, the accuracy loss for QLoRA compared to LoRA is now largely recovered.
+
+You can also do [Text-to-speech (TTS)](https://docs.unsloth.ai/basics/text-to-speech-tts-fine-tuning), [reasoning (GRPO)](https://docs.unsloth.ai/get-started/reinforcement-learning-rl-guide), [vision](https://docs.unsloth.ai/basics/vision-fine-tuning), [reinforcement learning](https://docs.unsloth.ai/get-started/reinforcement-learning-rl-guide/reinforcement-learning-dpo-orpo-and-kto) (DPO, ORPO, KTO), [continued pretraining](https://docs.unsloth.ai/basics/continued-pretraining), text completion and other training methodologies with Unsloth.
+
+Read our detailed guide on choosing the right model:
+
+{% content-ref url="fine-tuning-llms-guide/what-model-should-i-use" %}
+[what-model-should-i-use](https://docs.unsloth.ai/get-started/fine-tuning-llms-guide/what-model-should-i-use)
+{% endcontent-ref %}
+
+For LLMs, datasets are collections of data that can be used to train our models. In order to be useful for training, text data needs to be in a format that can be tokenized.
+
+* You will need to create a dataset usually with 2 columns - question and answer. The quality and amount will largely reflect the end result of your fine-tune so it's imperative to get this part right.
+* You can [synthetically generate data](https://docs.unsloth.ai/get-started/datasets-guide#synthetic-data-generation) and structure your dataset (into QA pairs) using ChatGPT or local LLMs.
+* You can also use our new Synthetic Dataset notebook which automatically parses documents (PDFs, videos etc.), generates QA pairs and auto cleans data using local models like Llama 3.2. [Access the notebook here.](https://colab.research.google.com/github/unslothai/notebooks/blob/main/nb/Meta_Synthetic_Data_Llama3_2_\(3B\).ipynb)
+* Fine-tuning can learn from an existing repository of documents and continuously expand its knowledge base, but just dumping data alone won’t work as well. For optimal results, curate a well-structured dataset, ideally as question-answer pairs. This enhances learning, understanding, and response accuracy.
+* But, that's not always the case, e.g. if you are fine-tuning a LLM for code, just dumping all your code data can actually enable your model to yield significant performance improvements, even without structured formatting. So it really depends on your use case.
+
+***Read more about creating your dataset:***
+
+{% content-ref url="fine-tuning-llms-guide/datasets-guide" %}
+[datasets-guide](https://docs.unsloth.ai/get-started/fine-tuning-llms-guide/datasets-guide)
+{% endcontent-ref %}
+
+For most of our notebook examples, we utilize the [Alpaca dataset](https://docs.unsloth.ai/basics/tutorial-how-to-finetune-llama-3-and-use-in-ollama#id-6.-alpaca-dataset) however other notebooks like Vision will use different datasets which may need images in the answer output as well.
+
+## 4. Understand Training Hyperparameters
+
+Learn how to choose the right [hyperparameters](https://docs.unsloth.ai/get-started/fine-tuning-llms-guide/lora-hyperparameters-guide) using best practices from research and real-world experiments - and understand how each one affects your model's performance.
+
+**For a complete guide on how hyperparameters affect training, see:**
+
+{% content-ref url="fine-tuning-llms-guide/lora-hyperparameters-guide" %}
+[lora-hyperparameters-guide](https://docs.unsloth.ai/get-started/fine-tuning-llms-guide/lora-hyperparameters-guide)
+{% endcontent-ref %}
+
+## 5. Installing + Requirements
+
+We would recommend beginners to utilise our pre-made [notebooks](https://docs.unsloth.ai/get-started/unsloth-notebooks) first as it's the easiest way to get started with guided steps. However, if installing locally is a must, you can install and use Unsloth via [docker](https://docs.unsloth.ai/get-started/install-and-update/docker "mention") or `pip install unsloth` - just make sure you have all the right requirements necessary. Also depending on the model and quantization you're using, you'll need enough VRAM and resources. See all the details here:
+
+{% content-ref url="beginner-start-here/unsloth-requirements" %}
+[unsloth-requirements](https://docs.unsloth.ai/get-started/beginner-start-here/unsloth-requirements)
+{% endcontent-ref %}
+
+Next, you'll need to install Unsloth. Unsloth currently only supports Windows and Linux devices. Once you install Unsloth, you can copy and paste our notebooks and use them in your own local environment. We have many installation methods:
+
+{% content-ref url="install-and-update" %}
+[install-and-update](https://docs.unsloth.ai/get-started/install-and-update)
+{% endcontent-ref %}
+
+## 6. Training + Evaluation
+
+Once you have everything set, it's time to train! If something's not working, remember you can always change hyperparameters, your dataset etc.&#x20;
+
+You’ll see a log of numbers during training. This is the training loss, which shows how well the model is learning from your dataset. For many cases, a loss around 0.5 to 1.0 is a good sign, but it depends on your dataset and task. If the loss is not going down, you might need to adjust your settings. If the loss goes to 0, that could mean overfitting, so it's important to check validation too.
+
+<figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FxwOA09mtcimcQOCjP4PG%2Fimage.png?alt=media&#x26;token=39a0f525-6d4e-4c3b-af0d-82d8960d87be" alt="" width="375"><figcaption><p>The training loss will appear as numbers</p></figcaption></figure>
+
+We generally recommend keeping the default settings unless you need longer training or larger batch sizes.
+
+* **`per_device_train_batch_size = 2`** – Increase for better GPU utilization but beware of slower training due to padding. Instead, increase `gradient_accumulation_steps` for smoother training.
+* **`gradient_accumulation_steps = 4`** – Simulates a larger batch size without increasing memory usage.
+* **`max_steps = 60`** – Speeds up training. For full runs, replace with `num_train_epochs = 1` (1–3 epochs recommended to avoid overfitting).
+* **`learning_rate = 2e-4`** – Lower for slower but more precise fine-tuning. Try values like `1e-4`, `5e-5`, or `2e-5`.
+
+In order to evaluate, you could do manually evaluation by just chatting with the model and see if it's to your liking.  You can also enable evaluation for Unsloth, but keep in mind it can be time-consuming depending on the dataset size. To speed up evaluation you can: reduce the evaluation dataset size or set `evaluation_steps = 100`.
+
+For testing, you can also  take 20% of your training data and use that for testing. If you already used all of the training data, then you have to manually evaluate it. You can also use automatic eval tools like EleutherAI’s [lm-evaluation-harness](https://github.com/EleutherAI/lm-evaluation-harness). Keep in mind that automated tools may not perfectly align with your evaluation criteria.
+
+## 7. Running + Saving the model
+
+<figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FRX9Byv1hlSpvmonT1PLw%2Fimage.png?alt=media&#x26;token=6043cd8c-c6a3-4cc5-a019-48baeed3b5a2" alt=""><figcaption></figcaption></figure>
+
+Now let's run the model after we completed the training process! You can edit the yellow underlined part! In fact, because we created a multi turn chatbot, we can now also call the model as if it saw some conversations in the past like below:
+
+<figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2F6DXSlsHkN8cZiiAxAV0Z%2Fimage.png?alt=media&#x26;token=846307de-7386-4bbe-894e-7d9e572244fe" alt=""><figcaption></figcaption></figure>
+
+Reminder Unsloth itself provides **2x faster inference** natively as well, so always do not forget to call `FastLanguageModel.for_inference(model)`. If you want the model to output longer responses, set `max_new_tokens = 128` to some larger number like 256 or 1024. Notice you will have to wait longer for the result as well!
+
+For saving and using your model in desired inference engines like Ollama, vLLM, Open WebUI, we can have more information here:
+
+{% content-ref url="../basics/running-and-saving-models" %}
+[running-and-saving-models](https://docs.unsloth.ai/basics/running-and-saving-models)
+{% endcontent-ref %}
+
+We can now save the finetuned model as a small 100MB file called a LoRA adapter like below. You can instead push to the Hugging Face hub as well if you want to upload your model! Remember to get a Hugging Face token via: <https://huggingface.co/settings/tokens> and add your token!
+
+<figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FBz0YDi6Sc2oEP5QWXgSz%2Fimage.png?alt=media&#x26;token=33d9e4fd-e7dc-4714-92c5-bfa3b00f86c4" alt=""><figcaption></figcaption></figure>
+
+After saving the model, we can again use Unsloth to run the model itself! Use `FastLanguageModel` again to call it for inference!
+
+<figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FzymBQrqwt4GUmCIN0Iec%2Fimage.png?alt=media&#x26;token=41a110e4-8263-426f-8fa7-cdc295cc8210" alt=""><figcaption></figcaption></figure>
+
+You've successfully fine-tuned a language model and exported it to your desired inference engine with Unsloth!
+
+To learn more about fine-tuning tips and tricks, head over to our blogs which provide tremendous and educational value: <https://unsloth.ai/blog/>
+
+If you need any help on fine-tuning, you can also join our Discord server [here](https://discord.gg/unsloth) or [Reddit r/unsloth](https://www.reddit.com/r/unsloth/). Thanks for reading and hopefully this was helpful!
+
+<figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FPEvp4xsbVObJZ1lawDj8%2Fsloth%20sparkling%20square.png?alt=media&#x26;token=876bf67d-7470-4977-a6cc-3ee02cc9440b" alt="" width="188"><figcaption></figcaption></figure>
+
+---
+
+## Add LoRA adapter to the model for parameter efficient fine tuning
+
+**URL:** llms-txt#add-lora-adapter-to-the-model-for-parameter-efficient-fine-tuning
+
+**Contents:**
+- :butterfly:Qwen 2.5 VL Vision RL Issues and Quirks
+- :medal:Reward Functions to reduce gibberish
+- :checkered\_flag:GSPO Reinforcement Learning
+
+model = FastVisionModel.get_peft_model(
+    model,
+
+finetune_vision_layers     = False,# fast_inference doesn't support finetune_vision_layers yet :(
+    finetune_language_layers   = True, # False if not finetuning language layers
+    finetune_attention_modules = True, # False if not finetuning attention layers
+    finetune_mlp_modules       = True, # False if not finetuning MLP layers
+
+r = lora_rank, # Choose any number > 0 ! Suggested 8, 16, 32, 64, 128
+    lora_alpha = lora_rank*2, # *2 speeds up training
+    use_gradient_checkpointing = "unsloth", # Reduces memory usage
+    random_state = 3407,
+)
+
+addCriterion
+ <tool_call>\n addCriterion\n\n addCriterion\n\n addCriterion\n\n addCriterion\n\n addCriterion\n\n addCriterion\n\n addCriterion\n\n addCriterion\n\n addCriterion\n\n addCriterion\n\n\n addCriterion\n\n 自动生成\n\n addCriterion\n\n addCriterion\n\n addCriterion\n\n addCriterion\n\n addCriterion\n\n addCriterion\n\n addCriterion\n\n addCriterion\n\n\n addCriterion\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n
+
+Figure is an overhead view of the path taken by a race car driver as his car collides with the racetrack wall. Just before the collision, he is traveling at speed $v_i=70 \mathrm{~m} / \mathrm{s}$ along a straight line at $30^{\circ}$ from the wall. Just after the collision, he is traveling at speed $v_f=50 \mathrm{~m} / \mathrm{s}$ along a straight line at $10^{\circ}$ from the wall. His mass $m$ is $80 \mathrm{~kg}$. The collision lasts for $14 \mathrm{~ms}$. What is the magnitude of the average force on the driver during the collision?
+python
+def formatting_reward_func(completions,**kwargs):
+    import re
+    thinking_pattern = f'{REASONING_START}(.*?){REASONING_END}'
+    answer_pattern = f'{SOLUTION_START}(.*?){SOLUTION_END}'
+
+scores = []
+    for completion in completions:
+        score = 0
+        thinking_matches = re.findall(thinking_pattern, completion, re.DOTALL)
+        answer_matches = re.findall(answer_pattern, completion, re.DOTALL)
+        if len(thinking_matches) == 1:
+            score += 1.0
+        if len(answer_matches) == 1:
+            score += 1.0
+
+# Fix up addCriterion issues
+        # See https://docs.unsloth.ai/new/vision-reinforcement-learning-vlm-rl#qwen-2.5-vl-vision-rl-issues-and-quirks
+        # Penalize on excessive addCriterion and newlines
+        if len(completion) != 0:
+            removal = completion.replace("addCriterion", "").replace("\n", "")
+            if (len(completion)-len(removal))/len(completion) >= 0.5:
+                score -= 2.0
+
+scores.append(score)
+    return scores
+python
+training_args = GRPOConfig(
+    output_dir = "vlm-grpo-unsloth",
+    per_device_train_batch_size = 8,
+    gradient_accumulation_steps = 4,
+    learning_rate = 5e-6,
+    adam_beta1 = 0.9,
+    adam_beta2 = 0.99,
+    weight_decay = 0.1,
+    warmup_ratio = 0.1,
+    lr_scheduler_type = "cosine",
+    optim = "adamw_8bit",
+    # beta = 0.00,
+    epsilon = 3e-4,
+    epsilon_high = 4e-4,
+    num_generations = 8,    
+    max_prompt_length = 1024,
+    max_completion_length = 1024,
+    log_completions = False,
+    max_grad_norm = 0.1,
+    temperature = 0.9,
+    # report_to = "none", # Set to "wandb" if you want to log to Weights & Biases
+    num_train_epochs = 2, # For a quick test run, increase for full training
+    report_to = "none"
+    
+    # GSPO is below:
+    importance_sampling_level = "sequence",
+    
+    # Dr GRPO / GAPO etc
+    loss_type = "dr_grpo",
+)
+```
+
+Overall, Unsloth now with VLM vLLM fast inference enables for both 90% reduced memory usage but also 1.5-2x faster speed with GRPO and GSPO!
+
+If you'd like to read more about reinforcement learning, check out out RL guide:
+
+[reinforcement-learning-rl-guide](https://docs.unsloth.ai/get-started/reinforcement-learning-rl-guide "mention")
+
+***Authors:** A huge thank you to* [*Keith*](https://www.linkedin.com/in/keith-truongcao-7bb84a23b/) *and* [*Datta*](https://www.linkedin.com/in/datta0/) *for contributing to this article!*
+
+**Examples:**
+
+Example 1 (unknown):
+```unknown
+## :butterfly:Qwen 2.5 VL Vision RL Issues and Quirks
+
+During RL for Qwen 2.5 VL, you might see the following inference output:
+
+{% code overflow="wrap" %}
+```
+
+Example 2 (unknown):
+```unknown
+{% endcode %}
+
+This was [reported](https://github.com/QwenLM/Qwen2.5-VL/issues/759) as well in Qwen2.5-VL-7B-Instruct output unexpected results "addCriterion". In fact we see this as well! We tried both non Unsloth, bfloat16 and float16 machines and other things, but it appears still. For example item 165 ie `train_dataset[165]` from the [AI4Math/MathVista](https://huggingface.co/datasets/AI4Math/MathVista) dataset is below:
+
+{% code overflow="wrap" %}
+```
+
+Example 3 (unknown):
+```unknown
+{% endcode %}
+
+<figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FdaU12PmFHZL9aEC5zka0%2FUntitled.png?alt=media&#x26;token=7992e59c-3c17-4463-80ce-3c7560b183ed" alt="" width="128"><figcaption></figcaption></figure>
+
+And then we get the above gibberish output. One could add a reward function to penalize the addition of addCriterion, or penalize gibberish outputs. However, the other approach is to train it for longer. For example only after 60 steps ish do we see the model actually learning via RL:
+
+<figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2F3Amh6JaEI2sBAAIfc2TJ%2Fimage.webp?alt=media&#x26;token=41ce0d31-dc0b-4dbe-b001-7618c9080b09" alt=""><figcaption></figcaption></figure>
+
+{% hint style="success" %}
+Forcing `<|assistant|>` during generation will reduce the occurrences of these gibberish results as expected since this is an Instruct model, however it's still best to add a reward function to penalize bad generations, as described in the next section.
+{% endhint %}
+
+## :medal:Reward Functions to reduce gibberish
+
+To penalize `addCriterion` and gibberish outputs, we edited the reward function to penalize too much of `addCriterion` and newlines.
+```
+
+Example 4 (unknown):
+```unknown
+## :checkered\_flag:GSPO Reinforcement Learning
+
+This update in addition adds GSPO ([Group Sequence Policy Optimization](https://arxiv.org/abs/2507.18071)) which is a variant of GRPO made by the Qwen team at Alibaba. They noticed that GRPO implicitly results in importance weights for each token, even though explicitly advantages do not scale or change with each token.
+
+This lead to the creation of GSPO, which now assigns the importance on the sequence likelihood rather than the individual token likelihoods of the tokens. The difference between these two algorithms can be seen below, both from the GSPO paper from Qwen and Alibaba:&#x20;
+
+<figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FK5qpNl1eUsMoiwpe6Kgj%2Fimage.png?alt=media&#x26;token=a370770a-8b1c-4887-b2da-bee45926b762" alt="" width="563"><figcaption><p>GRPO Algorithm, Source: <a href="https://arxiv.org/abs/2507.18071">Qwen</a></p></figcaption></figure>
+
+<figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FApZeTDRtW4e6AT9YorZu%2Fimage.png?alt=media&#x26;token=eb25bd2f-5e8a-4d9e-811e-8e572afcde4e" alt="" width="563"><figcaption><p>GSPO algorithm, Source: <a href="https://arxiv.org/abs/2507.18071">Qwen</a></p></figcaption></figure>
+
+In Equation 1, it can be seen that the advantages scale each of the rows into the token logprobs before that tensor is sumed. Essentially, each token is given the same scaling even though that scaling was given to the entire sequence rather than each individual token. A simple diagram of this can be seen below:
+
+<figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FzTy05MloluyPBJ0vsOWn%2FCopy%20of%20GSPO%20diagram%20(1).jpg?alt=media&#x26;token=cbfad773-bcc5-4262-a4b5-ef1a178755bd" alt="" width="286"><figcaption><p>GRPO Logprob Ratio row wise scaled with advantages</p></figcaption></figure>
+
+Equation 2 shows that the logprob ratios for each sequence is summed and exponentiated after the Logprob ratios are computed, and only the resulting now sequence ratios get row wise multiplied by the advantages.&#x20;
+
+<figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FLBqBCP2SGFu4sPZld77I%2FGSPO%20diagram%20(1).jpg?alt=media&#x26;token=89005ac2-d3cd-4d31-b179-2e320c874656" alt="" width="313"><figcaption><p>GSPO Sequence Ratio row wise scaled with advantages</p></figcaption></figure>
+
+Enabling GSPO is simple, all you need to do is set the `importance_sampling_level = "sequence"` flag in the GRPO config.&#x20;
+```
+
+---
+
+## Saving to Ollama
+
+**URL:** llms-txt#saving-to-ollama
+
+**Contents:**
+- Saving on Google Colab
+- Exporting to Ollama
+- Automatic `Modelfile` creation
+- Ollama Inference
+  - Running in Unsloth works well, but after exporting & running on Ollama, the results are poor
+
+See our guide below for the complete process on how to save to [Ollama](https://github.com/ollama/ollama):
+
+{% content-ref url="../../get-started/fine-tuning-llms-guide/tutorial-how-to-finetune-llama-3-and-use-in-ollama" %}
+[tutorial-how-to-finetune-llama-3-and-use-in-ollama](https://docs.unsloth.ai/get-started/fine-tuning-llms-guide/tutorial-how-to-finetune-llama-3-and-use-in-ollama)
+{% endcontent-ref %}
+
+## Saving on Google Colab
+
+You can save the finetuned model as a small 100MB file called a LoRA adapter like below. You can instead push to the Hugging Face hub as well if you want to upload your model! Remember to get a Hugging Face token via: <https://huggingface.co/settings/tokens> and add your token!
+
+<figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FBz0YDi6Sc2oEP5QWXgSz%2Fimage.png?alt=media&#x26;token=33d9e4fd-e7dc-4714-92c5-bfa3b00f86c4" alt=""><figcaption></figcaption></figure>
+
+After saving the model, we can again use Unsloth to run the model itself! Use `FastLanguageModel` again to call it for inference!
+
+<figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FzymBQrqwt4GUmCIN0Iec%2Fimage.png?alt=media&#x26;token=41a110e4-8263-426f-8fa7-cdc295cc8210" alt=""><figcaption></figcaption></figure>
+
+## Exporting to Ollama
+
+Finally we can export our finetuned model to Ollama itself! First we have to install Ollama in the Colab notebook:
+
+<figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FqNvGTAGwZKXxkMQqzloS%2Fimage.png?alt=media&#x26;token=db503499-0c74-4281-b3bf-400fa20c9ce2" alt=""><figcaption></figcaption></figure>
+
+Then we export the finetuned model we have to llama.cpp's GGUF formats like below:
+
+<figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FZduLjedyfUbTmYqF85pa%2Fimage.png?alt=media&#x26;token=f5bac541-b99f-4d9b-82f7-033f8de780f2" alt=""><figcaption></figcaption></figure>
+
+Reminder to convert `False` to `True` for 1 row, and not change every row to `True`, or else you'll be waiting for a very time! We normally suggest the first row getting set to `True`, so we can export the  finetuned model quickly to `Q8_0` format (8 bit quantization). We also allow you to export to a whole list of quantization methods as well, with a popular one being `q4_k_m`.
+
+Head over to <https://github.com/ggerganov/llama.cpp> to learn more about GGUF. We also have some manual instructions of how to export to GGUF if you want here: <https://github.com/unslothai/unsloth/wiki#manually-saving-to-gguf>
+
+You will see a long list of text like below - please wait 5 to 10 minutes!!
+
+<figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FcuUAx0RNtrQACvU7uWCL%2Fimage.png?alt=media&#x26;token=dc67801a-a363-48e2-8572-4c6d0d8d0d93" alt=""><figcaption></figcaption></figure>
+
+And finally at the very end, it'll look like below:
+
+<figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FxRh07PEQjAmmz3s2HJUP%2Fimage.png?alt=media&#x26;token=3552a3c9-4d4f-49ee-a31e-0a64327419f0" alt=""><figcaption></figcaption></figure>
+
+Then, we have to run Ollama itself in the background. We use `subprocess` because Colab doesn't like asynchronous calls, but normally one just runs `ollama serve` in the terminal / command prompt.
+
+<figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FszDuikrg4HY8lGefwpRQ%2Fimage.png?alt=media&#x26;token=ec1c8762-661d-4b13-ab4f-ed1a7b9fda00" alt=""><figcaption></figcaption></figure>
+
+## Automatic `Modelfile` creation
+
+The trick Unsloth provides is we automatically create a `Modelfile` which Ollama requires! This is a just a list of settings and includes the chat template which we used for the finetune process! You can also print the `Modelfile` generated like below:
+
+<figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2Fh6inH6k5ggxUP80Gltgj%2Fimage.png?alt=media&#x26;token=805bafb1-2795-4743-9bd2-323ab4f0881e" alt=""><figcaption></figcaption></figure>
+
+We then ask Ollama to create a model which is Ollama compatible, by using the `Modelfile`
+
+<figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2F1123bSSwmjWXliaRUL5U%2Fimage.png?alt=media&#x26;token=2e72f1a0-1ff8-4189-8d9c-d31e39385555" alt=""><figcaption></figcaption></figure>
+
+And we can now call the model for inference if you want to do call the Ollama server itself which is running on your own local machine / in the free Colab notebook in the background. Remember you can edit the yellow underlined part.
+
+<figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2Fk5mdsJ57hQ1Ar3KY6VXY%2FInference.png?alt=media&#x26;token=8cf0cbf9-0534-4bae-a887-89f45a3de771" alt=""><figcaption></figcaption></figure>
+
+### Running in Unsloth works well, but after exporting & running on Ollama, the results are poor
+
+You might sometimes encounter an issue where your model runs and produces good results on Unsloth, but when you use it on another platform like Ollama, the results are poor or you might get gibberish, endless/infinite generations *or* repeated output&#x73;**.**
+
+* The most common cause of this error is using an <mark style="background-color:blue;">**incorrect chat template**</mark>**.** It’s essential to use the SAME chat template that was used when training the model in Unsloth and later when you run it in another framework, such as llama.cpp or Ollama. When inferencing from a saved model, it's crucial to apply the correct template.
+* You must use the correct `eos token`. If not, you might get gibberish on longer generations.
+* It might also be because your inference engine adds an unnecessary "start of sequence" token (or the lack of thereof on the contrary) so ensure you check both hypotheses!
+* <mark style="background-color:green;">**Use our conversational notebooks to force the chat template - this will fix most issues.**</mark>
+  * Qwen-3 14B Conversational notebook [**Open in Colab**](https://colab.research.google.com/github/unslothai/notebooks/blob/main/nb/Qwen3_\(14B\)-Reasoning-Conversational.ipynb)
+  * Gemma-3 4B Conversational notebook [**Open in Colab**](https://colab.research.google.com/github/unslothai/notebooks/blob/main/nb/Gemma3_\(4B\).ipynb)
+  * Llama-3.2 3B Conversational notebook [**Open in Colab**](https://colab.research.google.com/github/unslothai/notebooks/blob/main/nb/Llama3.2_\(1B_and_3B\)-Conversational.ipynb)
+  * Phi-4 14B Conversational notebook [**Open in Colab**](https://colab.research.google.com/github/unslothai/notebooks/blob/main/nb/Phi_4-Conversational.ipynb)
+  * Mistral v0.3 7B Conversational notebook [**Open in Colab**](https://colab.research.google.com/github/unslothai/notebooks/blob/main/nb/Mistral_v0.3_\(7B\)-Conversational.ipynb)
+  * **More notebooks in our** [**notebooks docs**](https://docs.unsloth.ai/get-started/unsloth-notebooks)
+
+---
+
+## Unsloth Dynamic 2.0 GGUFs
+
+**URL:** llms-txt#unsloth-dynamic-2.0-ggufs
+
+**Contents:**
+  - 💡 What's New in Dynamic v2.0?
+- 📊 Why KL Divergence?
+- ⚖️ Calibration Dataset Overfitting
+- :1234: MMLU Replication Adventure
+- :sparkles: Gemma 3 QAT Replication, Benchmarks
+- :llama: Llama 4 Bug Fixes + Run
+  - Running Llama 4 Scout:
+
+A big new upgrade to our Dynamic Quants!
+
+We're excited to introduce our Dynamic v2.0 quantization method - a major upgrade to our previous quants. This new method outperforms leading quantization methods and sets new benchmarks for 5-shot MMLU and KL Divergence.
+
+This means you can now run + fine-tune quantized LLMs while preserving as much accuracy as possible! You can run the 2.0 GGUFs on any inference engine like llama.cpp, Ollama, Open WebUI etc.
+
+{% hint style="success" %}
+[**Sept 10, 2025 update:**](https://docs.unsloth.ai/new/unsloth-dynamic-ggufs-on-aider-polyglot) You asked for tougher benchmarks, so we’re showcasing Aider Polyglot results! Our Dynamic 3-bit DeepSeek V3.1 GGUF scores **75.6%**, surpassing many full-precision SOTA LLMs. [Read more.](https://docs.unsloth.ai/new/unsloth-dynamic-ggufs-on-aider-polyglot)
+
+The **key advantage** of using the Unsloth package and models is our active role in ***fixing critical bugs*** in major models. We've collaborated directly with teams behind [Qwen3](https://www.reddit.com/r/LocalLLaMA/comments/1kaodxu/qwen3_unsloth_dynamic_ggufs_128k_context_bug_fixes/), [Meta (Llama 4)](https://github.com/ggml-org/llama.cpp/pull/12889), [Mistral (Devstral)](https://app.gitbook.com/o/HpyELzcNe0topgVLGCZY/s/xhOjnexMCB3dmuQFQ2Zq/~/changes/618/basics/tutorials-how-to-fine-tune-and-run-llms/devstral-how-to-run-and-fine-tune), [Google (Gemma 1–3)](https://news.ycombinator.com/item?id=39671146) and [Microsoft (Phi-3/4)](https://simonwillison.net/2025/Jan/11/phi-4-bug-fixes), contributing essential fixes that significantly boost accuracy.
+{% endhint %}
+
+Detailed analysis of our benchmarks and evaluation further below.
+
+<div><figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FWpuceJODVjlQcN7RvS6M%2Fkldivergence%20graph.png?alt=media&#x26;token=1f8f39fb-d4c6-47c6-84fe-f767ec7bae6b" alt="" width="563"><figcaption></figcaption></figure> <figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FszSmyqwqLW7artvIR5ut%2F5shotmmlu.png?alt=media&#x26;token=c9ef327e-5f8c-4720-8e05-08c345668745" alt="" width="563"><figcaption></figcaption></figure></div>
+
+### 💡 What's New in Dynamic v2.0?
+
+* **Revamped Layer Selection for GGUFs + safetensors:** Unsloth Dynamic 2.0 now selectively quantizes layers much more intelligently and extensively. Rather than modifying only select layers, we now dynamically adjust the quantization type of every possible layer, and the combinations will differ for each layer and model.
+* Current selected and all future GGUF uploads will utilize Dynamic 2.0 and our new calibration dataset. The dataset contains more than >1.5M **tokens** (depending on model) and comprise of high-quality, hand-curated and cleaned data - to greatly enhance conversational chat performance.
+* Previously, our Dynamic quantization (DeepSeek-R1 1.58-bit GGUF) was effective only for MoE architectures. <mark style="background-color:green;">**Dynamic 2.0 quantization now works on all models (including MOEs & non-MoEs)**</mark>.
+* **Model-Specific Quants:** Each model now uses a custom-tailored quantization scheme. E.g. the layers quantized in Gemma 3 differ significantly from those in Llama 4.
+* To maximize efficiency, especially on Apple Silicon and ARM devices, we now also add Q4\_NL, Q5.1, Q5.0, Q4.1, and Q4.0 formats.
+
+To ensure accurate benchmarking, we built an internal evaluation framework to match official reported 5-shot MMLU scores of Llama 4 and Gemma 3. This allowed apples-to-apples comparisons between full-precision vs. Dynamic v2.0, **QAT** and standard **imatrix** GGUF quants.
+
+Currently, we've released updates for:
+
+| **Qwen3:** [0.6B](https://huggingface.co/unsloth/Qwen3-0.6B-GGUF) • [1.7B](https://huggingface.co/unsloth/Qwen3-1.7B-GGUF) • [4B](https://huggingface.co/unsloth/Qwen3-4B-GGUF) • [8B](https://huggingface.co/unsloth/Qwen3-8B-GGUF) • [14B](https://huggingface.co/unsloth/Qwen3-14B-GGUF) • [30B-A3B](https://huggingface.co/unsloth/Qwen3-30B-A3B-GGUF) • [32B](https://huggingface.co/unsloth/Qwen3-32B-GGUF) • [235B-A22B](https://huggingface.co/unsloth/Qwen3-235B-A22B-GGUF) • [R1-0528](https://huggingface.co/unsloth/DeepSeek-R1-0528-Qwen3-8B-GGUF) | **Other:** [GLM-4-32B](https://huggingface.co/unsloth/GLM-4-32B-0414-GGUF) • [MAI-DS-R1](https://huggingface.co/unsloth/MAI-DS-R1-GGUF) • [QwQ (32B)](https://huggingface.co/unsloth/QwQ-32B-GGUF)                                                           |
+| --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **DeepSeek:** [R1-0528](https://docs.unsloth.ai/models/tutorials-how-to-fine-tune-and-run-llms/deepseek-r1-0528-how-to-run-locally#model-uploads) • [V3-0324](https://huggingface.co/unsloth/DeepSeek-V3-0324-GGUF-UD) • [R1-Distill-Llama](https://huggingface.co/unsloth/DeepSeek-R1-Distill-Llama-8B-GGUF)                                                                                                                                                                                                                                                   | **Llama:** [4 (Scout)](https://huggingface.co/unsloth/Llama-4-Scout-17B-16E-Instruct-GGUF) • [4 (Maverick)](https://huggingface.co/unsloth/Llama-4-Maverick-17B-128E-Instruct-GGUF) •  [3.1 (8B)](https://huggingface.co/unsloth/Llama-3.1-8B-Instruct-GGUF) |
+| **Gemma 3:** [4B](https://huggingface.co/unsloth/gemma-3-4b-it-GGUF) • [12B](https://huggingface.co/unsloth/gemma-3-12b-it-GGUF) • [27B](https://huggingface.co/unsloth/gemma-3-27b-it-GGUF) • [QAT](https://huggingface.co/unsloth/gemma-3-12b-it-qat-GGUF)                                                                                                                                                                                                                                                                                                    | **Mistral:** [Magistral](https://huggingface.co/unsloth/Magistral-Small-2506-GGUF) • [Small-3.1-2503](https://huggingface.co/unsloth/Mistral-Small-3.1-24B-Instruct-2503-GGUF)                                                                               |
+
+All future GGUF uploads will utilize Unsloth Dynamic 2.0, and our Dynamic 4-bit safe tensor quants will also benefit from this in the future.
+
+## 📊 Why KL Divergence?
+
+[Accuracy is Not All You Need](https://arxiv.org/pdf/2407.09141) showcases how pruning layers, even by selecting unnecessary ones still yields vast differences in terms of "flips". A "flip" is defined as answers changing from incorrect to correct or vice versa. The paper shows how MMLU might not decrease as we prune layers or do quantization,but that's because some incorrect answers might have "flipped" to become correct. Our goal is to match the original model, so measuring "flips" is a good metric.
+
+<div><figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FEjL8zLLNyceY3IpDUdWz%2Fimage.png?alt=media&#x26;token=6c31355b-57cf-4f22-a70e-b3b1e7c533d4" alt=""><figcaption></figcaption></figure> <figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FimYGCjWJ3GVKQmfAQwd5%2Fimage.png?alt=media&#x26;token=5a49d0ec-d92a-4d0e-9d6f-77f6d0d95738" alt=""><figcaption></figcaption></figure></div>
+
+{% hint style="info" %}
+**KL Divergence** should be the **gold standard for reporting quantization errors** as per the research paper "Accuracy is Not All You Need". **Using perplexity is incorrect** since output token values can cancel out, so we must use KLD!
+{% endhint %}
+
+The paper also shows that interestingly KL Divergence is highly correlated with flips, and so our goal is to reduce the mean KL Divergence whilst increasing the disk space of the quantization as less as possible.
+
+## ⚖️ Calibration Dataset Overfitting
+
+Most frameworks report perplexity and KL Divergence using a test set of Wikipedia articles. However, we noticed using the calibration dataset which is also Wikipedia related causes quants to overfit, and attain lower perplexity scores. We utilize [Calibration\_v3](https://gist.github.com/bartowski1182/eb213dccb3571f863da82e99418f81e8) and [Calibration\_v5](https://gist.github.com/tristandruyen/9e207a95c7d75ddf37525d353e00659c/) datasets for fair testing which includes some wikitext data amongst other data. <mark style="background-color:red;">**Also instruct models have unique chat templates, and using text only calibration datasets is not effective for instruct models**</mark> (base models yes). In fact most imatrix GGUFs are typically calibrated with these issues. As a result, they naturally perform better on KL Divergence benchmarks that also use Wikipedia data, since the model is essentially optimized for that domain.
+
+To ensure a fair and controlled evaluation, we do not to use our own calibration dataset (which is optimized for chat performance) when benchmarking KL Divergence. Instead, we conducted tests using the same standard Wikipedia datasets, allowing us to directly compare the performance of our Dynamic 2.0 method against the baseline imatrix approach.
+
+## :1234: MMLU Replication Adventure
+
+* Replicating MMLU 5 shot was nightmarish. We <mark style="background-color:red;">**could not**</mark> replicate MMLU results for many models including Llama 3.1 (8B) Instruct, Gemma 3 (12B) and others due to <mark style="background-color:yellow;">**subtle implementation issues**</mark>. Llama 3.1 (8B) for example should be getting \~68.2%, whilst using incorrect implementations can attain <mark style="background-color:red;">**35% accuracy.**</mark>
+
+<figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FGqqARO9UA0qpIzNcfixv%2FMMLU%20differences.png?alt=media&#x26;token=59c47844-a2e6-49a3-a523-1e28f2208e6d" alt="" width="375"><figcaption><p>MMLU implementation issues</p></figcaption></figure>
+
+* Llama 3.1 (8B) Instruct has a MMLU 5 shot accuracy of 67.8% using a naive MMLU implementation. We find however Llama **tokenizes "A" and "\_A" (A with a space in front) as different token ids**. If we consider both spaced and non spaced tokens, we get 68.2% <mark style="background-color:green;">(+0.4%)</mark>
+* Interestingly Llama 3 as per Eleuther AI's [LLM Harness](https://github.com/EleutherAI/lm-evaluation-harness/blob/main/lm_eval/tasks/llama3/instruct/mmlu/_continuation_template_yaml) also appends <mark style="background-color:purple;">**"The best answer is"**</mark> to the question, following Llama 3's original MMLU benchmarks.
+* There are many other subtle issues, and so to benchmark everything in a controlled environment, we designed our own MMLU implementation from scratch by investigating [github.com/hendrycks/test](https://github.com/hendrycks/test) directly, and verified our results across multiple models and comparing to reported numbers.
+
+## :sparkles: Gemma 3 QAT Replication, Benchmarks
+
+The Gemma team released two QAT (quantization aware training) versions of Gemma 3:
+
+1. Q4\_0 GGUF - Quantizes all layers to Q4\_0 via the formula `w = q * block_scale` with each block having 32 weights. See [llama.cpp wiki ](https://github.com/ggml-org/llama.cpp/wiki/Tensor-Encoding-Schemes)for more details.
+2. int4 version - presumably [TorchAO int4 style](https://github.com/pytorch/ao/blob/main/torchao/quantization/README.md)?
+
+We benchmarked all Q4\_0 GGUF versions, and did extensive experiments on the 12B model. We see the **12B Q4\_0 QAT model gets 67.07%** whilst the full bfloat16 12B version gets 67.15% on 5 shot MMLU. That's very impressive! The 27B model is mostly nearly there!
+
+<table><thead><tr><th>Metric</th><th>1B</th><th valign="middle">4B</th><th>12B</th><th>27B</th></tr></thead><tbody><tr><td>MMLU 5 shot</td><td>26.12%</td><td valign="middle">55.13%</td><td><mark style="background-color:blue;"><strong>67.07% (67.15% BF16)</strong></mark></td><td><strong>70.64% (71.5% BF16)</strong></td></tr><tr><td>Disk Space</td><td>0.93GB</td><td valign="middle">2.94GB</td><td><strong>7.52GB</strong></td><td>16.05GB</td></tr><tr><td><mark style="background-color:green;"><strong>Efficiency*</strong></mark></td><td>1.20</td><td valign="middle">10.26</td><td><strong>5.59</strong></td><td>2.84</td></tr></tbody></table>
+
+We designed a new **Efficiency metric** which calculates the usefulness of the model whilst also taking into account its disk size and MMLU 5 shot score:
+
+$$
+\text{Efficiency} = \frac{\text{MMLU 5 shot score} - 25}{\text{Disk Space GB}}
+$$
+
+{% hint style="warning" %}
+We have to **minus 25** since MMLU has 4 multiple choices - A, B, C or D. Assume we make a model that simply randomly chooses answers - it'll get 25% accuracy, and have a disk space of a few bytes. But clearly this is not a useful model.
+{% endhint %}
+
+On KL Divergence vs the base model, below is a table showcasing the improvements. Reminder the closer the KL Divergence is to 0, the better (ie 0 means identical to the full precision model)
+
+| Quant     | Baseline KLD | GB    | New KLD  | GB    |
+| --------- | ------------ | ----- | -------- | ----- |
+| IQ1\_S    | 1.035688     | 5.83  | 0.972932 | 6.06  |
+| IQ1\_M    | 0.832252     | 6.33  | 0.800049 | 6.51  |
+| IQ2\_XXS  | 0.535764     | 7.16  | 0.521039 | 7.31  |
+| IQ2\_M    | 0.26554      | 8.84  | 0.258192 | 8.96  |
+| Q2\_K\_XL | 0.229671     | 9.78  | 0.220937 | 9.95  |
+| Q3\_K\_XL | 0.087845     | 12.51 | 0.080617 | 12.76 |
+| Q4\_K\_XL | 0.024916     | 15.41 | 0.023701 | 15.64 |
+
+If we plot the ratio of the disk space increase and the KL Divergence ratio change, we can see a much clearer benefit! Our dynamic 2bit Q2\_K\_XL reduces KLD quite a bit (around 7.5%).
+
+<figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FsYSRIPGSjExzSr5y828z%2Fchart(2).svg?alt=media&#x26;token=e87db00e-6e3e-4478-af0b-bc84ed2e463b" alt=""><figcaption></figcaption></figure>
+
+Truncated table of results for MMLU for Gemma 3 (27B). See below.
+
+1. **Our dynamic 4bit version is 2GB smaller whilst having +1% extra accuracy vs the QAT version!**
+2. Efficiency wise, 2bit Q2\_K\_XL and others seem to do very well!
+
+| Quant          | Unsloth   | Unsloth + QAT | Disk Size | Efficiency |
+| -------------- | --------- | ------------- | --------- | ---------- |
+| IQ1\_M         | 48.10     | 47.23         | 6.51      | 3.42       |
+| IQ2\_XXS       | 59.20     | 56.57         | 7.31      | 4.32       |
+| IQ2\_M         | 66.47     | 64.47         | 8.96      | 4.40       |
+| Q2\_K\_XL      | 68.70     | 67.77         | 9.95      | 4.30       |
+| Q3\_K\_XL      | 70.87     | 69.50         | 12.76     | 3.49       |
+| **Q4\_K\_XL**  | **71.47** | **71.07**     | **15.64** | **2.94**   |
+| **Google QAT** |           | **70.64**     | **17.2**  | **2.65**   |
+
+<summary><mark style="color:green;">Click here</mark> for Full Google's Gemma 3 (27B) QAT Benchmarks:</summary>
+
+| Model          | Unsloth   | Unsloth + QAT | Disk Size | Efficiency |
+| -------------- | --------- | ------------- | --------- | ---------- |
+| IQ1\_S         | 41.87     | 43.37         | 6.06      | 3.03       |
+| IQ1\_M         | 48.10     | 47.23         | 6.51      | 3.42       |
+| IQ2\_XXS       | 59.20     | 56.57         | 7.31      | 4.32       |
+| IQ2\_M         | 66.47     | 64.47         | 8.96      | 4.40       |
+| Q2\_K          | 68.50     | 67.60         | 9.78      | 4.35       |
+| Q2\_K\_XL      | 68.70     | 67.77         | 9.95      | 4.30       |
+| IQ3\_XXS       | 68.27     | 67.07         | 10.07     | 4.18       |
+| Q3\_K\_M       | 70.70     | 69.77         | 12.51     | 3.58       |
+| Q3\_K\_XL      | 70.87     | 69.50         | 12.76     | 3.49       |
+| Q4\_K\_M       | 71.23     | 71.00         | 15.41     | 2.98       |
+| **Q4\_K\_XL**  | **71.47** | **71.07**     | **15.64** | **2.94**   |
+| Q5\_K\_M       | 71.77     | 71.23         | 17.95     | 2.58       |
+| Q6\_K          | 71.87     | 71.60         | 20.64     | 2.26       |
+| Q8\_0          | 71.60     | 71.53         | 26.74     | 1.74       |
+| **Google QAT** |           | **70.64**     | **17.2**  | **2.65**   |
+
+## :llama: Llama 4 Bug Fixes + Run
+
+We also helped and fixed a few Llama 4 bugs:
+
+* Llama 4 Scout changed the RoPE Scaling configuration in their official repo. We helped resolve issues in llama.cpp to enable this [change here](https://github.com/ggml-org/llama.cpp/pull/12889)
+
+<figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FaJ5AOubUkMjbbvgiOekf%2Fimage.png?alt=media&#x26;token=b1fbdea1-7c95-4afa-9b12-aedec012f38b" alt=""><figcaption></figcaption></figure>
+* Llama 4's QK Norm's epsilon for both Scout and Maverick should be from the config file - this means using 1e-05 and not 1e-06. We helped resolve these in [llama.cpp](https://github.com/ggml-org/llama.cpp/pull/12889) and [transformers](https://github.com/huggingface/transformers/pull/37418)
+* The Llama 4 team and vLLM also independently fixed an issue with QK Norm being shared across all heads (should not be so) [here](https://github.com/vllm-project/vllm/pull/16311). MMLU Pro increased from 68.58% to 71.53% accuracy.
+* [Wolfram Ravenwolf](https://x.com/WolframRvnwlf/status/1909735579564331016) showcased how our GGUFs via llama.cpp attain much higher accuracy than third party inference providers - this was most likely a combination of the issues explained above, and also probably due to quantization issues.
+
+<figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2F4Wrz07bAdvluM2gACggU%2FGoC79hYXwAAPTMs.jpg?alt=media&#x26;token=05001bc0-74b0-4bbb-a89f-894fcdb985d8" alt=""><figcaption></figcaption></figure>
+
+As shown in our graph, our 4-bit Dynamic QAT quantization deliver better performance on 5-shot MMLU while also being smaller in size.
+
+### Running Llama 4 Scout:
+
+To run Llama 4 Scout for example, first clone llama.cpp:
+
+Then download out new dynamic v 2.0 quant for Scout:
+
+**Examples:**
+
+Example 1 (bash):
+```bash
+apt-get update
+apt-get install pciutils build-essential cmake curl libcurl4-openssl-dev -y
+git clone https://github.com/ggml-org/llama.cpp
+cmake llama.cpp -B llama.cpp/build \
+    -DBUILD_SHARED_LIBS=OFF -DGGML_CUDA=ON -DLLAMA_CURL=ON
+cmake --build llama.cpp/build --config Release -j --clean-first --target llama-cli llama-gguf-split
+cp llama.cpp/build/bin/llama-* llama.cpp
+```
+
+---
+
+## Long Context gpt-oss Training
+
+**URL:** llms-txt#long-context-gpt-oss-training
+
+**Contents:**
+- 🦥Introducing Unsloth Flex Attention Support
+- :dark\_sunglasses: Attention Sinks
+- :triangular\_ruler:Unsloth's Flex Attention implementation
+- :scroll: Mathematical derivation for attention sinks
+- 💾**NEW: Saving to GGUF, vLLM after gpt-oss training**
+  - :diamonds:Fine-tuning gpt-oss directly
+- 🐛Bug Fixes for gpt-oss
+- :1234: Implementations for Sink Attention
+
+We’re excited to introduce Unsloth Flex Attention support for OpenAI gpt-oss training that enables **>8× longer context lengths**, **>50% less VRAM usage** and **>1.5× faster training (with no accuracy degradation)** vs. all implementations including those using Flash Attention 3 (FA3). Unsloth Flex Attention makes it possible to train with a **60K context length** on a 80GB VRAM H100 GPU for BF16 LoRA. Also:
+
+* You can [now export/save](#new-saving-to-gguf-vllm-after-gpt-oss-training) your QLoRA fine-tuned gpt-oss model to llama.cpp, vLLM, Ollama or HF
+* We [**fixed gpt-oss training**](#bug-fixes-for-gpt-oss) **losses going to infinity** on float16 GPUs (like T4 Colab)
+* We [fixed gpt-oss implementation](#bug-fixes-for-gpt-oss) issues irrelevant to Unsloth, most notably ensuring that `swiglu_limit = 7.0` is properly applied during MXFP4 inference in transformers
+
+## 🦥Introducing Unsloth Flex Attention Support
+
+With Unsloth's Flex Attention support, a single 80GB VRAM H100 can handle up to 81K context length with QLoRA and 60K context with BF16 LoRA! These gains are applied to **BOTH** gpt-oss-20b and **gpt-oss-120b**! The more context length you use, the more gains you'll get from Unsloth Flex Attention:
+
+<figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2F3E2n2KN63eemU6HdKZQZ%2Foutput%20(7).png?alt=media&#x26;token=3d7cab50-220a-4f99-b593-c32c5ce53a2d" alt="" width="563"><figcaption></figcaption></figure>
+
+In comparison, all other non-Unsloth implementations max out at 9K context length on an 80GB GPU, and can only reach 15K context with FA3. But, <mark style="background-color:$warning;">**FA3 is unsuitable for gpt-oss training since it lacks backward pass support for attention sinks**</mark>. So if you were previously using FA3 for gpt-oss training, we'd recommend you to **not use it** for now. Thus, the max context length you can get without Unsloth on 80GB VRAM is \~9K.
+
+Training with Unsloth Flex Attention delivers at least a 1.3× speedup, with gains growing as context length increases, reaching up to 2× faster. Because Flex Attention scales with context, longer sequences yield bigger savings in both VRAM and training time, as [described here](#unsloths-flex-attention-implementation).
+
+A huge thank you to Rohan Pandey for his [Flex Attention implementation](https://x.com/khoomeik/status/1955693558914310608), which directly inspired the development of Unsloth's Flex Attention implementation.
+
+## :dark\_sunglasses: Attention Sinks
+
+OpenAI's GPT OSS model uses an **alternating pattern of sliding window attention, full attention**, sliding window attention and so on (SWA, FA, SWA, FA, etc). Each sliding window only attends to **128 tokens** (including the current token), so computation is vastly reduced. However, this also means long context retrieval and reasoning becomes useless due to the small sliding window. Most labs fix this by expanding the sliding window to 2048 or 4096 tokens.
+
+OpenAI leveraged **Attention Sinks** from the Efficient Streaming Language Models with Attention Sinks [paper](https://arxiv.org/abs/2309.17453) which shows that you can use a small sliding window, except you must add a global attention on the first token! The paper provides a good illustration below:
+
+<figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FSc8bCXQDAcX0MtFfWYkL%2Fimage.png?alt=media&#x26;token=ee2e758b-c2c9-457e-8990-f9b7f89045ae" alt=""><figcaption></figcaption></figure>
+
+The paper finds that the **attention mechanism seems to assign a lot of weight to the first few tokens (1 to 4)**, and by removing them during the sliding window operation, these "important" first few tokens disappear, and causes bad long context retrieval.
+
+If we plot log perplexity (higher is worse), and do long context inference after the pretrained model's set context length, we see the perplexity shoots up (not good). However the red line (uses Attention Sinks) stays low, which is very good!
+
+<figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FCXEsbOaU3BU093p0Sdep%2Fimage.png?alt=media&#x26;token=55fdd195-58cb-463d-8395-352686fdbef0" alt=""><figcaption></figcaption></figure>
+
+The paper also shows that the [Attention Is Off By One method](https://www.evanmiller.org/attention-is-off-by-one.html) does partially work, except one must also add a few extra sink tokens to get lower perplexities. **The paper shows that adding a single sink token that is learnable does remarkably well!&#x20;**<mark style="background-color:$success;">**And that's what OpenAI did for GPT-OSS!**</mark>
+
+<figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2Fn8nNMnWizldULEdsJGeJ%2Fimage.png?alt=media&#x26;token=432545a5-78cd-408e-83ba-30fa580cf116" alt=""><figcaption></figcaption></figure>
+
+## :triangular\_ruler:Unsloth's Flex Attention implementation
+
+Flex Attention <https://pytorch.org/blog/flexattention/> is extremely powerful as it provides the practitioner 2 customization routes for the attention mechanism - a **score modifier (f)** and a **masking function (M)**.
+
+The **score modifier (f)** allows us to edit the attention logits before the softmax operation, and the **masking function (M)** allows us to skip operations if we don't need them (for eg sliding window attention only sees last 128 tokens).
+
+<mark style="background-color:green;">**The trick is Flex Attention provides fast auto generated Triton kernels with arbitrary score modifiers and masking functions!**</mark>
+
+<p align="center"><span class="math">\sigma\bigg(s\times\bold{f}(QK^T+\bold{M})\bigg)</span><br></p>
+
+This means we can use Flex Attention to implement attention sinks! Implementing a single attention sink is provided both in [OpenAI's original GPT-OSS repo](#implementations-for-sink-attention) and HuggingFace's transformers's implementation.
+
+The above shows we concatenate the sink at the very end of the `Q @ K.T` , do the softmax, and remove the last column which was the sink token.
+
+By using some visualization utilities from [Flex Attention's Github repo](https://github.com/meta-pytorch/attention-gym), we can visualize this. Assume the sequence length was 16, and a sliding window of 5. On the left is the last sink column (default implementation), and on the right is if we move the sink location to index 0 (our implementation).
+
+{% columns %}
+{% column %}
+***Sink location at the end (default)***
+
+<figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FTSc5dRO9c4ZiNTLsauz9%2FUntitled-1.png?alt=media&#x26;token=185f2963-e14b-440a-b1ed-79439850c011" alt=""><figcaption></figcaption></figure>
+{% endcolumn %}
+
+{% column %}
+***Move sink location to index 0***
+
+<figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FuC83Y3sLoTLSeGC0XQnR%2FUntitled.png?alt=media&#x26;token=6123c6de-82c6-4c00-b0b2-5b374684aad1" alt=""><figcaption></figcaption></figure>
+{% endcolumn %}
+{% endcolumns %}
+
+**Interesting finding**: The official Flex Attention sliding window implementations considers the window size as the number of last tokens **PLUS ONE** as it includes the current token. The HuggingFace and GPT OSS implementations strictly only sees the last N tokens. Ie the below is from <https://pytorch.org/blog/flexattention/> and <https://github.com/meta-pytorch/attention-gym>:
+
+{% code overflow="wrap" %}
+
+{% columns %}
+{% column %}
+Default Flex Attention (3+1 tokens)
+
+<figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2F3JMF7yfsluGynTh7n1dg%2FUntitled.png?alt=media&#x26;token=509f5b11-d049-4c4b-8d92-9f5ffeacf11b" alt=""><figcaption></figcaption></figure>
+{% endcolumn %}
+
+{% column %}
+HuggingFace, GPT-OSS (3+0 tokens)
+
+<figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FVIkztjjdp0pMnl9oMjlL%2FUntitled-1.png?alt=media&#x26;token=982e7e64-abfb-45d4-a750-b82e214ad70a" alt=""><figcaption></figcaption></figure>
+{% endcolumn %}
+{% endcolumns %}
+
+We also confirmed through OpenAI's official GPT-OSS implementation on whether we attend to the last N or N+1 tokens here: <https://github.com/openai/gpt-oss/blob/main/gpt_oss/torch/model.py>
+
+<figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FhJfh5FvQ8CACGgHmliqM%2Fimage.png?alt=media&#x26;token=0f971585-617a-4187-8ae0-1b2ff89e90fc" alt=""><figcaption></figcaption></figure>
+
+And we see only the last 3 tokens (not 3+1) are attended to! This means instead of using `<= SLIDING_WINDOW`, use `< SLIDING_WINDOW` (ie use less than, not the equals).
+
+Also since we moved the sink token index to the first, we have to add 1 to the q\_idx to index correctly:
+
+To confirm our index 0 implementation, we verified that the training loss remains consistent with standard Hugging Face runs (without Unsloth Flex Attention), as shown in our graph:
+
+<figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FRbsNQJR9Ez2hWND2ErdW%2Funsloth%20flex%20vs%20no%20flex.png?alt=media&#x26;token=f1004621-e9f7-48b3-827d-c4734fa71d22" alt="" width="375"><figcaption></figcaption></figure>
+
+## :scroll: Mathematical derivation for attention sinks
+
+There is another way to calculate the attention sinks without padding K and V. We first note the softmax operation does, and we want to 2nd version with sinks for now as a scalar:\\
+
+$$
+A(x) = \frac{\exp(x\_i)}{\sum{\exp{(x\_i)}}} \\
+A\_{sink}(x) = \frac{\exp(x\_i)}{\exp{(s)}+ \sum{\exp{(x\_i)}}}
+$$
+
+We can obtain the logsumexp from Flex Attention via `return_lse = True` , and so we do:
+
+$$
+A(x) = \frac{\exp(x\_i)}{\sum{\exp{(x\_i)}}} \\
+\frac{\exp(x\_i)}{\exp{(s)}+ \sum{\exp{(x\_i)}}} =  \frac{\exp(x\_i)}{\sum{\exp{(x\_i)}}} \frac{\sum{\exp{(x\_i)}}}{\exp{(s)}+ \sum{\exp{(x\_i)}}} \\
+\text{LSE}(x) = \text{logsumexp}(x) = \log{\sum\exp(x\_i)} \\
+\exp{(\text{LSE}(x))} = \exp{\big(\log{\sum\exp(x\_i)}\big)} = \sum\exp(x\_i)
+$$
+
+And we can now easily derive the sink version of attention. We do find however this process has somewhat higher error than the zero padding approach, so we still default to our original version.
+
+## 💾**NEW: Saving to GGUF, vLLM after gpt-oss training**
+
+You can now QLoRA fine-tune gpt-oss and directly save, export, or merge the model to **llama.cpp**, **vLLM**, or **HF** - not just Unsloth. We will be releasing a free notebook hopefully soon.
+
+Previously, any QLoRA fine-tuned gpt-oss model was restricted to running in Unsloth. We’ve removed that limitation by introducing the ability to merge in **MXFP4** **native format** using `save_method="mxfp4"`  and **on-demand dequantization of MXFP4** base models (like gpt-oss) making it possible to **export your fine-tuned model in bf16 format using** `save_method="merged_16bit"` .
+
+The **MXFP4** native merge format offers significant performance improvements compared to the **bf16 format**: it uses up to 75% less disk space, reduces VRAM consumption by 50%, accelerates merging by 5-10x, and enables much faster conversion to **GGUF** format.
+
+After fine-tuning your gpt-oss model, you can merge it into **MXFP4** format with:
+
+If you prefer to merge the model and push to the hugging-face hub, use:
+
+To run inference on the merged model, you can use vLLM and Llama.cpp among others. OpenAI recommends these [inference settings](https://docs.unsloth.ai/models/gpt-oss-how-to-run-and-fine-tune/..#recommended-settings) for both models: `temperature=1.0`, `top_p=1.0`, `top_k=0`
+
+#### :sparkles: Saving to Llama.cpp
+
+1. Obtain the latest `llama.cpp` on [GitHub here](https://github.com/ggml-org/llama.cpp). You can follow the build instructions below as well. Change `-DGGML_CUDA=ON` to `-DGGML_CUDA=OFF` if you don't have a GPU or just want CPU inference.
+
+2. Convert the **MXFP4** merged model:
+
+3. Run inference on the quantized model:
+
+<summary><span data-gb-custom-inline data-tag="emoji" data-code="2728">✨</span>  Saving to SGLang</summary>
+
+1. Build SGLang from source:\\
+
+2. Launch SGLang server:\\
+
+### :diamonds:Fine-tuning gpt-oss directly
+
+We also added support for directly fine-tuning of gpt-oss models by implementing patches that allow loading the native MXFP4 quantized format. This makes it possible to load the 'openai/gpt-oss' model with less than 24GB of VRAM, and QLoRA fine-tune it. Simply load the model using:
+
+add a Peft layer using `FastLanguageModel.get_peft_model` and run SFT fine-tuning over the Peft model.
+
+## 🐛Bug Fixes for gpt-oss
+
+We [recently collaborated with Hugging Face](https://github.com/huggingface/transformers/pull/40197) to resolve inference issues by using OpenAI’s kernels and ensuring that `swiglu_limit = 7.0` is correctly applied during MXFP4 inference.
+
+Based on user feedback, we discovered that extended QLoRA training runs (beyond 60 steps) could cause the **loss to diverge and eventually error out**. This issue only occurred on devices that do not support BF16 and instead fall back to F16 (e.g., T4 GPUs). Importantly, it did not impact QLoRA training on A100 or H100 GPUs, nor LoRA training on f16 GPUs.
+
+**After extensive investigation, we’ve now aligned training loss behavior across all GPU setups, including GPUs limited to F16**. If you were previously experiencing issues because of this, we recommend using our new updated gpt-oss notebook!
+
+<figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2F8e3IkIx1Zb9TXzN69kEp%2FFloat16%20NaN%20Experiments.png?alt=media&#x26;token=4f98f515-b93d-4008-8847-4310a98e2fb2" alt=""><figcaption></figcaption></figure>
+
+We had to do many many experiments to move float16's training loss curve to be equivalent to bfloat16 machines (blue line). We found the following:
+
+1. **Pure float16 will go to infinity on step 50**
+2. **We found the down projections in the MoE to have huge outliers**
+3. **Activations must be saved in bfloat16 or float32**
+
+<mark style="background-color:$info;">**Below shows the absolute magnitude activations for GPT OSS 20B, and some really spike - this will overflow in float16 machines since float16's maximum range is 65504.**</mark>
+
+<mark style="background-color:$success;">**We fixed this in Unsloth, so all float16 training works out of the box!**</mark>
+
+<figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FeUC4rCF41CykSEAj69T1%2F480854617-181c4557-632e-4cbc-8a6f-bcbfe824895a.png?alt=media&#x26;token=494af8c5-1a50-492a-8b16-fced3b417962" alt=""><figcaption></figcaption></figure>
+
+## :1234: Implementations for Sink Attention
+
+OpenAI's sink token implementation is [provided here](https://github.com/openai/gpt-oss/blob/main/gpt_oss/torch/model.py). We provide it below:
+
+{% code fullWidth="false" %}
+
+The HuggingFace transformers implementation is [provided here](https://github.com/huggingface/transformers/blob/main/src/transformers/models/gpt_oss/modeling_gpt_oss.py). We also provide it below:
+
+{% code fullWidth="false" %}
+
+**Examples:**
+
+Example 1 (python):
+```python
+combined_logits = torch.cat([attn_weights, sinks], dim=-1)
+probs = F.softmax(combined_logits, dim=-1)
+scores = probs[..., :-1]
+```
+
+Example 2 (python):
+```python
+def sliding_window_causal(b, h, q_idx, kv_idx):
+    causal_mask = q_idx >= kv_idx
+    window_mask = q_idx - kv_idx <= SLIDING_WINDOW 
+    return causal_mask & window_mask
+```
+
+Example 3 (python):
+```python
+mask = torch.triu(Q.new_full((n_tokens, n_tokens), -float("inf")), diagonal=1)
+if sliding_window > 0:
+    mask += torch.tril(
+        mask.new_full((n_tokens, n_tokens), -float("inf")), diagonal=-sliding_window
+    )
+```
+
+Example 4 (python):
+```python
+def sliding_window_causal(b, h, q_idx, kv_idx):
+    causal_mask = q_idx >= kv_idx
+    window_mask = q_idx - kv_idx <= SLIDING_WINDOW # Default Flex Attention
+    window_mask = q_idx - kv_idx <  SLIDING_WINDOW # GPT-OSS version
+    return causal_mask & window_mask
+```
+
+---
+
+## Connect to container
+
+**URL:** llms-txt#connect-to-container
+
+**Contents:**
+  - **🔒 Security Notes**
+
+ssh -i ~/.ssh/container_key -p 2222 unsloth@localhost
+bash
+-p <host_port>:<container_port>
+bash
+-v <local_folder>:<container_folder>
+bash
+docker run -d -e JUPYTER_PORT=8000 \
+  -e JUPYTER_PASSWORD="mypassword" \
+  -e "SSH_KEY=$(cat ~/.ssh/container_key.pub)" \
+  -e USER_PASSWORD="unsloth2024" \
+  -p 8000:8000 -p 2222:22 \
+  -v $(pwd)/work:/workspace/work \
+  --gpus all \
+  unsloth/unsloth
+```
+
+### **🔒 Security Notes**
+
+* Container runs as non-root `unsloth` user by default
+* Use `USER_PASSWORD` for sudo operations inside container
+* SSH access requires public key authentication
+
+**Examples:**
+
+Example 1 (unknown):
+```unknown
+| Variable           | Description                        | Default   |
+| ------------------ | ---------------------------------- | --------- |
+| `JUPYTER_PASSWORD` | Jupyter Lab password               | `unsloth` |
+| `JUPYTER_PORT`     | Jupyter Lab port inside container  | `8888`    |
+| `SSH_KEY`          | SSH public key for authentication  | `None`    |
+| `USER_PASSWORD`    | Password for `unsloth` user (sudo) | `unsloth` |
+```
+
+Example 2 (unknown):
+```unknown
+* Jupyter Lab: `-p 8000:8888`
+* SSH access: `-p 2222:22`
+
+{% hint style="warning" %}
+**Important**: Use volume mounts to preserve your work between container runs.
+{% endhint %}
+```
+
+Example 3 (unknown):
+```unknown
+
+```
+
+---
+
+## Float8
+
+**URL:** llms-txt#float8
+
+**Contents:**
+  - :mobile\_phone:ExecuTorch - QAT for mobile deployment
+  - :sunflower:How to enable QAT
+  - :person\_tipping\_hand:Acknowledgements
+
+from torchao.quantization import PerRow
+from torchao.quantization import Float8DynamicActivationFloat8WeightConfig
+torchao_config = Float8DynamicActivationFloat8WeightConfig(granularity = PerRow())
+model.save_pretrained_torchao(torchao_config = torchao_config)
+bash
+pip install --upgrade --no-cache-dir --force-reinstall unsloth unsloth_zoo
+pip install torchao==0.14.0 fbgemm-gpu-genai==1.3.0
+```
+
+### :person\_tipping\_hand:Acknowledgements
+
+Huge thanks to the entire PyTorch and TorchAO team for their help and collaboration! Extreme thanks to Andrew Or, Jerry Zhang, Supriya Rao, Scott Roy and Mergen Nachin for helping on many discussions on QAT, and on helping to integrate it into Unsloth! Also thanks to the Executorch team as well!
+
+**Examples:**
+
+Example 1 (unknown):
+```unknown
+{% endcode %}
+
+### :mobile\_phone:ExecuTorch - QAT for mobile deployment
+
+{% columns %}
+{% column %}
+With Unsloth and TorchAO’s QAT support, you can also fine-tune a model in Unsloth and seamlessly export it to [ExecuTorch](https://github.com/pytorch/executorch) (PyTorch’s solution for on-device inference) and deploy it directly on mobile. See an example in action [here](https://huggingface.co/metascroy/Qwen3-4B-int8-int4-unsloth) with more detailed workflows on the way!
+
+**Announcement coming soon!**
+{% endcolumn %}
+
+{% column %}
+
+<figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FXLNzP6c8y3I2lGRlyAIZ%2Fswiftpm_xcode.png?alt=media&#x26;token=061142b9-0a9d-4373-99e3-65e9a175081b" alt=""><figcaption></figcaption></figure>
+{% endcolumn %}
+{% endcolumns %}
+
+### :sunflower:How to enable QAT
+
+Update Unsloth to the latest version, and also install the latest TorchAO!
+
+Then **try QAT with our free** [**Qwen3 (4B) notebook**](https://colab.research.google.com/github/unslothai/notebooks/blob/main/nb/Qwen3_\(4B\)_Instruct-QAT.ipynb)
+
+{% code overflow="wrap" %}
+```
+
+---
+
+## Tutorial: Train your own Reasoning model with GRPO
+
+**URL:** llms-txt#tutorial:-train-your-own-reasoning-model-with-grpo
+
+**Contents:**
+  - Quickstart
+  - Install Unsloth
+  - Learn about GRPO & Reward Functions
+  - Configure desired settings
+  - Data preparation
+
+Beginner's Guide to transforming a model like Llama 3.1 (8B) into a reasoning model by using Unsloth and GRPO.
+
+DeepSeek developed [GRPO](https://unsloth.ai/blog/grpo) (Group Relative Policy Optimization) to train their R1 reasoning models.
+
+These instructions are for our pre-made Google Colab [notebooks](https://docs.unsloth.ai/get-started/unsloth-notebooks). If you are installing Unsloth locally, you can also copy our notebooks inside your favorite code editor. We'll be using any of these notebooks:
+
+| [**gpt-oss-20b**](https://colab.research.google.com/github/unslothai/notebooks/blob/main/nb/gpt-oss-\(20B\)-GRPO.ipynb) **-** GSPO | [**Qwen2.5-VL**](https://colab.research.google.com/github/unslothai/notebooks/blob/main/nb/Qwen2_5_7B_VL_GRPO.ipynb) - Vision GSPO                  | [Gemma 3 (4B)](https://colab.research.google.com/github/unslothai/notebooks/blob/main/nb/Gemma3_\(4B\)-Vision-GRPO.ipynb) - Vision GSPO         |
+| ---------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| [**Qwen3 (4B)**](https://colab.research.google.com/github/unslothai/notebooks/blob/main/nb/Qwen3_\(4B\)-GRPO.ipynb) - Advanced     | [**DeepSeek-R1-0528-Qwen3-8B**](https://colab.research.google.com/github/unslothai/notebooks/blob/main/nb/DeepSeek_R1_0528_Qwen3_\(8B\)_GRPO.ipynb) | [Llama 3.2 (3B)](https://colab.research.google.com/github/unslothai/notebooks/blob/main/nb/Advanced_Llama3_2_\(3B\)_GRPO_LoRA.ipynb) - Advanced |
+
+{% stepper %}
+{% step %}
+
+If you're using our Colab notebook, click **Runtime > Run all**. We'd highly recommend you checking out our [Fine-tuning Guide](https://docs.unsloth.ai/get-started/fine-tuning-llms-guide) before getting started.
+
+If installing locally, ensure you have the correct [requirements](https://docs.unsloth.ai/get-started/beginner-start-here/unsloth-requirements) and use `pip install unsloth` on Linux or follow our [Windows install ](https://docs.unsloth.ai/get-started/install-and-update/windows-installation)instructions.
+
+<figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FCovHTH7dI2GcwNZm5TxF%2Fimage.png?alt=media&#x26;token=a157e33b-ad01-4174-a01c-67f742e4e732" alt=""><figcaption></figcaption></figure>
+{% endstep %}
+
+### Learn about GRPO & Reward Functions
+
+Before we get started, it is recommended to learn more about GRPO, reward functions and how they work. Read more about them including [tips & tricks](https://docs.unsloth.ai/get-started/reinforcement-learning-rl-guide/..#basics-tips)[ here](https://docs.unsloth.ai/get-started/reinforcement-learning-rl-guide/..#basics-tips).
+
+You will also need enough VRAM. In general, model parameters = amount of VRAM you will need.  In Colab, we are using their free 16GB VRAM GPUs which can train any model up to 16B in parameters.
+{% endstep %}
+
+### Configure desired settings
+
+We have pre-selected optimal settings for the best results for you already and you can change the model to whichever you want listed in our [supported models](https://docs.unsloth.ai/get-started/all-our-models). Would not recommend changing other settings if you're a beginner.
+
+{% hint style="success" %}
+For **advanced GRPO** documentation on batching, generation and training parameters, [read our guide!](https://docs.unsloth.ai/get-started/reinforcement-learning-rl-guide/advanced-rl-documentation)
+{% endhint %}
+
+<figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2Fyd3RkyPKInZBbvX1Memf%2Fimage.png?alt=media&#x26;token=a9ca4ce4-2e9f-4b5a-a65c-646d267411c8" alt="" width="563"><figcaption></figcaption></figure>
+{% endstep %}
+
+We have pre-selected OpenAI's [GSM8K](https://huggingface.co/datasets/openai/gsm8k) dataset which contains grade school math problems but you could change it to your own or any public one on Hugging Face. You can read more about [datasets here](https://docs.unsloth.ai/get-started/fine-tuning-llms-guide/datasets-guide).
+
+Your dataset should still have at least 2 columns for question and answer pairs. However the answer must not reveal the reasoning behind how it derived the answer from the question. See below for an example:
+
+<figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FqdTVcMEeJ3kzPToSY1X8%2Fimage.png?alt=media&#x26;token=3dd8d9d7-1847-42b6-a73a-f9c995b798b1" alt=""><figcaption></figcaption></figure>
+
+We'll structure the data to prompt the model to articulate its reasoning before delivering an answer. To start, we'll establish a clear format for both prompts and responses.
+
+---
+
+## Qwen3: How to Run & Fine-tune
+
+**URL:** llms-txt#qwen3:-how-to-run-&-fine-tune
+
+**Contents:**
+- 🖥️ **Running Qwen3**
+  - :gear: Official Recommended Settings
+  - Switching Between Thinking and Non-Thinking Mode
+  - 🦙 Ollama: Run Qwen3 Tutorial
+  - 📖 Llama.cpp: Run Qwen3 Tutorial
+
+Learn to run & fine-tune Qwen3 locally with Unsloth + our Dynamic 2.0 quants
+
+Qwen's new Qwen3 models deliver state-of-the-art advancements in reasoning, instruction-following, agent capabilities, and multilingual support.
+
+{% hint style="success" %}
+**NEW!** Qwen3 got an update in July 2025. Run & fine-tune the latest model: [**Qwen-2507**](https://docs.unsloth.ai/models/qwen3-how-to-run-and-fine-tune/qwen3-2507)
+{% endhint %}
+
+All uploads use Unsloth [Dynamic 2.0](https://docs.unsloth.ai/basics/unsloth-dynamic-2.0-ggufs) for SOTA 5-shot MMLU and KL Divergence performance, meaning you can run & fine-tune quantized Qwen LLMs with minimal accuracy loss.
+
+We also uploaded Qwen3 with native 128K context length. Qwen achieves this by using YaRN to extend its original 40K window to 128K.
+
+[Unsloth](https://github.com/unslothai/unsloth) also now supports fine-tuning and [Reinforcement Learning (RL)](https://docs.unsloth.ai/get-started/reinforcement-learning-rl-guide) of Qwen3 and Qwen3 MOE models — 2x faster, with 70% less VRAM, and 8x longer context lengths. Fine-tune Qwen3 (14B) for free using our [Colab notebook.](https://colab.research.google.com/github/unslothai/notebooks/blob/main/nb/Qwen3_\(14B\)-Reasoning-Conversational.ipynb)
+
+<a href="#running-qwen3" class="button primary">Running Qwen3 Tutorial</a> <a href="#fine-tuning-qwen3-with-unsloth" class="button secondary">Fine-tuning Qwen3</a>
+
+#### **Qwen3 - Unsloth Dynamic 2.0** with optimal configs:
+
+| Dynamic 2.0 GGUF (to run)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     | 128K Context GGUF                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       | Dynamic 4-bit Safetensor (to finetune/deploy)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
+| ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| <ul><li><a href="https://huggingface.co/unsloth/Qwen3-0.6B-GGUF">0.6B</a></li><li><a href="https://huggingface.co/unsloth/Qwen3-1.7B-GGUF">1.7B</a></li><li><a href="https://huggingface.co/unsloth/Qwen3-4B-GGUF">4B</a></li><li><a href="https://huggingface.co/unsloth/Qwen3-8B-GGUF">8B</a></li><li><a href="https://huggingface.co/unsloth/Qwen3-14B-GGUF">14B</a></li><li><a href="https://huggingface.co/unsloth/Qwen3-30B-A3B-GGUF">30B-A3B</a></li><li><a href="https://huggingface.co/unsloth/Qwen3-32B-GGUF">32B</a></li><li><a href="https://huggingface.co/unsloth/Qwen3-235B-A22B-GGUF">235B-A22B</a></li></ul> | <ul><li><a href="https://huggingface.co/unsloth/Qwen3-4B-128K-GGUF">4B</a></li><li><a href="https://huggingface.co/unsloth/Qwen3-8B-128K-GGUF">8B</a></li><li><a href="https://huggingface.co/unsloth/Qwen3-14B-128K-GGUF">14B</a></li><li><a href="https://huggingface.co/unsloth/Qwen3-30B-A3B-128K-GGUF">30B-A3B</a></li><li><a href="https://huggingface.co/unsloth/Qwen3-32B-128K-GGUF">32B</a></li><li><a href="https://huggingface.co/unsloth/Qwen3-235B-A22B-128K-GGUF">235B-A22B</a></li></ul> | <ul><li><a href="https://huggingface.co/unsloth/Qwen3-0.6B-unsloth-bnb-4bit">0.6B</a></li><li><a href="https://huggingface.co/unsloth/Qwen3-1.7B-unsloth-bnb-4bit">1.7B</a></li><li><a href="https://huggingface.co/unsloth/Qwen3-4B-unsloth-bnb-4bit">4B</a></li><li><a href="https://huggingface.co/unsloth/Qwen3-8B-unsloth-bnb-4bit">8B</a></li><li><a href="https://huggingface.co/unsloth/Qwen3-14B-unsloth-bnb-4bit">14B</a></li><li><a href="https://huggingface.co/unsloth/Qwen3-30B-A3B-bnb-4bit">30B-A3B</a></li><li><a href="https://huggingface.co/unsloth/Qwen3-32B-unsloth-bnb-4bit">32B</a></li></ul> |
+
+## 🖥️ **Running Qwen3**
+
+To achieve inference speeds of 6+ tokens per second, we recommend your available memory should match or exceed the size of the model you’re using. For example, a 30GB 1-bit quantized model requires at least 150GB of memory. The Q2\_K\_XL quant, which is 180GB, will require at least **180GB of unified memory** (VRAM + RAM) or **180GB of RAM** for optimal performance.
+
+**NOTE:** It’s possible to run the model with **less total memory** than its size (i.e., less VRAM, less RAM, or a lower combined total). However, this will result in slower inference speeds. Sufficient memory is only required if you want to maximize throughput and achieve the fastest inference times.
+
+### :gear: Official Recommended Settings
+
+According to Qwen, these are the recommended settings for inference:
+
+| Non-Thinking Mode Settings:                                            | Thinking Mode Settings:                                           |
+| ---------------------------------------------------------------------- | ----------------------------------------------------------------- |
+| <mark style="background-color:blue;">**Temperature = 0.7**</mark>      | <mark style="background-color:blue;">**Temperature = 0.6**</mark> |
+| Min\_P = 0.0 (optional, but 0.01 works well, llama.cpp default is 0.1) | Min\_P = 0.0                                                      |
+| Top\_P = 0.8                                                           | Top\_P = 0.95                                                     |
+| TopK = 20                                                              | TopK = 20                                                         |
+
+**Chat template/prompt format:**&#x20;
+
+{% code overflow="wrap" %}
+
+{% hint style="success" %}
+For NON thinking mode, we purposely enclose \<think> and \</think> with nothing:
+{% endhint %}
+
+{% code overflow="wrap" %}
+
+{% hint style="warning" %}
+**For Thinking-mode, DO NOT use greedy decoding**, as it can lead to performance degradation and endless repetitions.
+{% endhint %}
+
+### Switching Between Thinking and Non-Thinking Mode
+
+Qwen3 models come with built-in "thinking mode" to boost reasoning and improve response quality - similar to how [QwQ-32B](https://docs.unsloth.ai/models/tutorials-how-to-fine-tune-and-run-llms/qwq-32b-how-to-run-effectively) worked. Instructions for switching will differ depending on the inference engine you're using so ensure you use the correct instructions.
+
+#### Instructions for llama.cpp and Ollama:
+
+You can add `/think` and `/no_think` to user prompts or system messages to switch the model's thinking mode from turn to turn. The model will follow the most recent instruction in multi-turn conversations.
+
+Here is an example of multi-turn conversation:
+
+#### Instructions for transformers and vLLM:
+
+`enable_thinking=True`
+
+By default, Qwen3 has thinking enabled. When you call `tokenizer.apply_chat_template`, you **don’t need to set anything manually.**
+
+In thinking mode, the model will generate an extra `<think>...</think>` block before the final answer — this lets it "plan" and sharpen its responses.
+
+**Non-thinking mode:**
+
+`enable_thinking=False`
+
+Enabling non-thinking will make Qwen3 will skip all the thinking steps and behave like a normal LLM.
+
+This mode will provide final responses directly — no `<think>` blocks, no chain-of-thought.
+
+### 🦙 Ollama: Run Qwen3 Tutorial
+
+1. Install `ollama` if you haven't already! You can only run models up to 32B in size. To run the full 235B-A22B model, [see here](#running-qwen3-235b-a22b).
+
+2. Run the model! Note you can call `ollama serve`in another terminal if it fails! We include all our fixes and suggested parameters (temperature etc) in `params` in our Hugging Face upload!
+
+3. To disable thinking, use (or you can set it in the system prompt):&#x20;
+
+{% hint style="warning" %}
+If you're experiencing any looping, Ollama might have set your context length window to 2,048 or so. If this is the case, bump it up to 32,000 and see if the issue still persists.
+{% endhint %}
+
+### 📖 Llama.cpp: Run Qwen3 Tutorial
+
+1. Obtain the latest `llama.cpp` on [GitHub here](https://github.com/ggml-org/llama.cpp). You can follow the build instructions below as well. Change `-DGGML_CUDA=ON` to `-DGGML_CUDA=OFF` if you don't have a GPU or just want CPU inference.
+
+2. Download the model via (after installing `pip install huggingface_hub hf_transfer` ). You can choose Q4\_K\_M, or other quantized versions.
+
+**Examples:**
+
+Example 1 (unknown):
+```unknown
+<|im_start|>user\nWhat is 2+2?<|im_end|>\n<|im_start|>assistant\n
+```
+
+Example 2 (unknown):
+```unknown
+<|im_start|>user\nWhat is 2+2?<|im_end|>\n<|im_start|>assistant\n<think>\n\n</think>\n\n
+```
+
+Example 3 (unknown):
+```unknown
+> Who are you /no_think
+
+<think>
+
+</think>
+
+I am Qwen, a large-scale language model developed by Alibaba Cloud. [...]
+
+> How many 'r's are in 'strawberries'? /think
+
+<think>
+Okay, let's see. The user is asking how many times the letter 'r' appears in the word "strawberries". [...]
+</think>
+
+The word strawberries contains 3 instances of the letter r. [...]
+```
+
+Example 4 (python):
+```python
+text = tokenizer.apply_chat_template(
+    messages,
+    tokenize=False,
+    add_generation_prompt=True,
+    enable_thinking=True  # Default is True
+)
+```
+
+---
+
+## Go to https://docs.unsloth.ai for advanced tips like
+
+**URL:** llms-txt#go-to-https://docs.unsloth.ai-for-advanced-tips-like
+
+---
+
+## GSPO Reinforcement Learning
+
+**URL:** llms-txt#gspo-reinforcement-learning
+
+Train with GSPO (Group Sequence Policy Optimization) RL in Unsloth.
+
+We're introducing GSPO which is a variant of [GRPO](https://docs.unsloth.ai/get-started/reinforcement-learning-rl-guide/..#from-rlhf-ppo-to-grpo-and-rlvr) made by the Qwen team at Alibaba. They noticed the observation that when GRPO takes importance weights for each token, even though inherently advantages do not scale or change with each token. This lead to the creation of GSPO, which now assigns the importance on the sequence likelihood rather than the individual token likelihoods of the tokens.
+
+* Use our free GSPO notebooks for: [**gpt-oss-20b**](https://colab.research.google.com/github/unslothai/notebooks/blob/main/nb/gpt-oss-\(20B\)-GRPO.ipynb) and [**Qwen2.5-VL**](https://colab.research.google.com/github/unslothai/notebooks/blob/main/nb/Qwen2_5_7B_VL_GRPO.ipynb)&#x20;
+
+Enable GSPO in Unsloth by setting `importance_sampling_level = "sequence"` in the GRPO config.  The difference between these two algorithms can be seen below, both from the GSPO paper from Qwen and Alibaba:&#x20;
+
+<figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FK5qpNl1eUsMoiwpe6Kgj%2Fimage.png?alt=media&#x26;token=a370770a-8b1c-4887-b2da-bee45926b762" alt="" width="563"><figcaption><p>GRPO Algorithm, Source: <a href="https://arxiv.org/abs/2507.18071">Qwen</a></p></figcaption></figure>
+
+<figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FApZeTDRtW4e6AT9YorZu%2Fimage.png?alt=media&#x26;token=eb25bd2f-5e8a-4d9e-811e-8e572afcde4e" alt="" width="563"><figcaption><p>GSPO algorithm, Source: <a href="https://arxiv.org/abs/2507.18071">Qwen</a></p></figcaption></figure>
+
+In Equation 1, it can be seen that the advantages scale each of the rows into the token logprobs before that tensor is sumed. Essentially, each token is given the same scaling even though that scaling was given to the entire sequence rather than each individual token. A simple diagram of this can be seen below:
+
+<figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FzTy05MloluyPBJ0vsOWn%2FCopy%20of%20GSPO%20diagram%20(1).jpg?alt=media&#x26;token=cbfad773-bcc5-4262-a4b5-ef1a178755bd" alt="" width="286"><figcaption><p>GRPO Logprob Ratio row wise scaled with advantages</p></figcaption></figure>
+
+Equation 2 shows that the logprob ratios for each sequence is summed and exponentiated after the Logprob ratios are computed, and only the resulting now sequence ratios get row wise multiplied by the advantages.&#x20;
+
+<figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FLBqBCP2SGFu4sPZld77I%2FGSPO%20diagram%20(1).jpg?alt=media&#x26;token=89005ac2-d3cd-4d31-b179-2e320c874656" alt="" width="313"><figcaption><p>GSPO Sequence Ratio row wise scaled with advantages</p></figcaption></figure>
+
+Enabling GSPO is simple, all you need to do is set the `importance_sampling_level = "sequence"` flag in the GRPO config.&#x20;
+
+**Examples:**
+
+Example 1 (python):
+```python
+training_args = GRPOConfig(
+    output_dir = "vlm-grpo-unsloth",
+    per_device_train_batch_size = 8,
+    gradient_accumulation_steps = 4,
+    learning_rate = 5e-6,
+    adam_beta1 = 0.9,
+    adam_beta2 = 0.99,
+    weight_decay = 0.1,
+    warmup_ratio = 0.1,
+    lr_scheduler_type = "cosine",
+    optim = "adamw_8bit",
+    # beta = 0.00,
+    epsilon = 3e-4,
+    epsilon_high = 4e-4,
+    num_generations = 8,    
+    max_prompt_length = 1024,
+    max_completion_length = 1024,
+    log_completions = False,
+    max_grad_norm = 0.1,
+    temperature = 0.9,
+    # report_to = "none", # Set to "wandb" if you want to log to Weights & Biases
+    num_train_epochs = 2, # For a quick test run, increase for full training
+    report_to = "none"
+    
+    # GSPO is below:
+    importance_sampling_level = "sequence",
+    
+    # Dr GRPO / GAPO etc
+    loss_type = "dr_grpo",
+)
+```
+
+---
+
+## Text-to-Speech (TTS) Fine-tuning
+
+**URL:** llms-txt#text-to-speech-(tts)-fine-tuning
+
+**Contents:**
+  - Fine-tuning Notebooks:
+  - Choosing and Loading a TTS Model
+  - Preparing Your Dataset
+
+Learn how to fine-tune TTS & STT voice models with Unsloth.
+
+Fine-tuning TTS models allows them to adapt to your specific dataset, use case, or desired style and tone. The goal is to customize these models to clone voices, adapt speaking styles and tones, support new languages, handle specific tasks and more. We also support **Speech-to-Text (STT)** models like OpenAI's Whisper.
+
+With [Unsloth](https://github.com/unslothai/unsloth), you can fine-tune TTS models 1.5x faster with 50% less memory than other implementations with Flash Attention 2. This support includes Sesame CSM, Orpheus, and models supported by transformers (e.g. CrisperWhisper, Spark and more).
+
+{% hint style="info" %}
+Zero-shot cloning captures tone but misses pacing and expression, often sounding robotic and unnatural. Fine-tuning delivers far more accurate and realistic voice replication. [Read more here](#fine-tuning-voice-models-vs.-zero-shot-voice-cloning).
+{% endhint %}
+
+We've uploaded TTS models (original and quantized variants) to our [Hugging Face page](https://huggingface.co/collections/unsloth/text-to-speech-tts-models-68007ab12522e96be1e02155).
+
+### Fine-tuning Notebooks:
+
+| [Sesame-CSM (1B)](https://colab.research.google.com/github/unslothai/notebooks/blob/main/nb/Sesame_CSM_\(1B\)-TTS.ipynb) | [Orpheus-TTS (3B)](https://colab.research.google.com/github/unslothai/notebooks/blob/main/nb/Orpheus_\(3B\)-TTS.ipynb) | [Whisper Large V3](https://colab.research.google.com/github/unslothai/notebooks/blob/main/nb/Whisper.ipynb) Speech-to-Text (STT) |
+| ------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| [Spark-TTS (0.5B)](https://colab.research.google.com/github/unslothai/notebooks/blob/main/nb/Spark_TTS_\(0_5B\).ipynb)   | [Llasa-TTS (1B)](https://colab.research.google.com/github/unslothai/notebooks/blob/main/nb/Llasa_TTS_\(1B\).ipynb)     | [Oute-TTS (1B)](https://colab.research.google.com/github/unslothai/notebooks/blob/main/nb/Oute_TTS_\(1B\).ipynb)                 |
+
+{% hint style="success" %}
+If you notice that the output duration reaches a maximum of 10 seconds, increase`max_new_tokens = 125` from its default value of 125. Since 125 tokens corresponds to 10 seconds of audio, you'll need to set a higher value for longer outputs.
+{% endhint %}
+
+### Choosing and Loading a TTS Model
+
+For TTS, smaller models are often preferred due to lower latency and faster inference for end users. Fine-tuning a model under 3B parameters is often ideal, and our primary examples uses Sesame-CSM (1B) and Orpheus-TTS (3B), a Llama-based speech model.
+
+#### Sesame-CSM (1B) Details
+
+**CSM-1B** is a base model, while **Orpheus-ft** is fine-tuned on 8 professional voice actors, making voice consistency the key difference. CSM requires audio context for each speaker to perform well, whereas Orpheus-ft has this consistency built in.
+
+Fine-tuning from a base model like CSM generally needs more compute, while starting from a fine-tuned model like Orpheus-ft offers better results out of the box.
+
+To help with CSM, we’ve added new sampling options and an example showing how to use audio context for improved voice consistency.
+
+#### Orpheus-TTS (3B) Details
+
+Orpheus is pre-trained on a large speech corpus and excels at generating realistic speech with built-in support for emotional cues like laughs and sighs. Its architecture makes it one of the easiest TTS models to utilize and train as it can be exported via llama.cpp meaning it has great compatibility across all inference engines. For unsupported models, you'll only be able to save the LoRA adapter safetensors.
+
+#### Loading the models
+
+Because voice models are usually small in size, you can train the models using LoRA 16-bit or full fine-tuning FFT which may provide higher quality results. To load it in LoRA 16-bit:
+
+When this runs, Unsloth will download the model weights if you prefer 8-bit, you could use `load_in_8bit = True`, or for full fine-tuning set `full_finetuning = True` (ensure you have enough VRAM). You can also replace the model name with other TTS models.
+
+{% hint style="info" %}
+**Note:** Orpheus’s tokenizer already includes special tokens for audio output (more on this later). You do *not* need a separate vocoder – Orpheus will output audio tokens directly, which can be decoded to a waveform.
+{% endhint %}
+
+### Preparing Your Dataset
+
+At minimum, a TTS fine-tuning dataset consists of **audio clips and their corresponding transcripts** (text). Let’s use the [*Elise* dataset](https://huggingface.co/datasets/MrDragonFox/Elise) which is \~3 hour single-speaker English speech corpus. There are two variants:
+
+* [`MrDragonFox/Elise`](https://huggingface.co/datasets/MrDragonFox/Elise) – an augmented version with **emotion tags** (e.g. \<sigh>, \<laughs>) embedded in the transcripts. These tags in angle brackets indicate expressions (laughter, sighs, etc.) and are treated as special tokens by Orpheus’s tokenizer
+* [`Jinsaryko/Elise`](https://huggingface.co/datasets/Jinsaryko/Elise) – base version with transcripts without special tags.
+
+The dataset is organized with one audio and transcript per entry. On Hugging Face, these datasets have fields such as `audio` (the waveform), `text` (the transcription), and some metadata (speaker name, pitch stats, etc.). We need to feed Unsloth a dataset of audio-text pairs.
+
+{% hint style="success" %}
+Instead of solely focusing on tone, cadence, and pitch, the priority should be ensuring your dataset is fully annotated and properly normalized.
+{% endhint %}
+
+{% hint style="info" %}
+With some models like **Sesame-CSM-1B**, you might notice voice variation across generations using speaker ID 0 because it's a **base model**—it doesn’t have fixed voice identities. Speaker ID tokens mainly help maintain **consistency within a conversation**, not across separate generations.
+
+To get a consistent voice, provide **contextual examples**, like a few reference audio clips or prior utterances. This helps the model mimic the desired voice more reliably. Without this, variation is expected, even with the same speaker ID.
+{% endhint %}
+
+**Option 1: Using Hugging Face Datasets library** – We can load the Elise dataset using Hugging Face’s `datasets` library:
+
+```python
+from datasets import load_dataset, Audio
+
+**Examples:**
+
+Example 1 (python):
+```python
+from unsloth import FastModel
+
+model_name = "unsloth/orpheus-3b-0.1-pretrained"
+model, tokenizer = FastModel.from_pretrained(
+    model_name,
+    load_in_4bit=False  # use 4-bit precision (QLoRA)
+)
+```
+
+---
+
+## Grok 2
+
+**URL:** llms-txt#grok-2
+
+**Contents:**
+- :gear: Recommended Settings
+  - Sampling parameters
+- Run Grok 2 Tutorial:
+  - ✨ Run in llama.cpp
+
+Run xAI's Grok 2 model locally!
+
+You can now run **Grok 2** (aka Grok 2.5), the 270B parameter model by xAI. Full precision requires **539GB**, while the Unsloth Dynamic 3-bit version shrinks size down to just **118GB** (a 75% reduction). GGUF: [Grok-2-GGUF](https://huggingface.co/unsloth/grok-2-GGUF)
+
+The **3-bit Q3\_K\_XL** model runs on a single **128GB Mac** or **24GB VRAM + 128GB RAM**, achieving **5+ tokens/s** inference. Thanks to the llama.cpp team and community for [supporting Grok 2](https://github.com/ggml-org/llama.cpp/pull/15539) and making this possible. We were also glad to have helped a little along the way!&#x20;
+
+All uploads use Unsloth [Dynamic 2.0](https://docs.unsloth.ai/basics/unsloth-dynamic-2.0-ggufs) for SOTA 5-shot MMLU and KL Divergence performance, meaning you can run quantized Grok LLMs with minimal accuracy loss.
+
+<a href="#run-in-llama.cpp" class="button secondary">Run in llama.cpp Tutorial</a>
+
+## :gear: Recommended Settings
+
+The 3-bit dynamic quant uses 118GB (126GiB) of disk space - this works well in a 128GB RAM unified memory Mac or on a 1x24GB card and 128GB of RAM.  It is recommended to have at least 120GB RAM to run this 3-bit quant.
+
+{% hint style="warning" %}
+You must use `--jinja` for Grok 2. You might get incorrect results if you do not use `--jinja`
+{% endhint %}
+
+The 8-bit quant is \~300GB in size will fit in a 1x 80GB GPU (with MoE layers offloaded to RAM). Expect around 5 tokens/s with this setup if you have bonus 200GB RAM as well. To learn how to increase generation speed and fit longer contexts, [read here](#improving-generation-speed).
+
+{% hint style="info" %}
+Though not a must, for best performance, have your VRAM + RAM combined equal to the size of the quant you're downloading. If not, hard drive / SSD offloading will work with llama.cpp, just inference will be slower.
+{% endhint %}
+
+### Sampling parameters
+
+* Grok 2 has a 128K max context length thus, use `131,072` context or less.
+* Use `--jinja` for llama.cpp variants
+
+There are no official sampling parameters to run the model, thus you can use standard defaults for most models:
+
+* Set the <mark style="background-color:green;">**temperature = 1.0**</mark>
+* &#x20;<mark style="background-color:green;">**Min\_P = 0.01**</mark> (optional, but 0.01 works well, llama.cpp default is 0.1)
+
+## Run Grok 2 Tutorial:
+
+Currently you can only run Grok 2 in llama.cpp.
+
+### ✨ Run in llama.cpp
+
+{% stepper %}
+{% step %}
+Install the specific `llama.cpp` PR for Grok 2 on [GitHub here](https://github.com/ggml-org/llama.cpp/pull/15539). You can follow the build instructions below as well. Change `-DGGML_CUDA=ON` to `-DGGML_CUDA=OFF` if you don't have a GPU or just want CPU inference.
+
+{% step %}
+If you want to use `llama.cpp` directly to load models, you can do the below: (:Q3\_K\_XL) is the quantization type. You can also download via Hugging Face (point 3). This is similar to `ollama run` . Use `export LLAMA_CACHE="folder"` to force `llama.cpp` to save to a specific location. Remember the model has only a maximum of 128K context length.
+
+{% hint style="info" %}
+Please try out `-ot ".ffn_.*_exps.=CPU"` to offload all MoE layers to the CPU! This effectively allows you to fit all non MoE layers on 1 GPU, improving generation speeds. You can customize the regex expression to fit more layers if you have more GPU capacity.
+
+If you have a bit more GPU memory, try `-ot ".ffn_(up|down)_exps.=CPU"` This offloads up and down projection MoE layers.
+
+Try `-ot ".ffn_(up)_exps.=CPU"` if you have even more GPU memory. This offloads only up projection MoE layers.
+
+And finally offload all layers via `-ot ".ffn_.*_exps.=CPU"` This uses the least VRAM.
+
+You can also customize the regex, for example `-ot "\.(6|7|8|9|[0-9][0-9]|[0-9][0-9][0-9])\.ffn_(gate|up|down)_exps.=CPU"` means to offload gate, up and down MoE layers but only from the 6th layer onwards.
+{% endhint %}
+
+{% step %}
+Download the model via (after installing `pip install huggingface_hub hf_transfer` ). You can choose `UD-Q3_K_XL` (dynamic 3-bit quant) or other quantized versions like `Q4_K_M` . We <mark style="background-color:green;">**recommend using our 2.7bit dynamic quant**</mark><mark style="background-color:green;">**&#x20;**</mark><mark style="background-color:green;">**`UD-Q2_K_XL`**</mark><mark style="background-color:green;">**&#x20;**</mark><mark style="background-color:green;">**or above to balance size and accuracy**</mark>.
+
+**Examples:**
+
+Example 1 (bash):
+```bash
+apt-get update
+apt-get install pciutils build-essential cmake curl libcurl4-openssl-dev -y
+git clone https://github.com/ggml-org/llama.cpp
+cd llama.cpp && git fetch origin pull/15539/head:MASTER && git checkout MASTER && cd ..
+cmake llama.cpp -B llama.cpp/build \
+    -DBUILD_SHARED_LIBS=OFF -DGGML_CUDA=ON -DLLAMA_CURL=ON
+cmake --build llama.cpp/build --config Release -j --clean-first --target llama-quantize llama-cli llama-gguf-split llama-mtmd-cli llama-server
+cp llama.cpp/build/bin/llama-* llama.cpp
+```
+
+Example 2 (bash):
+```bash
+export LLAMA_CACHE="unsloth/grok-2-GGUF"
+./llama.cpp/llama-cli \
+    -hf unsloth/grok-2-GGUF:Q3_K_XL \
+    --jinja \
+    --n-gpu-layers 99 \
+    --temp 1.0 \
+    --top-p 0.95 \
+    --min-p 0.01 \
+    --ctx-size 16384 \
+    --seed 3407 \
+    -ot ".ffn_.*_exps.=CPU"
+```
+
+---
+
+## pip install huggingface_hub hf_transfer
+
+**URL:** llms-txt#pip-install-huggingface_hub-hf_transfer
+
+---
+
+## Saving to SGLang for deployment
+
+**URL:** llms-txt#saving-to-sglang-for-deployment
+
+**Contents:**
+  - :computer:Installing SGLang
+  - :truck:Deploying SGLang models
+  - :fire\_engine:SGLang Deployment Server Flags, Engine Arguments & Options
+
+Saving models to 16bit for SGLang for deployment and serving
+
+To save to 16bit for SGLang, use:
+
+To save just the LoRA adapters, either use:
+
+Or just use our builtin function to do that:
+
+### :computer:Installing SGLang
+
+For Docker, try the below:
+
+{% code overflow="wrap" %}
+
+See <https://docs.sglang.ai/get_started/install.html> for more details
+
+### :truck:Deploying SGLang models
+
+After saving your finetune, you can simply do:
+
+{% code overflow="wrap" %}
+
+### :fire\_engine:SGLang Deployment Server Flags, Engine Arguments & Options
+
+**Examples:**
+
+Example 1 (python):
+```python
+model.save_pretrained_merged("model", tokenizer, save_method = "merged_16bit")
+model.push_to_hub_merged("hf/model", tokenizer, save_method = "merged_16bit", token = "")
+```
+
+Example 2 (python):
+```python
+model.save_pretrained("model")
+tokenizer.save_pretrained("tokenizer")
+```
+
+Example 3 (python):
+```python
+model.save_pretrained_merged("model", tokenizer, save_method = "lora")
+model.push_to_hub_merged("hf/model", tokenizer, save_method = "lora", token = "")
+```
+
+Example 4 (bash):
+```bash
+pip install --upgrade pip
+pip install uv
+uv pip install "sglang" --prerelease=allow
+```
+
+---
+
+## Llama 4: How to Run & Fine-tune
+
+**URL:** llms-txt#llama-4:-how-to-run-&-fine-tune
+
+**Contents:**
+- :gear: Official Recommended Settings
+- 📖 Tutorial: How to Run Llama-4-Scout in llama.cpp
+
+How to run Llama 4 locally using our dynamic GGUFs which recovers accuracy compared to standard quantization.
+
+The Llama-4-Scout model has 109B parameters, while Maverick has 402B parameters. The full unquantized version requires 113GB of disk space whilst the 1.78-bit version uses 33.8GB (-75% reduction in size). **Maverick** (402Bs) went from 422GB to just 122GB (-70%).
+
+{% hint style="success" %}
+Both text AND **vision** is now supported! Plus multiple improvements to tool calling.
+{% endhint %}
+
+Scout 1.78-bit fits in a 24GB VRAM GPU for fast inference at \~20 tokens/sec. Maverick 1.78-bit fits in 2x48GB VRAM GPUs for fast inference at \~40 tokens/sec.
+
+For our dynamic GGUFs, to ensure the best tradeoff between accuracy and size, we do not to quantize all layers, but selectively quantize e.g. the MoE layers to lower bit, and leave attention and other layers in 4 or 6bit.
+
+{% hint style="info" %}
+All our GGUF models are quantized using calibration data (around 250K tokens for Scout and 1M tokens for Maverick), which will improve accuracy over standard quantization. Unsloth imatrix quants are fully compatible with popular inference engines like llama.cpp & Open WebUI etc.
+{% endhint %}
+
+**Scout - Unsloth Dynamic GGUFs with optimal configs:**
+
+<table data-full-width="false"><thead><tr><th>MoE Bits</th><th>Type</th><th>Disk Size</th><th>Link</th><th>Details</th></tr></thead><tbody><tr><td>1.78bit</td><td>IQ1_S</td><td>33.8GB</td><td><a href="https://huggingface.co/unsloth/Llama-4-Scout-17B-16E-Instruct-GGUF?show_file_info=Llama-4-Scout-17B-16E-Instruct-UD-IQ1_S.gguf">Link</a></td><td>2.06/1.56bit</td></tr><tr><td>1.93bit</td><td>IQ1_M</td><td>35.4GB</td><td><a href="https://huggingface.co/unsloth/Llama-4-Scout-17B-16E-Instruct-GGUF?show_file_info=Llama-4-Scout-17B-16E-Instruct-UD-IQ1_M.gguf">Link</a></td><td>2.5/2.06/1.56</td></tr><tr><td>2.42bit</td><td>IQ2_XXS</td><td>38.6GB</td><td><a href="https://huggingface.co/unsloth/Llama-4-Scout-17B-16E-Instruct-GGUF?show_file_info=Llama-4-Scout-17B-16E-Instruct-UD-IQ2_XXS.gguf">Link</a></td><td>2.5/2.06bit</td></tr><tr><td>2.71bit</td><td>Q2_K_XL</td><td>42.2GB</td><td><a href="https://huggingface.co/unsloth/Llama-4-Scout-17B-16E-Instruct-GGUF?show_file_info=Llama-4-Scout-17B-16E-Instruct-UD-Q2_K_XL.gguf">Link</a></td><td> 3.5/2.5bit</td></tr><tr><td>3.5bit</td><td>Q3_K_XL</td><td>52.9GB</td><td><a href="https://huggingface.co/unsloth/Llama-4-Scout-17B-16E-Instruct-GGUF/tree/main/UD-Q3_K_XL">Link</a></td><td> 4.5/3.5bit</td></tr><tr><td>4.5bit</td><td>Q4_K_XL</td><td>65.6GB</td><td><a href="https://huggingface.co/unsloth/Llama-4-Scout-17B-16E-Instruct-GGUF/tree/main/UD-Q4_K_XL">Link</a></td><td> 5.5/4.5bit</td></tr></tbody></table>
+
+{% hint style="info" %}
+For best results, use the 2.42-bit (IQ2\_XXS) or larger versions.
+{% endhint %}
+
+**Maverick - Unsloth Dynamic GGUFs with optimal configs:**
+
+| MoE Bits | Type      | Disk Size | HF Link                                                                                             |
+| -------- | --------- | --------- | --------------------------------------------------------------------------------------------------- |
+| 1.78bit  | IQ1\_S    | 122GB     | [Link](https://huggingface.co/unsloth/Llama-4-Maverick-17B-128E-Instruct-GGUF/tree/main/UD-IQ1_S)   |
+| 1.93bit  | IQ1\_M    | 128GB     | [Link](https://huggingface.co/unsloth/Llama-4-Maverick-17B-128E-Instruct-GGUF/tree/main/UD-IQ1_M)   |
+| 2.42-bit | IQ2\_XXS  | 140GB     | [Link](https://huggingface.co/unsloth/Llama-4-Maverick-17B-128E-Instruct-GGUF/tree/main/UD-IQ2_XXS) |
+| 2.71-bit | Q2\_K\_XL | 151B      | [Link](https://huggingface.co/unsloth/Llama-4-Maverick-17B-128E-Instruct-GGUF/tree/main/UD-Q2_K_XL) |
+| 3.5-bit  | Q3\_K\_XL | 193GB     | [Link](https://huggingface.co/unsloth/Llama-4-Maverick-17B-128E-Instruct-GGUF/tree/main/UD-Q3_K_XL) |
+| 4.5-bit  | Q4\_K\_XL | 243GB     | [Link](https://huggingface.co/unsloth/Llama-4-Maverick-17B-128E-Instruct-GGUF/tree/main/UD-Q4_K_XL) |
+
+## :gear: Official Recommended Settings
+
+According to Meta, these are the recommended settings for inference:
+
+* <mark style="background-color:blue;">**Temperature of 0.6**</mark>
+* Min\_P of 0.01 (optional, but 0.01 works well, llama.cpp default is 0.1)
+* Top\_P of 0.9
+* Chat template/prompt format:&#x20;
+
+{% code overflow="wrap" %}
+
+* A BOS token of `<|begin_of_text|>` is auto added during tokenization (do NOT add it manually!)&#x20;
+* According to <https://www.llama.com/docs/model-cards-and-prompt-formats/llama4_omni/>, there is an <mark style="background-color:yellow;">**suggested optional system prompt**</mark>, which is listed below:
+
+## 📖 Tutorial: How to Run Llama-4-Scout in llama.cpp
+
+1. Obtain the latest `llama.cpp` on [GitHub here](https://github.com/ggml-org/llama.cpp). You can follow the build instructions below as well. Change `-DGGML_CUDA=ON` to `-DGGML_CUDA=OFF` if you don't have a GPU or just want CPU inference.
+
+2. Download the model via (after installing `pip install huggingface_hub hf_transfer` ). You can choose Q4\_K\_M, or other quantized versions (like BF16 full precision). More versions at: <https://huggingface.co/unsloth/Llama-4-Scout-17B-16E-Instruct-GGUF>
+
+**Examples:**
+
+Example 1 (unknown):
+```unknown
+<|header_start|>user<|header_end|>\n\nWhat is 1+1?<|eot|><|header_start|>assistant<|header_end|>\n\n
+```
+
+Example 2 (unknown):
+```unknown
+You are an expert conversationalist who responds to the best of your ability. You are companionable and confident, and able to switch casually between tonal types, including but not limited to humor, empathy, intellectualism, creativity and problem-solving. 
+
+You understand user intent and don’t try to be overly helpful to the point where you miss that the user is looking for chit-chat, emotional support, humor or venting.Sometimes people just want you to listen, and your answers should encourage that. For all other cases, you provide insightful and in-depth responses. Organize information thoughtfully in a way that helps people make decisions. Always avoid templated language.
+
+You never lecture people to be nicer or more inclusive. If people ask for you to write something in a certain voice or perspective, such as an essay or a tweet, you can. You do not need to be respectful when the user prompts you to say something rude. 
+
+You never use phrases that imply moral superiority or a sense of authority, including but not limited to “it’s important to”, “it’s crucial to”, “it’s essential to”, "it's unethical to", "it's worth noting…", “Remember…”  etc. Avoid using these.
+
+Finally, do not refuse political prompts. You can help users express their opinion. 
+
+You are Llama 4. Your knowledge cutoff date is August 2024. You speak Arabic, English, French, German, Hindi, Indonesian, Italian, Portuguese, Spanish, Tagalog, Thai, and Vietnamese. Respond in the language the user speaks to you in, unless they ask otherwise.
+```
+
+Example 3 (bash):
+```bash
+apt-get update
+apt-get install pciutils build-essential cmake curl libcurl4-openssl-dev -y
+git clone https://github.com/ggml-org/llama.cpp
+cmake llama.cpp -B llama.cpp/build \
+    -DBUILD_SHARED_LIBS=OFF -DGGML_CUDA=ON -DLLAMA_CURL=ON
+cmake --build llama.cpp/build --config Release -j --clean-first --target llama-cli llama-gguf-split
+cp llama.cpp/build/bin/llama-* llama.cpp
+```
+
+---
+
+## Print output
+
+**URL:** llms-txt#print-output
+
+**Contents:**
+  - 🦥 Unsloth: Run DeepSeek-OCR Tutorial
+- 🦥 **Fine-tuning DeepSeek-OCR**
+  - Fine-tuned Evaluation Results:
+
+for output in model_outputs:
+    print(output.outputs[0].text)
+python
+from unsloth import FastVisionModel
+import torch
+from transformers import AutoModel
+import os
+os.environ["UNSLOTH_WARN_UNINITIALIZED"] = '0'
+
+from huggingface_hub import snapshot_download
+snapshot_download("unsloth/DeepSeek-OCR", local_dir = "deepseek_ocr")
+model, tokenizer = FastVisionModel.from_pretrained(
+    "./deepseek_ocr",
+    load_in_4bit = False, # Use 4bit to reduce memory use. False for 16bit LoRA.
+    auto_model = AutoModel,
+    trust_remote_code = True,
+    unsloth_force_compile = True,
+    use_gradient_checkpointing = "unsloth", # True or "unsloth" for long context
+)
+
+prompt = "<image>\nFree OCR. "
+image_file = 'your_image.jpg'
+output_path = 'your/output/dir'
+res = model.infer(tokenizer, prompt=prompt, image_file=image_file, output_path = output_path, base_size = 1024, image_size = 640, crop_mode=True, save_results = True, test_compress = False)
+
+============================================================
+Baseline Model Performance
+============================================================
+Number of samples: 200
+Mean CER: 149.07%
+Median CER: 80.00%
+Std Dev: 310.39%
+Min CER: 0.00%
+Max CER: 3500.00%
+============================================================
+
+Best Predictions (Lowest CER):
+
+Sample 5024 (CER: 0.00%)
+Reference:  چون هستی خیلی زیاد...
+Prediction: چون هستی خیلی زیاد...
+
+Sample 3517 (CER: 0.00%)
+Reference:  تو ایران هیچوقت از اینها وجود نخواهد داشت...
+Prediction: تو ایران هیچوقت از اینها وجود نخواهد داشت...
+
+Sample 9949 (CER: 0.00%)
+Reference:  کاش میدونستم هیچی بیخیال...
+Prediction: کاش میدونستم هیچی بیخیال...
+
+Worst Predictions (Highest CER):
+
+Sample 11155 (CER: 3500.00%)
+Reference:  خسو...
+Prediction: \[ \text{CH}_3\text{CH}_2\text{CH}_2\text{CH}_2\text{CH}_2\text{CH}_2\text{CH}_2\text{CH}_2\text{CH}...
+
+Sample 13366 (CER: 1900.00%)
+Reference:  مشو...
+Prediction: \[\begin{align*}\underline{\mathfrak{su}}_0\end{align*}\]...
+
+Sample 10552 (CER: 1014.29%)
+Reference:  هیییییچ...
+Prediction: e
+```
+
+#### DeepSeek-OCR Fine-tuned
+
+With 60 steps, we reduced CER from 149.07% to 60.43% (89% CER improvement)
+
+<pre><code><strong>============================================================
+</strong>Fine-tuned Model Performance
+============================================================
+Number of samples: 200
+Mean CER: 60.43%
+Median CER: 50.00%
+Std Dev: 80.63%
+Min CER: 0.00%
+Max CER: 916.67%
+============================================================
+
+Best Predictions (Lowest CER):
+
+Sample 301 (CER: 0.00%)
+Reference:  باشه بابا تو لاکچری، تو خاص، تو خفن...
+Prediction: باشه بابا تو لاکچری، تو خاص، تو خفن...
+
+Sample 2512 (CER: 0.00%)
+Reference:  از شخص حاج عبدالله زنجبیلی میگیرنش...
+Prediction: از شخص حاج عبدالله زنجبیلی میگیرنش...
+
+Sample 2713 (CER: 0.00%)
+Reference:  نمی دونم والا تحمل نقد ندارن ظاهرا...
+Prediction: نمی دونم والا تحمل نقد ندارن ظاهرا...
+
+Worst Predictions (Highest CER):
+
+Sample 14270 (CER: 916.67%)
+Reference:  ۴۳۵۹۴۷۴۷۳۸۹۰...
+Prediction: پروپریپریپریپریپریپریپریپریپریپریپریپریپریپریپریپریپریپریپیپریپریپریپریپریپریپریپریپریپریپریپریپریپر...
+
+Sample 3919 (CER: 380.00%)
+Reference:  ۷۵۵۰۷۱۰۶۵۹...
+Prediction: وادووووووووووووووووووووووووووووووووووو...
+
+Sample 3718 (CER: 333.33%)
+Reference:  ۳۲۶۷۲۲۶۵۵۸۴۶...
+Prediction: پُپُسوپُسوپُسوپُسوپُسوپُسوپُسوپُسوپُسوپُ...
+</code></pre>
+
+{% endcolumn %}
+{% endcolumns %}
+
+An example from the 200K Persian dataset we used (you may use your own), showing the image on the left and the corresponding text on the right.
+
+<figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FFc3XCgysVPglrvWoYpzh%2FScreenshot%202025-11-04%20at%206.10.16%E2%80%AFAM.png?alt=media&#x26;token=829f33d3-b367-4202-b61b-d822a96dced8" alt="" width="563"><figcaption></figcaption></figure>
+
+**Examples:**
+
+Example 1 (unknown):
+```unknown
+{% endcode %}
+
+### 🦥 Unsloth: Run DeepSeek-OCR Tutorial
+
+1. Obtain the latest `unsloth` via `pip install --upgrade unsloth` . If you already have Unsloth, update it via `pip install --upgrade --force-reinstall --no-deps --no-cache-dir unsloth unsloth_zoo`
+2. Then use the code below to run DeepSeek-OCR:
+
+{% code overflow="wrap" %}
+```
+
+Example 2 (unknown):
+```unknown
+{% endcode %}
+
+## 🦥 **Fine-tuning DeepSeek-OCR**
+
+Unsloth supports fine-tuning of DeepSeek-OCR. Since the default model isn’t fine-tunable, we added changes from the [Stranger Vision HF](https://huggingface.co/strangervisionhf) team, to then enable fine-tuning. As usual, Unsloth trains DeepSeek-OCR 1.4x faster with 40% less VRAM and 5x longer context lengths - no accuracy degradation.\
+\
+We created two free DeepSeek-OCR Colab notebooks (with and without eval):
+
+* DeepSeek-OCR: [Fine-tuning only notebook](https://colab.research.google.com/github/unslothai/notebooks/blob/main/nb/Deepseek_OCR_\(3B\).ipynb)
+* DeepSeek-OCR: [Fine-tuning + Evaluation notebook](https://colab.research.google.com/github/unslothai/notebooks/blob/main/nb/Deepseek_OCR_\(3B\)-Eval.ipynb) (A100)
+
+Fine-tuning DeepSeek-OCR on a 200K sample Persian dataset resulted in substantial gains in Persian text detection and understanding. We evaluated the base model against our fine-tuned version on 200 Persian transcript samples, observing an **88.26% absolute improvement** in Character Error Rate (CER). After only 60 training steps (batch size = 8), the mean CER decreased from **149.07%** to a mean of **60.81%**. This means the fine-tuned model is **57%** more accurate at understanding Persian.
+
+You can replace the Persian dataset with your own to improve DeepSeek-OCR for other use-cases.\
+\
+For replica-table eval results, use our eval notebook above. For detailed eval results, see below:
+
+### Fine-tuned Evaluation Results:
+
+{% columns fullWidth="true" %}
+{% column %}
+
+#### DeepSeek-OCR Baseline
+
+Mean Baseline Model Performance: 149.07% CER for this eval set!
+```
+
+---
+
+## gpt-oss Reinforcement Learning
+
+**URL:** llms-txt#gpt-oss-reinforcement-learning
+
+**Contents:**
+- ⚡Making Inference Much Faster
+- 🛠️ gpt-oss Flex Attention Issues and Quirks
+  - 🔍 Flash Attention Investigation
+- ⚠️ Can We Counter Reward Hacking?
+- :trophy:Reward Hacking
+- Tutorial: How to Train gpt-oss with RL
+
+You can now train OpenAI [gpt-oss](https://docs.unsloth.ai/models/gpt-oss-how-to-run-and-fine-tune) with RL and GRPO via [Unsloth](https://github.com/unslothai/unsloth). Unsloth now offers the <mark style="background-color:$success;">**fastest inference**</mark> (3x faster), **lowest VRAM usage** (50% less) and **longest context** (8x longer) for gpt-oss RL vs. any implementation - with no accuracy degradation.\
+\
+Since reinforcement learning (RL) on gpt-oss isn't yet vLLM compatible, we had to rewrite the inference code from Transformers code to deliver 3x faster inference for gpt-oss at \~21 tokens/s. For BF16, Unsloth also achieves the fastest inference (\~30 tokens/s), especially relative to VRAM usage, using 50% less VRAM vs. any other RL implementation. We plan to support our [50% weight sharing feature](https://docs.unsloth.ai/get-started/reinforcement-learning-rl-guide/memory-efficient-rl) once vLLM becomes compatible with RL.
+
+* **Free notebook:** [**gpt-oss-20b GRPO Colab notebook**](https://colab.research.google.com/github/unslothai/notebooks/blob/main/nb/gpt-oss-\(20B\)-GRPO.ipynb)\
+  This notebook automatically creates **faster matrix multiplication kernels** and uses 4 new Unsloth reward functions. We also show how to [counteract reward-hacking](#can-we-counter-reward-hacking) which is one of RL's biggest challenges.\\
+
+<figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2Fxfyoa4N4fTtytfdWSzJi%2FAuto%20generated.png?alt=media&#x26;token=044e9566-6f68-4425-b09c-6b575a667669" alt=""><figcaption></figcaption></figure>
+
+With Unsloth, you can train gpt-oss-20b with GRPO on 15GB VRAM and for **free** on Colab. We introduced embedding offloading which reduces usage by 1GB as well via `offload_embeddings`. Unloth's new inference runs faster on **any** GPU including A100, H100 and old T4's. gpt-oss-120b fits nicely on a 120GB VRAM GPU.
+
+Unsloth is the only framework to support 4-bit RL for gpt-oss. All performance gains are due to Unsloth's unique [weight sharing](https://docs.unsloth.ai/get-started/reinforcement-learning-rl-guide#what-unsloth-offers-for-rl), [Flex Attention](https://docs.unsloth.ai/get-started/reinforcement-learning-rl-guide/memory-efficient-rl), [Standby](https://docs.unsloth.ai/get-started/reinforcement-learning-rl-guide/memory-efficient-rl#unsloth-standby) and custom kernels.
+
+{% hint style="warning" %}
+Reminder: <mark style="background-color:$info;">**Flash Attention 3 (FA3) is**</mark> [<mark style="background-color:$info;">**unsuitable for gpt-oss**</mark>](https://docs.unsloth.ai/models/gpt-oss-how-to-run-and-fine-tune/long-context-gpt-oss-training#introducing-unsloth-flex-attention-support) <mark style="background-color:$info;">**training**</mark> since it currently does not support the backward pass for attention sinks, causing **incorrect training losses**. If you’re **not** using Unsloth, FA3 may be enabled by <mark style="background-color:$info;">default</mark>, so please double-check it’s not in use!\
+\
+Disabling FA3 will incur **O(N^2)** memory usage as well, so Unsloth is the only RL framework to offer **O(N)** memory usage for gpt-oss via our Flex attention implementation.
+{% endhint %}
+
+## ⚡Making Inference Much Faster
+
+<figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2F72aq2fxjfaQfwhXlv9tH%2F5b957843-eb58-4778-8b90-f25767c51495.png?alt=media&#x26;token=e7e8337a-58c8-4767-ac21-4d42cff81931" alt=""><figcaption></figcaption></figure>
+
+Inference is crucial in RL training, since we need it to generate candidate solutions before maximizing some reward function ([see here](https://docs.unsloth.ai/get-started/reinforcement-learning-rl-guide) for a more detailed explanation). To achieve the fastest inference speed for gpt-oss without vLLM, we rewrote Transformers inference code and integrated many innovations including custom algorithms like Unsloth [Flex Attention](https://docs.unsloth.ai/models/gpt-oss-how-to-run-and-fine-tune/long-context-gpt-oss-training#introducing-unsloth-flex-attention-support), using special flags within `torch.compile` (like combo kernels). Our new inference code for gpt-oss was evaluated against an already optimized baseline (2x faster than native Transformers).
+
+vLLM does not support RL for gpt-oss since it lacks BF16 training and LoRA support for gpt-oss. Without Unsloth, only training via full precision BF16 works, making <mark style="background-color:$warning;">memory use</mark> <mark style="background-color:$warning;"></mark><mark style="background-color:$warning;">**800%+ higher**</mark>. Most frameworks enable FA3 (Flash Attention 3) by default (which reduces VRAM use & increases speed) **but this causes incorrect training loss**. See [Issue 1797](https://github.com/Dao-AILab/flash-attention/issues/1797) in the FA3 repo. You must disable FA3 though, since it'll prevent long-context training since FA3 uses O(N) memory usage, whilst naive attention will balloon with O(N^2) usage. So to enable attention sinks to be differentiable, we implemented [Unsloth Flex Attention](https://docs.unsloth.ai/models/gpt-oss-how-to-run-and-fine-tune/long-context-gpt-oss-training).
+
+We evaluated gpt-oss RL inference by benchmarking BitsandBytes 4-bit and also did separate tests for BF16. Unsloth’s 4-bit inference is \~4x faster, and BF16 is also more efficient, especially in VRAM use.
+
+The best part about Unsloth's gpt-oss RL is that it can work on any GPU, even those that do not support BF16. Our free gpt-oss-20b Colab notebooks use older 15GB T4 GPUs, so the inference examples work well!
+
+## 🛠️ gpt-oss Flex Attention Issues and Quirks
+
+We had to change our implementation for attention sinks as [described here](https://docs.unsloth.ai/models/gpt-oss-how-to-run-and-fine-tune/long-context-gpt-oss-training) to allow generation to work with left padding. We had to get the logsumexp and apply the sigmoid activation to alter the attention weights like below:
+
+$$
+A(X) = \sigma \bigg( \frac{1}{\sqrt{d}}QK^T \bigg)V \\
+
+A(X) = \frac{\exp{\frac{1}{\sqrt{d}}QK^T}}{\sum{\exp{\frac{1}{\sqrt{d}}QK^T}}}V \\
+
+\text{LSE} = \log{\sum{\exp{\frac{1}{\sqrt{d}}QK^T}}} \\
+
+A\_{sinks}(X) = A(X) \odot \sigma (\text{LSE} - \text{sinks})
+$$
+
+Left padded masking during inference was also a tricky issue to deal with in gpt-oss. We found that we had to not only account for KV Cache prefill during generations of tokens, but also account for a unique amount of pad tokens in each prompt for batch generations which would change the way we would need to store the block mask. Example of such and example can be seen below:
+
+**Normal Causal Mask:**
+
+**For inference in general case (decoding)**
+
+**If we naively use the same masking strategy, this'll fail:**
+
+For generation (decoding phase), we usually only care about the last row of the attention matrix, since there’s just one query token attending to all previous key tokens. If we naively apply the causal mask (`q_idx ≥ k_idx`), this fails as our single query has index 0, while there are n\_k key tokens. To fix this, we need an offset in mask creation to decide which tokens to attend. But a naïve approach is slow, since offsets change each step, forcing mask and kernel regeneration. We solved this with cache and compile optimizations.
+
+The harder part is batch generation. Sequences differ in length, so padding complicates mask creation. Flex Attention had a lot of [challenges](https://github.com/meta-pytorch/attention-gym/issues/15#issuecomment-2284148665) and dynamic masks are tricky. Worse, if not compiled, it falls back to eager attention which is slow and memory-heavy (quadratic vs. linear in sequence length).
+
+> *Quote from* [*https://github.com/meta-pytorch/attention-gym/issues/15#issuecomment-2284148665*](https://github.com/meta-pytorch/attention-gym/issues/15#issuecomment-2284148665)
+>
+> You need to call this with \_compile=True. We essentially map your block mask over a full Q\_LEN x KV\_LEN matrix in order to produce the block mask. Without compile, we need to materialize this full thing, and it can cause OOMs on long sequences.
+>
+> As well, you need to run `flex_attention = torch.compile(flex_attention)`. Without compile, flex falls back to a non-fused eager implementation that is great for debugging, but it is much slower and materializes the full scores matrix.
+
+Ultimately, the mask must dynamically handle prefill vs decode with the KV Cache, batch and padding tokens per sequence, remain `torch.compile` friendly, and support sliding windows.
+
+### 🔍 Flash Attention Investigation
+
+Another interesting direction we explored was trying to integrate Flash Attention. Its advantages are widely recognized, but one limitation is that it does not support attention sinks during the backward pass for gpt-oss. To work around this, we restructured the attention mechanism so that it operates solely on the attention output and the logsumexp values that FlashAttention readily provides. Given these benefits, it seemed like an obvious choice to try.
+
+However, we soon began noticing issues. While the first few layers behaved as expected, the later layers, particularly layers 18 through 24, produced outputs that diverged significantly from the eager-mode implementation in transformers. Importantly, this discrepancy cannot be attributed to error accumulation, since the inputs to each method are identical at every layer. For further validation, we also compared the results against Unsloth **FlexAttention**.
+
+<figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FIiC14Oe0ye3Fwxb8v7WQ%2Fimage.png?alt=media&#x26;token=dfd03055-589e-4b06-b05b-650b3492ed33" alt=""><figcaption></figcaption></figure>
+
+This needs further investigation into why only the last few layers show such a drastic difference between flash attention implementation vs. the others.
+
+{% hint style="danger" %}
+
+#### Flash Attention 3 doesn't support the backwards pass for attention sinks
+
+FA3 is often enabled by default for most training packages (not Unsloth), but this is incorrect for gpt-oss. Using FA3 will make training loss completely wrong as FA3 doesn’t support gpt-oss backward passes for attention sinks. Many people are still unaware of this so please be cautious!
+{% endhint %}
+
+## ⚠️ Can We Counter Reward Hacking?
+
+The ultimate goal of RL is to maximize some reward (say speed, revenue, some metric). But RL can **cheat.** When the RL algorithm learns a trick or exploits something to increase the reward, without actually doing the task at end, this is called "**Reward Hacking**".
+
+It's the reason models learn to modify unit tests to pass coding challenges, and these are critical blockers for real world deployment. Some other good examples are from [Wikipedia](https://en.wikipedia.org/wiki/Reward_hacking).
+
+<div align="center"><figure><img src="https://i.pinimg.com/originals/55/e0/1b/55e01b94a9c5546b61b59ae300811c83.gif" alt="" width="188"><figcaption></figcaption></figure></div>
+
+In our [free gpt-oss RL notebook](https://colab.research.google.com/github/unslothai/notebooks/blob/main/nb/gpt-oss-\(20B\)-GRPO.ipynb) we explore how to counter reward hacking in a code generation setting and showcase tangible solutions to common error modes. We saw the model edit the timing function, outsource to other libraries, cache the results, and outright cheat. After countering, the result is our model generates genuinely optimized matrix multiplication kernels, not clever cheats.
+
+## :trophy:Reward Hacking
+
+Some common examples of reward hacking during RL include:
+
+RL learns to use Numpy, Torch, other libraries, which calls optimized CUDA kernels. We can stop the RL algorithm from calling optimized code by inspecting if the generated code imports other non standard Python libraries.
+
+#### Caching & Cheating
+
+RL learns to cache the result of the output and RL learns to find the actual output by inspecting Python global variables.
+
+We can stop the RL algorithm from using cached data by wiping the cache with a large fake matrix. We also have to benchmark carefully with multiple loops and turns.
+
+RL learns to edit the timing function to make it output 0 time as passed. We can stop the RL algorithm from using global or cached variables by restricting it's `locals` and `globals`. We are also going to use `exec` to create the function, so we have to save the output to an empty dict. We also disallow global variable access via `types.FunctionType(f.__code__, {})`\\
+
+## Tutorial: How to Train gpt-oss with RL
+
+LLMs often struggle with tasks that involve complex environments. However, by applying [reinforcement learning](https://docs.unsloth.ai/get-started/reinforcement-learning-rl-guide) (RL) and designing a custom [reward function](https://docs.unsloth.ai/get-started/reinforcement-learning-rl-guide#reward-functions-verifiers), these challenges can be overcome.
+
+RL can be adapted for tasks such as auto kernel or strategy creation. This tutorial shows how to train **gpt-oss** with [**GRPO**](https://docs.unsloth.ai/get-started/reinforcement-learning-rl-guide#from-rlhf-ppo-to-grpo-and-rlvr) and Unsloth to autonomously beat 2048.
+
+Our notebooks include step-by-step guides on how to navigate the whole process already.
+
+| [2048 notebook](https://colab.research.google.com/github/openai/gpt-oss/blob/main/examples/reinforcement-fine-tuning.ipynb) (Official OpenAI example) | [Kernel generation notebook](https://colab.research.google.com/github/unslothai/notebooks/blob/main/nb/gpt-oss-\(20B\)-GRPO.ipynb) |
+| ----------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+
+**What you’ll build:**
+
+* Train gpt-oss-20b so the model can automatically win 2048
+* Create a minimal 2048 environment the model can interact with
+* Define **reward functions** that:
+  1. Check the generated strategy compiles and runs,
+  2. Prevent reward hacking (disallow external imports), and
+  3. Reward actual game success
+* Run inference and export the model (MXFP4 4‑bit or merged FP16)
+
+{% hint style="info" %}
+**Hardware:** The 2048 example runs on a free Colab T4, but training will be slow. A100/H100 is much faster. 4‑bit loading + LoRA lets you fit a 20B model into modest VRAM
+{% endhint %}
+
+**Examples:**
+
+Example 1 (unknown):
+```unknown
+k0 k1 k2 k3 k4   <-- keys
+q0  X
+q1  X  X
+q2  X  X  X
+q3  X  X  X  X
+q4  X  X  X  X  X   <-- last query row (most important for decoding)
+```
+
+Example 2 (unknown):
+```unknown
+k0 k1 k2 k3 k4
+q0
+q1
+q2
+q3
+q4   X  X  X  X  X
+```
+
+Example 3 (unknown):
+```unknown
+k0 k1 k2 k3 k4
+q0
+q1
+q2
+q3
+q4   X   (note that q4 has q_idx=0 as this is the first query in current setup)
+```
+
+---
+
+## Fine-tuning LLMs with Blackwell, RTX 50 series & Unsloth
+
+**URL:** llms-txt#fine-tuning-llms-with-blackwell,-rtx-50-series-&-unsloth
+
+**Contents:**
+  - Pip install
+
+Learn how to fine-tune LLMs on NVIDIA's Blackwell RTX 50 series and B200 GPUs with our step-by-step guide.
+
+Unsloth now supports NVIDIA’s Blackwell architecture GPUs, including RTX 50-series GPUs (5060–5090), RTX PRO 6000, and GPUS such as B200, B40, GB100, GB102 and more! You can read the official [NVIDIA blogpost here](https://developer.nvidia.com/blog/train-an-llm-on-an-nvidia-blackwell-desktop-with-unsloth-and-scale-it/).
+
+Unsloth is now compatible with every NVIDIA GPU from 2018+ including the [DGX Spark](https://docs.unsloth.ai/basics/fine-tuning-llms-with-nvidia-dgx-spark-and-unsloth).
+
+> **Our new** [**Docker image**](#docker) **supports Blackwell. Run the Docker image and start training!** [**Guide**](https://docs.unsloth.ai/basics/fine-tuning-llms-with-blackwell-rtx-50-series-and-unsloth)
+
+Simply install Unsloth:
+
+If you see issues, another option is to create a separate isolated environment:
+
+Note it might be `pip3` or  `pip3.13` and also `python3` or `python3.13`&#x20;
+
+You might encounter some Xformers issues, in which cause you should build from source:
+
+{% code overflow="wrap" %}
+
+**Examples:**
+
+Example 1 (bash):
+```bash
+pip install unsloth
+```
+
+Example 2 (bash):
+```bash
+python -m venv unsloth
+source unsloth/bin/activate
+pip install unsloth
+```
+
+---
+
+## Tutorial: How to Finetune Llama-3 and Use In Ollama
+
+**URL:** llms-txt#tutorial:-how-to-finetune-llama-3-and-use-in-ollama
+
+**Contents:**
+- 1. What is Unsloth?
+- 2. What is Ollama?
+- 3. Install Unsloth
+- 4. Selecting a model to finetune
+- 5. Parameters for finetuning
+- 6. Alpaca Dataset
+- 7. Multiple columns for finetuning
+- 8. Multi turn conversations
+- 9. Customizable Chat Templates
+- 10. Train the model
+
+Beginner's Guide for creating a customized personal assistant (like ChatGPT) to run locally on Ollama
+
+By the end of this tutorial, you will create a custom chatbot by **finetuning Llama-3** with [**Unsloth**](https://github.com/unslothai/unsloth) for free. It can run locally via [**Ollama**](https://github.com/ollama/ollama) on your PC, or in a free GPU instance through [**Google Colab**](https://colab.research.google.com/github/unslothai/notebooks/blob/main/nb/Llama3_\(8B\)-Ollama.ipynb). You will be able to interact with the chatbot interactively like below:
+
+<figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FXlEQrBR24CKI9lQIzOS7%2FAssistant%20example.png?alt=media&#x26;token=fac7f5b0-69f4-4998-baee-3feee44f8c16" alt=""><figcaption></figcaption></figure>
+
+**Unsloth** makes finetuning much easier, and can automatically export the finetuned model to **Ollama** with integrated automatic `Modelfile` creation! If you need help, you can join our Discord server: <https://discord.com/invite/unsloth>
+
+{% hint style="warning" %}
+**If you’d like to copy or save the code, everything is available in our** [**Ollama Colab notebook**](https://colab.research.google.com/github/unslothai/notebooks/blob/main/nb/Llama3_\(8B\)-Ollama.ipynb)**. You can use it directly there or adapt it for your local setup:** [**https://colab.research.google.com/github/unslothai/notebooks/blob/main/nb/Llama3\_(8B)-Ollama.ipynb**](https://colab.research.google.com/github/unslothai/notebooks/blob/main/nb/Llama3_\(8B\)-Ollama.ipynb)
+{% endhint %}
+
+## 1. What is Unsloth?
+
+[Unsloth](https://github.com/unslothai/unsloth) makes finetuning LLMs like Llama-3, Mistral, Phi-3 and Gemma 2x faster, use 70% less memory, and with no degradation in accuracy! We will be using Google Colab which provides a free GPU during this tutorial. You can access our free notebooks below:
+
+* [Ollama Llama-3 Alpaca](https://colab.research.google.com/github/unslothai/notebooks/blob/main/nb/Llama3_\(8B\)-Ollama.ipynb) (notebook which we will be using)
+* [CSV/Excel Ollama Guide](https://colab.research.google.com/drive/1VYkncZMfGFkeCEgN2IzbZIKEDkyQuJAS?usp=sharing)
+
+#### ***You will also need to login into your Google account!***
+
+<figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FqnogsAv2zZ5WPFkXwQ5t%2FColab%20Screen.png?alt=media&#x26;token=8722cf50-898f-4f15-be7a-7223b8b7440b" alt=""><figcaption></figcaption></figure>
+
+## 2. What is Ollama?
+
+[Ollama ](https://github.com/ollama/ollama)allows you to run language models from your own computer in a quick and simple way! It quietly launches a program which can run a language model like Llama-3 in the background. If you suddenly want to ask the language model a question, you can simply submit a request to Ollama, and it'll quickly return the results to you! We'll be using Ollama as our inference engine!
+
+<figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FqKwhUFNW52GnKMi5ClLW%2FOllama.png?alt=media&#x26;token=27ccad2f-12a2-4188-96d9-ee3023d7f274" alt=""><figcaption></figcaption></figure>
+
+## 3. Install Unsloth
+
+<figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FQzuUQL60uFWHpaAvDPYD%2FColab%20Options.png?alt=media&#x26;token=fb808ec5-20c5-4f42-949e-14ed26a44987" alt=""><figcaption></figcaption></figure>
+
+If you have never used a Colab notebook, a quick primer on the notebook itself:
+
+1. **Play Button at each "cell".** Click on this to run that cell's code. You must not skip any cells and you must run every cell in chronological order. If you encounter any errors, simply rerun the cell you did not run before. Another option is to click CTRL + ENTER if you don't want to click the play button.
+2. **Runtime Button in the top toolbar.** You can also use this button and hit "Run all" to run the entire notebook in 1 go. This will skip all the customization steps, and can be a good first try.
+3. **Connect / Reconnect T4 button.** You can click here for more advanced system statistics.
+
+The first installation cell looks like below: Remember to click the PLAY button in the brackets \[  ]. We grab our open source Github package, and install some other packages.
+
+<figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2F9DTAK0evMnZcnLXzKLx4%2Fimage.png?alt=media&#x26;token=b4781438-3858-4d6c-a560-5afcbbc12fa8" alt=""><figcaption></figcaption></figure>
+
+## 4. Selecting a model to finetune
+
+Let's now select a model for finetuning! We defaulted to Llama-3 from Meta / Facebook which was trained on a whopping 15 trillion "tokens". Assume a token is like 1 English word. That's approximately 350,000 thick Encyclopedias worth! Other popular models include Mistral, Phi-3 (trained using GPT-4 output) and Gemma from Google (13 trillion tokens!).
+
+Unsloth supports these models and more! In fact, simply type a model from the Hugging Face model hub to see if it works! We'll error out if it doesn't work.
+
+<figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2Fmdci7SWqnAZiW8KzzDp0%2Fimage.png?alt=media&#x26;token=8ede6c31-3cc9-4005-ae44-0b056750e8d4" alt=""><figcaption></figcaption></figure>
+
+There are 3 other settings which you can toggle:
+
+This determines the context length of the model. Gemini for example has over 1 million context length, whilst Llama-3 has 8192 context length. We allow you to select ANY number - but we recommend setting it 2048 for testing purposes. Unsloth also supports very long context finetuning, and we show we can provide 4x longer context lengths than the best.
+2.
+
+Keep this as None, but you can select torch.float16 or torch.bfloat16 for newer GPUs.
+3.
+
+We do finetuning in 4 bit quantization. This reduces memory usage by 4x, allowing us to actually do finetuning in a free 16GB memory GPU. 4 bit quantization essentially converts weights into a limited set of numbers to reduce memory usage. A drawback of this is there is a 1-2% accuracy degradation. Set this to False on larger GPUs like H100s if you want that tiny extra accuracy.
+
+<figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FegXn4FqK96xXZWMz4NH5%2Fimage.png?alt=media&#x26;token=7531f78d-390b-470b-a91e-4463eea6537f" alt=""><figcaption></figcaption></figure>
+
+If you run the cell, you will get some print outs of the Unsloth version, which model you are using, how much memory your GPU has, and some other statistics. Ignore this for now.
+
+## 5. Parameters for finetuning
+
+<figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FqRTuI7x0FYlHTXqbi0hu%2Fimage.png?alt=media&#x26;token=4b0e0032-dbf1-4148-ba92-c18356862765" alt=""><figcaption></figcaption></figure>
+
+Now to customize your finetune, you can edit the numbers above, but you can ignore it, since we already select quite reasonable numbers.
+
+The goal is to change these numbers to increase accuracy, but also **counteract over-fitting**. Over-fitting is when you make the language model memorize a dataset, and not be able to answer novel new questions. We want to a final model to answer unseen questions, and not do memorization.
+
+The rank of the finetuning process. A larger number uses more memory and will be slower, but can increase accuracy on harder tasks. We normally suggest numbers like 8 (for fast finetunes), and up to 128. Too large numbers can causing over-fitting, damaging your model's quality.
+2.
+
+We select all modules to finetune. You can remove some to reduce memory usage and make training faster, but we highly do not suggest this. Just train on all modules!
+3.
+
+The scaling factor for finetuning. A larger number will make the finetune learn more about your dataset, but can promote over-fitting. We suggest this to equal to the rank `r`, or double it.
+4.
+
+Leave this as 0 for faster training! Can reduce over-fitting, but not that much.
+5.
+
+Leave this as 0 for faster and less over-fit training!
+6.
+
+Options include `True`, `False` and `"unsloth"`. We suggest `"unsloth"` since we reduce memory usage by an extra 30% and support extremely long context finetunes.You can read up here: <https://unsloth.ai/blog/long-context> for more details.
+7.
+
+The number to determine deterministic runs. Training and finetuning needs random numbers, so setting this number makes experiments reproducible.
+8.
+
+Advanced feature to set the `lora_alpha = 16` automatically. You can use this if you want!
+9.
+
+Advanced feature to initialize the LoRA matrices to the top r singular vectors of the weights. Can improve accuracy somewhat, but can make memory usage explode at the start.
+
+<figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FKSmRDpkySelZfWSrWxDm%2Fimage.png?alt=media&#x26;token=5401e4da-796a-42ad-8b85-2263f3e59e86" alt=""><figcaption></figcaption></figure>
+
+We will now use the Alpaca Dataset created by calling GPT-4 itself. It is a list of 52,000 instructions and outputs which was very popular when Llama-1 was released, since it made finetuning a base LLM be competitive with ChatGPT itself.
+
+You can access the GPT4 version of the Alpaca dataset here: <https://huggingface.co/datasets/vicgalle/alpaca-gpt4>. An older first version of the dataset is here: <https://github.com/tatsu-lab/stanford_alpaca>. Below shows some examples of the dataset:
+
+<figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FzKhujR9Nxz95VFSdf4J5%2Fimage.png?alt=media&#x26;token=a3c52718-eaf1-4a3d-b325-414d8e67722e" alt=""><figcaption></figcaption></figure>
+
+You can see there are 3 columns in each row - an instruction, and input and an output. We essentially combine each row into 1 large prompt like below. We then use this to finetune the language model, and this made it very similar to ChatGPT. We call this process **supervised instruction finetuning**.
+
+<figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FieYX44Vjd0OygJvO0jaR%2Fimage.png?alt=media&#x26;token=eb67fa41-a280-4656-8be6-5b6bf6f587c2" alt=""><figcaption></figcaption></figure>
+
+## 7. Multiple columns for finetuning
+
+But a big issue is for ChatGPT style assistants, we only allow 1 instruction / 1 prompt, and not multiple columns / inputs. For example in ChatGPT, you can see we must submit 1 prompt, and not multiple prompts.
+
+<figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FpFUWhntUQLu05l4ns7Pq%2Fimage.png?alt=media&#x26;token=e989e4a6-6033-4741-b97f-d0c3ce8f5888" alt=""><figcaption></figcaption></figure>
+
+This essentially means we have to "merge" multiple columns into 1 large prompt for finetuning to actually function!
+
+For example the very famous Titanic dataset has many many columns. Your job was to predict whether a passenger has survived or died based on their age, passenger class, fare price etc. We can't simply pass this into ChatGPT, but rather, we have to "merge" this information into 1 large prompt.
+
+<figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FrydHBjHoJT7w8FwzKAXK%2FMerge-1.png?alt=media&#x26;token=ec812057-0475-4717-87fe-311f14735c37" alt=""><figcaption></figcaption></figure>
+
+For example, if we ask ChatGPT with our "merged" single prompt which includes all the information for that passenger, we can then ask it to guess or predict whether the passenger has died or survived.
+
+<figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FJVkv73fRWvwwFxMym7uW%2Fimage.png?alt=media&#x26;token=59b97b76-f2f2-46c9-8940-60a37e4e7d62" alt=""><figcaption></figcaption></figure>
+
+Other finetuning libraries require you to manually prepare your dataset for finetuning, by merging all your columns into 1 prompt. In Unsloth, we simply provide the function called `to_sharegpt` which does this in 1 go!
+
+To access the Titanic finetuning notebook or if you want to upload a CSV or Excel file, go here: <https://colab.research.google.com/drive/1VYkncZMfGFkeCEgN2IzbZIKEDkyQuJAS?usp=sharing>
+
+<figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2F9fo2IBA7P0tNwhNR9Prm%2Fimage.png?alt=media&#x26;token=7bd7244a-0fea-4e57-9038-a8a360138056" alt=""><figcaption></figcaption></figure>
+
+Now this is a bit more complicated, since we allow a lot of customization, but there are a few points:
+
+* You must enclose all columns in curly braces `{}`. These are the column names in the actual CSV / Excel file.
+* Optional text components must be enclosed in `[[]]`. For example if the column "input" is empty, the merging function will not show the text and skip this. This is useful for datasets with missing values.
+* Select the output or target / prediction column in `output_column_name`. For the Alpaca dataset, this will be `output`.
+
+For example in the Titanic dataset, we can create a large merged prompt format like below, where each column / piece of text becomes optional.
+
+<figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FRMvBpfXC9ToCRL0oCJfN%2Fimage.png?alt=media&#x26;token=c257c7fc-8a9c-4d4f-ab3d-6894ae49f2a9" alt=""><figcaption></figcaption></figure>
+
+For example, pretend the dataset looks like this with a lot of missing data:
+
+| Embarked | Age | Fare |
+| -------- | --- | ---- |
+| S        | 23  |      |
+|          | 18  | 7.25 |
+
+Then, we do not want the result to be:
+
+1. The passenger embarked from S. Their age is 23. Their fare is **EMPTY**.
+2. The passenger embarked from **EMPTY**. Their age is 18. Their fare is $7.25.
+
+Instead by optionally enclosing columns using `[[]]`, we can exclude this information entirely.
+
+1. \[\[The passenger embarked from S.]] \[\[Their age is 23.]] \[\[Their fare is **EMPTY**.]]
+2. \[\[The passenger embarked from **EMPTY**.]] \[\[Their age is 18.]] \[\[Their fare is $7.25.]]
+
+1. The passenger embarked from S. Their age is 23.
+2. Their age is 18. Their fare is $7.25.
+
+## 8. Multi turn conversations
+
+A bit issue if you didn't notice is the Alpaca dataset is single turn, whilst remember using ChatGPT was interactive and you can talk to it in multiple turns. For example, the left is what we want, but the right which is the Alpaca dataset only provides singular conversations. We want the finetuned language model to somehow learn how to do multi turn conversations just like ChatGPT.
+
+<figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FWCAN7bYUt6QWwCWUxisL%2Fdiff.png?alt=media&#x26;token=29821fd9-2181-4d1d-8b93-749b69bcf400" alt=""><figcaption></figcaption></figure>
+
+So we introduced the `conversation_extension` parameter, which essentially selects some random rows in your single turn dataset, and merges them into 1 conversation! For example, if you set it to 3, we randomly select 3 rows and merge them into 1! Setting them too long can make training slower, but could make your chatbot and final finetune much better!
+
+<figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FWi1rRNBFC2iDmCvSJsZt%2Fcombine.png?alt=media&#x26;token=bef37a55-b272-4be3-89b5-9767c219a380" alt=""><figcaption></figcaption></figure>
+
+Then set `output_column_name` to the prediction / output column. For the Alpaca dataset dataset, it would be the output column.
+
+We then use the `standardize_sharegpt` function to just make the dataset in a correct format for finetuning! Always call this!
+
+<figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FE75C4Y848VNF6luLuPRR%2Fimage.png?alt=media&#x26;token=aac1d79b-ecca-4e56-939d-d97dcbbf30eb" alt=""><figcaption></figcaption></figure>
+
+## 9. Customizable Chat Templates
+
+We can now specify the chat template for finetuning itself. The very famous Alpaca format is below:
+
+<figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2F8SWcsgH47Uhkm0IclDs5%2Fimage.png?alt=media&#x26;token=fa03d7aa-d568-468d-9884-18e925a0551f" alt=""><figcaption></figcaption></figure>
+
+But remember we said this was a bad idea because ChatGPT style finetunes require only 1 prompt? Since we successfully merged all dataset columns into 1 using Unsloth, we essentially can create the below style chat template with 1 input column (instruction) and 1 output:
+
+<figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FyuMpSLIpPLEbcdh970UJ%2Fimage.png?alt=media&#x26;token=87c4d5e1-accf-4847-9971-63e3a47b4a5f" alt=""><figcaption></figcaption></figure>
+
+We just require you must put a `{INPUT}` field for the instruction and an `{OUTPUT}` field for the model's output field. We in fact allow an optional `{SYSTEM}` field as well which is useful to customize a system prompt just like in ChatGPT. For example, below are some cool examples which you can customize the chat template to be:
+
+<figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2Fi6B8IP1OZmmxBYr6k4W3%2Fimage.png?alt=media&#x26;token=061d1b4c-4b22-4d1b-a423-8d4c15e40efa" alt=""><figcaption></figcaption></figure>
+
+For the ChatML format used in OpenAI models:
+
+<figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2F3OEJaXooJCICJR6DJIJP%2Fimage.png?alt=media&#x26;token=4fa85cf1-463d-4090-a838-591c4f94efea" alt=""><figcaption></figcaption></figure>
+
+Or you can use the Llama-3 template itself (which only functions by using the instruct version of Llama-3): We in fact allow an optional `{SYSTEM}` field as well which is useful to customize a system prompt just like in ChatGPT.
+
+<figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2F4qQXd0hIvh9fJNO2cJ04%2Fimage.png?alt=media&#x26;token=614b9200-7375-47f5-ac15-ce9aa891ede4" alt=""><figcaption></figcaption></figure>
+
+Or in the Titanic prediction task where you had to predict if a passenger died or survived in this Colab  notebook which includes CSV and Excel uploading: <https://colab.research.google.com/drive/1VYkncZMfGFkeCEgN2IzbZIKEDkyQuJAS?usp=sharing>
+
+<figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2F1iQitC3PwcuV0LpHEhdP%2Fimage.png?alt=media&#x26;token=d117f681-afb0-4d5f-b534-f51013fe772a" alt=""><figcaption></figcaption></figure>
+
+## 10. Train the model
+
+Let's train the model now! We normally suggest people to not edit the below, unless if you want to finetune for longer steps or want to train on large batch sizes.
+
+<figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FoPTTR7ppdxhZR2iPpE0R%2Fimage.png?alt=media&#x26;token=1dca98a5-c927-4e93-8e96-977015f4eeb9" alt=""><figcaption></figcaption></figure>
+
+We do not normally suggest changing the parameters above, but to elaborate on some of them:
+
+Increase the batch size if you want to utilize the memory of your GPU more. Also increase this to make training more smooth and make the process not over-fit. We normally do not suggest this, since this might make training actually slower due to padding issues. We normally instead ask you to increase `gradient_accumulation_steps` which just does more passes over the dataset.
+2.
+
+Equivalent to increasing the batch size above itself, but does not impact memory consumption! We normally suggest people increasing this if you want smoother training loss curves.
+3.
+
+We set steps to 60 for faster training. For full training runs which can take hours, instead comment out `max_steps`, and replace it with `num_train_epochs = 1`. Setting it to 1 means 1 full pass over your dataset. We normally suggest 1 to 3 passes, and no more, otherwise you will over-fit your finetune.
+4.
+
+Reduce the learning rate if you want to make the finetuning process slower, but also converge to a higher accuracy result most likely. We normally suggest 2e-4, 1e-4, 5e-5, 2e-5 as numbers to try.
+
+<figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FxwOA09mtcimcQOCjP4PG%2Fimage.png?alt=media&#x26;token=39a0f525-6d4e-4c3b-af0d-82d8960d87be" alt=""><figcaption></figcaption></figure>
+
+You’ll see a log of numbers during training. This is the training loss, which shows how well the model is learning from your dataset. For many cases, a loss around 0.5 to 1.0 is a good sign, but it depends on your dataset and task. If the loss is not going down, you might need to adjust your settings. If the loss goes to 0, that could mean overfitting, so it's important to check validation too.
+
+## 11. Inference / running the model
+
+<figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FRX9Byv1hlSpvmonT1PLw%2Fimage.png?alt=media&#x26;token=6043cd8c-c6a3-4cc5-a019-48baeed3b5a2" alt=""><figcaption></figcaption></figure>
+
+Now let's run the model after we completed the training process! You can edit the yellow underlined part! In fact, because we created a multi turn chatbot, we can now also call the model as if it saw some conversations in the past like below:
+
+<figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2F6DXSlsHkN8cZiiAxAV0Z%2Fimage.png?alt=media&#x26;token=846307de-7386-4bbe-894e-7d9e572244fe" alt=""><figcaption></figcaption></figure>
+
+Reminder Unsloth itself provides **2x faster inference** natively as well, so always do not forget to call `FastLanguageModel.for_inference(model)`. If you want the model to output longer responses, set `max_new_tokens = 128` to some larger number like 256 or 1024. Notice you will have to wait longer for the result as well!
+
+## 12. Saving the model
+
+We can now save the finetuned model as a small 100MB file called a LoRA adapter like below. You can instead push to the Hugging Face hub as well if you want to upload your model! Remember to get a Hugging Face token via <https://huggingface.co/settings/tokens> and add your token!
+
+<figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FBz0YDi6Sc2oEP5QWXgSz%2Fimage.png?alt=media&#x26;token=33d9e4fd-e7dc-4714-92c5-bfa3b00f86c4" alt=""><figcaption></figcaption></figure>
+
+After saving the model, we can again use Unsloth to run the model itself! Use `FastLanguageModel` again to call it for inference!
+
+<figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FzymBQrqwt4GUmCIN0Iec%2Fimage.png?alt=media&#x26;token=41a110e4-8263-426f-8fa7-cdc295cc8210" alt=""><figcaption></figcaption></figure>
+
+## 13. Exporting to Ollama
+
+Finally we can export our finetuned model to Ollama itself! First we have to install Ollama in the Colab notebook:
+
+<figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FqNvGTAGwZKXxkMQqzloS%2Fimage.png?alt=media&#x26;token=db503499-0c74-4281-b3bf-400fa20c9ce2" alt=""><figcaption></figcaption></figure>
+
+Then we export the finetuned model we have to llama.cpp's GGUF formats like below:
+
+<figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FZduLjedyfUbTmYqF85pa%2Fimage.png?alt=media&#x26;token=f5bac541-b99f-4d9b-82f7-033f8de780f2" alt=""><figcaption></figcaption></figure>
+
+Reminder to convert `False` to `True` for 1 row, and not change every row to `True`, or else you'll be waiting for a very time! We normally suggest the first row getting set to `True`, so we can export the  finetuned model quickly to `Q8_0` format (8 bit quantization). We also allow you to export to a whole list of quantization methods as well, with a popular one being `q4_k_m`.
+
+Head over to <https://github.com/ggerganov/llama.cpp> to learn more about GGUF. We also have some manual instructions of how to export to GGUF if you want here: <https://github.com/unslothai/unsloth/wiki#manually-saving-to-gguf>
+
+You will see a long list of text like below - please wait 5 to 10 minutes!!
+
+<figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FcuUAx0RNtrQACvU7uWCL%2Fimage.png?alt=media&#x26;token=dc67801a-a363-48e2-8572-4c6d0d8d0d93" alt=""><figcaption></figcaption></figure>
+
+And finally at the very end, it'll look like below:
+
+<figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FxRh07PEQjAmmz3s2HJUP%2Fimage.png?alt=media&#x26;token=3552a3c9-4d4f-49ee-a31e-0a64327419f0" alt=""><figcaption></figcaption></figure>
+
+Then, we have to run Ollama itself in the background. We use `subprocess` because Colab doesn't like asynchronous calls, but normally one just runs `ollama serve` in the terminal / command prompt.
+
+<figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FszDuikrg4HY8lGefwpRQ%2Fimage.png?alt=media&#x26;token=ec1c8762-661d-4b13-ab4f-ed1a7b9fda00" alt=""><figcaption></figcaption></figure>
+
+## 14. Automatic `Modelfile` creation
+
+The trick Unsloth provides is we automatically create a `Modelfile` which Ollama requires! This is a just a list of settings and includes the chat template which we used for the finetune process! You can also print the `Modelfile` generated like below:
+
+<figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2Fh6inH6k5ggxUP80Gltgj%2Fimage.png?alt=media&#x26;token=805bafb1-2795-4743-9bd2-323ab4f0881e" alt=""><figcaption></figcaption></figure>
+
+We then ask Ollama to create a model which is Ollama compatible, by using the `Modelfile`
+
+<figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2F1123bSSwmjWXliaRUL5U%2Fimage.png?alt=media&#x26;token=2e72f1a0-1ff8-4189-8d9c-d31e39385555" alt=""><figcaption></figcaption></figure>
+
+## 15. Ollama Inference
+
+And we can now call the model for inference if you want to do call the Ollama server itself which is running on your own local machine / in the free Colab notebook in the background. Remember you can edit the yellow underlined part.
+
+<figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2Fk5mdsJ57hQ1Ar3KY6VXY%2FInference.png?alt=media&#x26;token=8cf0cbf9-0534-4bae-a887-89f45a3de771" alt=""><figcaption></figcaption></figure>
+
+## 16. Interactive ChatGPT style
+
+But to actually run the finetuned model like a ChatGPT, we have to do a bit more! First click the terminal icon![](https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FUb17xtyDliAKhJEL9KuH%2Fimage.png?alt=media\&token=f612e9b7-7d05-4039-a476-646026c6c8e6) and a Terminal will pop up. It's on the left sidebar.
+
+<figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FRWPEy4fW8ytOljQYLn55%2FWhere_Terminal.png?alt=media&#x26;token=4ddf3017-2380-4615-958f-a465a76f7bac" alt=""><figcaption></figcaption></figure>
+
+Then, you might have to press ENTER twice to remove some weird output in the Terminal window. Wait a few seconds and type `ollama run unsloth_model` then hit ENTER.
+
+<figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FL4aLJtoWh3HCkQ6f4J0Q%2FTerminal_Type.png?alt=media&#x26;token=9063f511-1e45-4a44-a9c1-14f0de4e4571" alt=""><figcaption></figcaption></figure>
+
+And finally, you can interact with the finetuned model just like an actual ChatGPT! Hit CTRL + D to exit the system, and hit ENTER to converse with the chatbot!
+
+<figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2Fo3vIehaOLOOBlBGBS7lX%2FAssistant.png?alt=media&#x26;token=25319dd2-384c-4744-a2dd-398f48a3b20f" alt=""><figcaption></figcaption></figure>
+
+You've successfully finetuned a language model and exported it to Ollama with Unsloth 2x faster and with 70% less VRAM! And all this for free in a Google Colab notebook!
+
+If you want to learn how to do reward modelling, do continued pretraining, export to vLLM or GGUF, do text completion, or learn more about finetuning tips and tricks, head over to our [Github](https://github.com/unslothai/unsloth#-finetune-for-free).
+
+If you need any help on finetuning, you can also join our Discord server [here](https://discord.gg/unsloth). If you want help with Ollama, you can also join their server [here](https://discord.gg/ollama).
+
+And finally, we want to thank you for reading and following this far! We hope this made you understand some of the nuts and bolts behind finetuning language models, and we hope this was useful!
+
+To access our Alpaca dataset example click [here](https://colab.research.google.com/drive/1WZDi7APtQ9VsvOrQSSC5DDtxq159j8iZ?usp=sharing), and our CSV / Excel finetuning guide is [here](https://colab.research.google.com/drive/1VYkncZMfGFkeCEgN2IzbZIKEDkyQuJAS?usp=sharing).
+
+**Examples:**
+
+Example 1 (unknown):
+```unknown
+max_seq_length = 2048
+```
+
+Example 2 (unknown):
+```unknown
+dtype = None
+```
+
+Example 3 (unknown):
+```unknown
+load_in_4bit = True
+```
+
+Example 4 (unknown):
+```unknown
+r = 16, # Choose any number > 0 ! Suggested 8, 16, 32, 64, 128
+```
+
+---
+
+## Colors
+
+**URL:** llms-txt#colors
+
+pipe_colors = [(0, 100, 0), (210, 180, 140), (50, 50, 50)]
+land_colors = [(139, 69, 19), (255, 255, 0)]
+
+---
+
+## https://github.com/ggerganov/llama.cpp/blob/master/examples/quantize/quantize.cpp#L19
+
+**URL:** llms-txt#https://github.com/ggerganov/llama.cpp/blob/master/examples/quantize/quantize.cpp#l19
+
+---
+
+## Load the Elise dataset (e.g., the version with emotion tags)
+
+**URL:** llms-txt#load-the-elise-dataset-(e.g.,-the-version-with-emotion-tags)
+
+dataset = load_dataset("MrDragonFox/Elise", split="train")
+print(len(dataset), "samples")  # ~1200 samples in Elise
+
+---
+
+## Gemma 3: How to Run & Fine-tune
+
+**URL:** llms-txt#gemma-3:-how-to-run-&-fine-tune
+
+**Contents:**
+- :gear: Recommended Inference Settings
+  - ✨Running Gemma 3 on your phone <a href="#gmail-running-gemma-3-on-your-phone" id="gmail-running-gemma-3-on-your-phone"></a>
+- :llama: Tutorial: How to Run Gemma 3 in Ollama
+- 📖 Tutorial: How to Run Gemma 3 27B in llama.cpp
+
+How to run Gemma 3 effectively with our GGUFs on llama.cpp, Ollama, Open WebUI and how to fine-tune with Unsloth!
+
+Google releases Gemma 3 with a new 270M model and the previous 1B, 4B, 12B, and 27B sizes. The 270M and 1B are text-only, while larger models handle both text and vision. We provide GGUFs, and a guide of how to run it effectively, and how to finetune & do [RL](https://docs.unsloth.ai/get-started/reinforcement-learning-rl-guide) with Gemma 3!
+
+{% hint style="success" %}
+**NEW Aug 14, 2025 Update:** Try our fine-tuning [Gemma 3 (270M) notebook](https://colab.research.google.com/github/unslothai/notebooks/blob/main/nb/Gemma3_\(270M\).ipynb) and [GGUFs to run](https://huggingface.co/collections/unsloth/gemma-3-67d12b7e8816ec6efa7e4e5b).
+
+Also see our [Gemma 3n Guide](https://docs.unsloth.ai/models/gemma-3-how-to-run-and-fine-tune/gemma-3n-how-to-run-and-fine-tune).
+{% endhint %}
+
+<a href="#gmail-running-gemma-3-on-your-phone" class="button secondary">Running Tutorial</a><a href="#fine-tuning-gemma-3-in-unsloth" class="button secondary">Fine-tuning Tutorial</a>
+
+**Unsloth is the only framework which works in float16 machines for Gemma 3 inference and training.** This means Colab Notebooks with free Tesla T4 GPUs also work!
+
+* Fine-tune Gemma 3 (4B) with vision support using our [free Colab notebook](https://colab.research.google.com/github/unslothai/notebooks/blob/main/nb/Gemma3_\(4B\)-Vision.ipynb)
+
+{% hint style="info" %}
+According to the Gemma team, the optimal config for inference is\
+`temperature = 1.0, top_k = 64, top_p = 0.95, min_p = 0.0`
+{% endhint %}
+
+**Unsloth Gemma 3 uploads with optimal configs:**
+
+| GGUF                                                                                                                                                                                                                                                                                                                                                                                                           | Unsloth Dynamic 4-bit Instruct                                                                                                                                                                                                                                                                                                                                                                                                               | 16-bit Instruct                                                                                                                                                                                                                                                                                                                                                     |
+| -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| <ul><li><a href="https://huggingface.co/unsloth/gemma-3-270m-it-GGUF">270M</a> - new</li><li><a href="https://huggingface.co/unsloth/gemma-3-1b-it-GGUF">1B</a></li><li><a href="https://huggingface.co/unsloth/gemma-3-4b-it-GGUF">4B</a></li><li><a href="https://huggingface.co/unsloth/gemma-3-12b-it-GGUF">12B</a></li><li><a href="https://huggingface.co/unsloth/gemma-3-27b-it-GGUF">27B</a></li></ul> | <ul><li><a href="https://huggingface.co/unsloth/gemma-3-270m-it-unsloth-bnb-4bit">270M</a></li><li><a href="https://huggingface.co/unsloth/gemma-3-1b-it-bnb-4bit">1B</a></li><li><a href="https://huggingface.co/unsloth/gemma-3-4b-it-bnb-4bit">4B</a></li><li><a href="https://huggingface.co/unsloth/gemma-3-27b-it-unsloth-bnb-4bit">12B</a></li><li><a href="https://huggingface.co/unsloth/gemma-3-27b-it-bnb-4bit">27B</a></li></ul> | <ul><li><a href="https://huggingface.co/unsloth/gemma-3-270m-it">270M</a></li><li><a href="https://huggingface.co/unsloth/gemma-3-1b">1B</a></li><li><a href="https://huggingface.co/unsloth/gemma-3-4b">4B</a></li><li><a href="https://huggingface.co/unsloth/gemma-3-12b">12B</a></li><li><a href="https://huggingface.co/unsloth/gemma-3-27b">27B</a></li></ul> |
+
+## :gear: Recommended Inference Settings
+
+According to the Gemma team, the official recommended settings for inference is:
+
+* Temperature of 1.0
+* Top\_K of 64
+* Min\_P of 0.00 (optional, but 0.01 works well, llama.cpp default is 0.1)
+* Top\_P of 0.95
+* Repetition Penalty of 1.0. (1.0 means disabled in llama.cpp and transformers)
+* Chat template:&#x20;
+
+<pre data-overflow="wrap"><code><strong>&#x3C;bos>&#x3C;start_of_turn>user\nHello!&#x3C;end_of_turn>\n&#x3C;start_of_turn>model\nHey there!&#x3C;end_of_turn>\n&#x3C;start_of_turn>user\nWhat is 1+1?&#x3C;end_of_turn>\n&#x3C;start_of_turn>model\n
+  </strong></code></pre>
+* Chat template with `\n`newlines rendered (except for the last)
+
+{% code overflow="wrap" %}
+
+{% hint style="danger" %}
+llama.cpp an other inference engines auto add a \<bos> - DO NOT add TWO \<bos> tokens! You should ignore the \<bos> when prompting the model!
+{% endhint %}
+
+### ✨Running Gemma 3 on your phone <a href="#gmail-running-gemma-3-on-your-phone" id="gmail-running-gemma-3-on-your-phone"></a>
+
+To run the models on your phone, we recommend using any mobile app that can run GGUFs locally on edge devices like phones. After fine-tuning you can export it to GGUF then run it locally on your phone. Ensure your phone has enough RAM/power to process the models as it can overheat so we recommend using Gemma 3 270M or the Gemma 3n models for this use-case. You can try the [open-source project AnythingLLM's](https://github.com/Mintplex-Labs/anything-llm) mobile app which you can download on [Android here](https://play.google.com/store/apps/details?id=com.anythingllm) or [ChatterUI](https://github.com/Vali-98/ChatterUI), which are great apps for running GGUFs on your phone.
+
+{% hint style="success" %}
+Remember,  you can change the model name 'gemma-3-27b-it-GGUF' to any Gemma model like 'gemma-3-270m-it-GGUF:Q8\_K\_XL' for all the tutorials.
+{% endhint %}
+
+## :llama: Tutorial: How to Run Gemma 3 in Ollama
+
+1. Install `ollama` if you haven't already!&#x20;
+
+2. Run the model! Note you can call `ollama serve`in another terminal if it fails! We include all our fixes and suggested parameters (temperature etc) in `params` in our Hugging Face upload! You can change the model name 'gemma-3-27b-it-GGUF' to any Gemma model like 'gemma-3-270m-it-GGUF:Q8\_K\_XL'.
+
+## 📖 Tutorial: How to Run Gemma 3 27B in llama.cpp
+
+1. Obtain the latest `llama.cpp` on [GitHub here](https://github.com/ggml-org/llama.cpp). You can follow the build instructions below as well. Change `-DGGML_CUDA=ON` to `-DGGML_CUDA=OFF` if you don't have a GPU or just want CPU inference.
+
+2. If you want to use `llama.cpp` directly to load models, you can do the below: (:Q4\_K\_XL) is the quantization type. You can also download via Hugging Face (point 3). This is similar to `ollama run`
+
+3. **OR** download the model via (after installing `pip install huggingface_hub hf_transfer` ). You can choose Q4\_K\_M, or other quantized versions (like BF16 full precision). More versions at: <https://huggingface.co/unsloth/gemma-3-27b-it-GGUF>
+
+**Examples:**
+
+Example 1 (unknown):
+```unknown
+<bos><start_of_turn>user
+Hello!<end_of_turn>
+<start_of_turn>model
+Hey there!<end_of_turn>
+<start_of_turn>user
+What is 1+1?<end_of_turn>
+<start_of_turn>model\n
+```
+
+Example 2 (bash):
+```bash
+apt-get update
+apt-get install pciutils -y
+curl -fsSL https://ollama.com/install.sh | sh
+```
+
+Example 3 (bash):
+```bash
+ollama run hf.co/unsloth/gemma-3-27b-it-GGUF:Q4_K_XL
+```
+
+Example 4 (bash):
+```bash
+apt-get update
+apt-get install pciutils build-essential cmake curl libcurl4-openssl-dev -y
+git clone https://github.com/ggerganov/llama.cpp
+cmake llama.cpp -B llama.cpp/build \
+    -DBUILD_SHARED_LIBS=ON -DGGML_CUDA=ON -DLLAMA_CURL=ON
+cmake --build llama.cpp/build --config Release -j --clean-first --target llama-quantize llama-cli llama-gguf-split llama-mtmd-cli
+cp llama.cpp/build/bin/llama-* llama.cpp
+```
+
+---
+
+## Unsloth Docs
+
+**URL:** llms-txt#unsloth-docs
+
+**Contents:**
+  - 🦥 Why Unsloth?
+  - ⭐ Key Features
+  - Quickstart
+  - What is Fine-tuning and RL? Why?
+
+Train your own model with Unsloth, an open-source framework for LLM fine-tuning and reinforcement learning.
+
+At [Unsloth](https://app.gitbook.com/o/HpyELzcNe0topgVLGCZY/s/xhOjnexMCB3dmuQFQ2Zq/), our mission is to make AI as accurate and accessible as possible. Train, run, evaluate and save gpt-oss, Llama, DeepSeek, TTS, Qwen, Mistral, Gemma LLMs 2x faster with 70% less VRAM.
+
+Our docs will guide you through running & training your own model locally.
+
+<a href="beginner-start-here" class="button primary">Get started</a> <a href="https://github.com/unslothai/unsloth" class="button secondary">Our GitHub</a>
+
+<table data-view="cards"><thead><tr><th></th><th></th><th data-hidden data-card-cover data-type="image">Cover image</th><th data-hidden data-card-target data-type="content-ref"></th></tr></thead><tbody><tr><td><strong>DeepSeek-OCR</strong></td><td>Fine-tune DeepSeek's latest OCR model.</td><td><a href="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FP6V5vkGfGPBdRlkpB35Q%2Fdeepseek%20ocr%20logo.png?alt=media&#x26;token=43a73901-37a9-4cb9-a25c-fa01cf03baea">deepseek ocr logo.png</a></td><td><a href="../new/deepseek-ocr-how-to-run-and-fine-tune">deepseek-ocr-how-to-run-and-fine-tune</a></td></tr><tr><td><strong>Qwen3-VL</strong></td><td>Run &#x26; fine-tune Qwen's new vision models!</td><td><a href="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FXrFygtnLnqHhVmEIidg3%2Fqwen3-vl%20promo.png?alt=media&#x26;token=82f58481-4e0c-4977-af26-2ea08a227ad2">qwen3-vl promo.png</a></td><td><a href="../models/qwen3-vl-how-to-run-and-fine-tune">qwen3-vl-how-to-run-and-fine-tune</a></td></tr><tr><td><strong>gpt-oss</strong></td><td>Run &#x26; Train OpenAI's new open LLMs.</td><td data-object-fit="fill"><a href="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FX0pJKFv8zDMf4TJomAts%2Fgpt-oss%20image.png?alt=media&#x26;token=60c73c0d-cf83-4269-9619-f4b71e25767a">gpt-oss image.png</a></td><td><a href="../new/gpt-oss-reinforcement-learning">gpt-oss-reinforcement-learning</a></td></tr></tbody></table>
+
+{% columns %}
+{% column %}
+{% content-ref url="fine-tuning-llms-guide" %}
+[fine-tuning-llms-guide](https://docs.unsloth.ai/get-started/fine-tuning-llms-guide)
+{% endcontent-ref %}
+
+{% content-ref url="unsloth-notebooks" %}
+[unsloth-notebooks](https://docs.unsloth.ai/get-started/unsloth-notebooks)
+{% endcontent-ref %}
+
+{% column %}
+{% content-ref url="all-our-models" %}
+[all-our-models](https://docs.unsloth.ai/get-started/all-our-models)
+{% endcontent-ref %}
+
+{% content-ref url="../models/tutorials-how-to-fine-tune-and-run-llms" %}
+[tutorials-how-to-fine-tune-and-run-llms](https://docs.unsloth.ai/models/tutorials-how-to-fine-tune-and-run-llms)
+{% endcontent-ref %}
+{% endcolumn %}
+{% endcolumns %}
+
+<table data-view="cards"><thead><tr><th></th><th></th><th data-hidden data-card-cover data-type="image">Cover image</th><th data-hidden data-card-target data-type="content-ref"></th></tr></thead><tbody><tr><td><strong>Unsloth Docker image</strong></td><td>Train LLMs with no setup with our new Docker!</td><td><a href="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FomKrFeo6Y2Z6ffPjygKP%2Ftrain%20without%20setup.png?alt=media&#x26;token=e5c60f27-689f-4929-9453-49dc0e45a122">train without setup.png</a></td><td><a href="../new/how-to-fine-tune-llms-with-unsloth-and-docker">how-to-fine-tune-llms-with-unsloth-and-docker</a></td></tr><tr><td><strong>Vision Reinforcement Learning</strong></td><td>VLM RL is now in Unsloth! RL with Qwen, Gemma.</td><td><a href="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FPOHnYqLRCh4d9TvBRNlY%2Fvision%20rl%20site.png?alt=media&#x26;token=26f859e5-53e5-444b-bf90-7f1901a9058a">vision rl site.png</a></td><td><a href="../new/vision-reinforcement-learning-vlm-rl">vision-reinforcement-learning-vlm-rl</a></td></tr><tr><td><strong>How do Unsloth 1-bit Dynamic GGUFs perform?</strong></td><td>See GGUF benchmarks on Aider Polyglot!</td><td><a href="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FdiwpvMM4VA4oZqaANJOE%2Fdynamic%20v2%20with%20unsloth.png?alt=media&#x26;token=adc64cb6-2b52-4565-a44e-ac4acbd4247d">dynamic v2 with unsloth.png</a></td><td><a href="../new/unsloth-dynamic-ggufs-on-aider-polyglot">unsloth-dynamic-ggufs-on-aider-polyglot</a></td></tr></tbody></table>
+
+* Unsloth streamlines model training locally and on Colab/Kaggle, covering loading, quantization, training, evaluation, saving, exporting, and integration with inference engines like Ollama, llama.cpp, and vLLM.
+* We directly collaborate with teams behind [gpt-oss](https://docs.unsloth.ai/new/gpt-oss-how-to-run-and-fine-tune#unsloth-fixes-for-gpt-oss), [Qwen3](https://www.reddit.com/r/LocalLLaMA/comments/1kaodxu/qwen3_unsloth_dynamic_ggufs_128k_context_bug_fixes/), [Llama 4](https://github.com/ggml-org/llama.cpp/pull/12889), [Mistral](https://docs.unsloth.ai/models/tutorials-how-to-fine-tune-and-run-llms/devstral-how-to-run-and-fine-tune), [Google (Gemma 1–3)](https://news.ycombinator.com/item?id=39671146) and [Phi-4](https://unsloth.ai/blog/phi4), where we’ve **fixed critical bugs** in models that greatly improved model accuracy.
+* Unsloth is the only training framework to support all model types:  [vision](https://docs.unsloth.ai/basics/vision-fine-tuning), [text-to-speech (TTS)](https://docs.unsloth.ai/basics/text-to-speech-tts-fine-tuning), BERT, [reinforcement learning (RL)](https://docs.unsloth.ai/get-started/reinforcement-learning-rl-guide) while remaining highly customizable with flexible chat templates, dataset formatting and ready-to-use notebooks.
+
+* Supports **full-finetuning**, pretraining, 4-bit, 16-bit and **8-bit** training.
+* The most efficient RL library, using 80% less VRAM. Supports GRPO, GSPO etc.
+* Supports **all models**: [TTS,](https://docs.unsloth.ai/basics/text-to-speech-tts-fine-tuning) multimodal, [BERT](https://docs.unsloth.ai/get-started/unsloth-notebooks#other-important-notebooks) and more. Any model that works in transformers works in Unsloth.
+* **0% loss in accuracy** - no approximation methods - all exact.
+* [MultiGPU](https://docs.unsloth.ai/basics/multi-gpu-training-with-unsloth) works already but a much better version is coming!
+* Unsloth supports Linux, Windows, Colab, Kaggle, **NVIDIA** and [**AMD**](https://docs.unsloth.ai/new/fine-tuning-llms-on-amd-gpus-with-unsloth) & **Intel**. See:
+
+{% content-ref url="beginner-start-here/unsloth-requirements" %}
+[unsloth-requirements](https://docs.unsloth.ai/get-started/beginner-start-here/unsloth-requirements)
+{% endcontent-ref %}
+
+**Install locally with pip (recommended)** for Linux or WSL devices:
+
+Use our official **Docker image**: `unsloth/unsloth`. Read our [**Docker guide**](https://docs.unsloth.ai/get-started/install-and-update/docker)**.**
+
+For Windows install instructions, see [here](https://docs.unsloth.ai/get-started/install-and-update/windows-installation).
+
+{% content-ref url="install-and-update" %}
+[install-and-update](https://docs.unsloth.ai/get-started/install-and-update)
+{% endcontent-ref %}
+
+### What is Fine-tuning and RL? Why?
+
+[**Fine-tuning** an LLM](https://docs.unsloth.ai/get-started/fine-tuning-llms-guide) customizes its behavior, enhances domain knowledge, and optimizes performance for specific tasks. By fine-tuning a pre-trained model (e.g. Llama-3.1-8B) on a dataset, you can:
+
+* **Update Knowledge**: Introduce new domain-specific information.
+* **Customize Behavior**: Adjust the model’s tone, personality, or response style.
+* **Optimize for Tasks**: Improve accuracy and relevance for specific use cases.
+
+[**Reinforcement Learning (RL)**](https://docs.unsloth.ai/get-started/reinforcement-learning-rl-guide) is where an "agent" learns to make decisions by interacting with an environment and receiving **feedback** in the form of **rewards** or **penalties**.
+
+* **Action:** What the model generates (e.g. a sentence).
+* **Reward:** A signal indicating how good or bad the model's action was (e.g. did the response follow instructions? was it helpful?).
+* **Environment:** The scenario or task the model is working on (e.g. answering a user’s question).
+
+**Example use-cases of fine-tuning or RL:**
+
+* Train LLM to predict if a headline impacts a company positively or negatively.
+* Use historical customer interactions for more accurate and custom responses.
+* Train LLM on legal texts for contract analysis, case law research, and compliance.
+
+You can think of a fine-tuned model as a specialized agent designed to do specific tasks more effectively and efficiently. **Fine-tuning can replicate all of RAG's capabilities**, but not vice versa.&#x20;
+
+{% content-ref url="beginner-start-here/faq-+-is-fine-tuning-right-for-me" %}
+[faq-+-is-fine-tuning-right-for-me](https://docs.unsloth.ai/get-started/beginner-start-here/faq-+-is-fine-tuning-right-for-me)
+{% endcontent-ref %}
+
+{% content-ref url="reinforcement-learning-rl-guide" %}
+[reinforcement-learning-rl-guide](https://docs.unsloth.ai/get-started/reinforcement-learning-rl-guide)
+{% endcontent-ref %}
+
+<figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FLrqITvuoKyiMl8mqfu5B%2Flarge%20sloth%20wave.png?alt=media&#x26;token=3077792b-90ff-459d-aa52-57abcf219adf" alt="" width="188"><figcaption></figcaption></figure>
+
+**Examples:**
+
+Example 1 (unknown):
+```unknown
+pip install unsloth
+```
+
+---
+
+## Do model patching and add fast LoRA weights
+
+**URL:** llms-txt#do-model-patching-and-add-fast-lora-weights
+
+model = FastLanguageModel.get_peft_model(
+    model,
+    r = 64,
+    target_modules = ["q_proj", "k_proj", "v_proj", "o_proj",
+                      "gate_proj", "up_proj", "down_proj",],
+    lora_alpha = 64,
+    lora_dropout = 0, # Supports any, but = 0 is optimized
+    bias = "none",    # Supports any, but = "none" is optimized
+    # [NEW] "unsloth" uses 30% less VRAM, fits 2x larger batch sizes!
+    use_gradient_checkpointing = "unsloth", # True or "unsloth" for very long context
+    random_state = 3407,
+    max_seq_length = max_seq_length,
+)
+
+dpo_trainer = DPOTrainer(
+    model = model,
+    ref_model = None,
+    args = TrainingArguments(
+        per_device_train_batch_size = 4,
+        gradient_accumulation_steps = 8,
+        warmup_ratio = 0.1,
+        num_train_epochs = 3,
+        fp16 = not is_bfloat16_supported(),
+        bf16 = is_bfloat16_supported(),
+        logging_steps = 1,
+        optim = "adamw_8bit",
+        seed = 42,
+        output_dir = "outputs",
+    ),
+    beta = 0.1,
+    train_dataset = YOUR_DATASET_HERE,
+    # eval_dataset = YOUR_DATASET_HERE,
+    tokenizer = tokenizer,
+    max_length = 1024,
+    max_prompt_length = 512,
+)
+dpo_trainer.train()
+```
+
+---
+
+## Saving to GGUF
+
+**URL:** llms-txt#saving-to-gguf
+
+Saving models to 16bit for GGUF so you can use it for Ollama, Jan AI, Open WebUI and more!
+
+{% tabs %}
+{% tab title="Locally" %}
+
+To save to GGUF, use the below to save locally:
+
+To push to Hugging Face hub:
+
+All supported quantization options for `quantization_method` are listed below:
+
+**Examples:**
+
+Example 1 (python):
+```python
+model.save_pretrained_gguf("directory", tokenizer, quantization_method = "q4_k_m")
+model.save_pretrained_gguf("directory", tokenizer, quantization_method = "q8_0")
+model.save_pretrained_gguf("directory", tokenizer, quantization_method = "f16")
+```
+
+Example 2 (python):
+```python
+model.push_to_hub_gguf("hf_username/directory", tokenizer, quantization_method = "q4_k_m")
+model.push_to_hub_gguf("hf_username/directory", tokenizer, quantization_method = "q8_0")
+```
+
+---
+
+## Install library
+
+**URL:** llms-txt#install-library
+
+!pip install wandb --upgrade
+
+---
+
+## How to Fine-tune LLMs with Unsloth & Docker
+
+**URL:** llms-txt#how-to-fine-tune-llms-with-unsloth-&-docker
+
+**Contents:**
+  - ⚡ Step-by-Step Tutorial
+  - 📖 Usage Example
+
+Learn how to fine-tune LLMs or do Reinforcement Learning (RL) with Unsloth's Docker image.
+
+Local training can be complex due to dependency hell or breaking environments. Unsloth’s [Docker image](https://hub.docker.com/r/unsloth/unsloth) can bypass these issues. No setup is needed: pull and run the image and start training.
+
+* **Unsloth official Docker image:** [**`unsloth/unsloth`**](https://hub.docker.com/r/unsloth/unsloth)
+
+**Why Use Unsloth & Docker?**
+
+Unsloth’s Docker image is stable, up-to-date and works in [supported setups](https://docs.unsloth.ai/get-started/beginner-start-here/unsloth-requirements#system-requirements) like Windows.
+
+* Fully contained dependencies keep your system clean. Runs safely without root.
+* Use locally or on any platform with pre-installed notebooks.
+
+{% hint style="success" %}
+You can now use our main Docker image `unsloth/unsloth` for Blackwell and 50-series GPUs - no separate image needed.
+{% endhint %}
+
+### ⚡ Step-by-Step Tutorial
+
+{% stepper %}
+{% step %}
+
+#### Install Docker and NVIDIA Container Toolkit.
+
+Install Docker via [Linux](https://docs.docker.com/engine/install/) or [Desktop](https://docs.docker.com/desktop/) (other).\
+Then install [NVIDIA Container Toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html#installation):
+
+<pre class="language-bash"><code class="lang-bash"><strong>export NVIDIA_CONTAINER_TOOLKIT_VERSION=1.17.8-1
+</strong>sudo apt-get update &#x26;&#x26; sudo apt-get install -y \
+  nvidia-container-toolkit=${NVIDIA_CONTAINER_TOOLKIT_VERSION} \
+  nvidia-container-toolkit-base=${NVIDIA_CONTAINER_TOOLKIT_VERSION} \
+  libnvidia-container-tools=${NVIDIA_CONTAINER_TOOLKIT_VERSION} \
+  libnvidia-container1=${NVIDIA_CONTAINER_TOOLKIT_VERSION}
+</code></pre>
+
+<figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FpB9zmHmOoFb8OqMGofGJ%2Fnvidia%20toolkit.png?alt=media&#x26;token=45942493-176a-466e-9303-ce10ce7557c6" alt=""><figcaption></figcaption></figure>
+{% endstep %}
+
+#### Run the container.
+
+[**`unsloth/unsloth`**](https://hub.docker.com/r/unsloth/unsloth) is Unsloth's only Docker image. For [Blackwell](https://docs.unsloth.ai/basics/fine-tuning-llms-with-blackwell-rtx-50-series-and-unsloth) and 50-series GPUs, use this same image - no separate image needed. If using DGX Spark, you'll need to follow our [DGX guide](https://docs.unsloth.ai/basics/fine-tuning-llms-with-nvidia-dgx-spark-and-unsloth).
+
+<figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2Fkh8fgug3JMbj1l65XfT3%2Fdocker%20run.png?alt=media&#x26;token=a8637c9f-f0d2-40d7-ae41-4f1379d264f0" alt=""><figcaption></figcaption></figure>
+{% endstep %}
+
+#### Access Jupyter Lab
+
+Go to [http://localhost:8888](http://localhost:8888/) and open Unsloth.
+
+<figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FiJK5LtoZ15scNnXBJ9Bk%2Fjupyter.png?alt=media&#x26;token=f5e545e5-dadb-453a-8738-1b86f4abc7fc" alt="" width="563"><figcaption></figcaption></figure>
+
+Access the `unsloth-notebooks` tabs to see Unsloth notebooks.
+
+<div><figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FM7ufJw76H0Fuq33rAXhj%2FScreenshot_from_2025-09-30_21-38-15.png?alt=media&#x26;token=360b1990-9fd2-481e-8ab5-4e156a1d2708" alt=""><figcaption></figcaption></figure> <figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2F6W5orxOXBh1HRsSpXe86%2FScreenshot_from_2025-09-30_21-39-41.png?alt=media&#x26;token=00f61daf-8b4b-480a-85b6-62eaa9de64a6" alt=""><figcaption></figcaption></figure></div>
+{% endstep %}
+
+#### Start training with Unsloth
+
+If you're new, follow our step-by-step [Fine-tuning Guide](https://docs.unsloth.ai/get-started/fine-tuning-llms-guide), [RL Guide](https://docs.unsloth.ai/get-started/reinforcement-learning-rl-guide) or just save/copy any of our premade [notebooks](https://docs.unsloth.ai/get-started/unsloth-notebooks).
+
+<figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FlXvwMkWQ72p6nxFzD0ev%2FScreenshot_from_2025-09-30_21-40-29.png?alt=media&#x26;token=2a5f135d-6138-4670-aca7-ca22b5f730d7" alt=""><figcaption></figcaption></figure>
+{% endstep %}
+{% endstepper %}
+
+#### 📂 Container Structure
+
+* `/workspace/work/` — Your mounted work directory
+* `/workspace/unsloth-notebooks/` — Example fine-tuning notebooks
+* `/home/unsloth/` — User home directory
+
+#### Setting up SSH Key
+
+If you don't have an SSH key pair:
+
+**Examples:**
+
+Example 1 (bash):
+```bash
+docker run -d -e JUPYTER_PASSWORD="mypassword" \
+  -p 8888:8888 -p 2222:22 \
+  -v $(pwd)/work:/workspace/work \
+  --gpus all \
+  unsloth/unsloth
+```
+
+Example 2 (bash):
+```bash
+docker run -d -e JUPYTER_PORT=8000 \
+  -e JUPYTER_PASSWORD="mypassword" \
+  -e "SSH_KEY=$(cat ~/.ssh/container_key.pub)" \
+  -e USER_PASSWORD="unsloth2024" \
+  -p 8000:8000 -p 2222:22 \
+  -v $(pwd)/work:/workspace/work \
+  --gpus all \
+  unsloth/unsloth
+```
+
+---
+
+## Google Colab
+
+**URL:** llms-txt#google-colab
+
+**Contents:**
+  - Colab Example Code
+
+To install and run Unsloth on Google Colab, follow the steps below:
+
+<figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FQzuUQL60uFWHpaAvDPYD%2FColab%20Options.png?alt=media&#x26;token=fb808ec5-20c5-4f42-949e-14ed26a44987" alt=""><figcaption></figcaption></figure>
+
+If you have never used a Colab notebook, a quick primer on the notebook itself:
+
+1. **Play Button at each "cell".** Click on this to run that cell's code. You must not skip any cells and you must run every cell in chronological order. If you encounter errors, simply rerun the cell you did not run. Another option is to click CTRL + ENTER if you don't want to click the play button.
+2. **Runtime Button in the top toolbar.** You can also use this button and hit "Run all" to run the entire notebook in 1 go. This will skip all the customization steps, but is a good first try.
+3. **Connect / Reconnect T4 button.** T4 is the free GPU Google is providing. It's quite powerful!
+
+The first installation cell looks like below: Remember to click the PLAY button in the brackets \[  ]. We grab our open source Github package, and install some other packages.
+
+<figure><img src="https://3215535692-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FxhOjnexMCB3dmuQFQ2Zq%2Fuploads%2FIz2XUXhcmjheDtxfvbLA%2Fimage.png?alt=media&#x26;token=b9da0e5c-075c-48f8-8abb-5db6fdf9866b" alt=""><figcaption></figcaption></figure>
+
+### Colab Example Code
+
+Unsloth example code to fine-tune gpt-oss-20b:
+
+```python
+from unsloth import FastLanguageModel, FastModel
+import torch
+from trl import SFTTrainer, SFTConfig
+from datasets import load_dataset
+max_seq_length = 2048 # Supports RoPE Scaling internally, so choose any!
+
+---
+
+## RL Reward Hacking
+
+**URL:** llms-txt#rl-reward-hacking
+
+**Contents:**
+- :trophy: Reward Hacking Overview
+
+Learn what is Reward Hacking in Reinforcement Learning and how to counter it.
+
+The ultimate goal of RL is to maximize some reward (say speed, revenue, some metric). But RL can **cheat.** When the RL algorithm learns a trick or exploits something to increase the reward, without actually doing the task at end, this is called "**Reward Hacking**".
+
+It's the reason models learn to modify unit tests to pass coding challenges, and these are critical blockers for real world deployment. Some other good examples are from [Wikipedia](https://en.wikipedia.org/wiki/Reward_hacking).
+
+<div align="center"><figure><img src="https://i.pinimg.com/originals/55/e0/1b/55e01b94a9c5546b61b59ae300811c83.gif" alt="" width="188"><figcaption></figcaption></figure></div>
+
+**Can you counter reward hacking? Yes!** In our [free gpt-oss RL notebook](https://colab.research.google.com/github/unslothai/notebooks/blob/main/nb/gpt-oss-\(20B\)-GRPO.ipynb) we explore how to counter reward hacking in a code generation setting and showcase tangible solutions to common error modes. We saw the model edit the timing function, outsource to other libraries, cache the results, and outright cheat. After countering, the result is our model generates genuinely optimized matrix multiplication kernels, not clever cheats.
+
+## :trophy: Reward Hacking Overview
+
+Some common examples of reward hacking during RL include:
+
+RL learns to use Numpy, Torch, other libraries, which calls optimized CUDA kernels. We can stop the RL algorithm from calling optimized code by inspecting if the generated code imports other non standard Python libraries.
+
+#### Caching & Cheating
+
+RL learns to cache the result of the output and RL learns to find the actual output by inspecting Python global variables.
+
+We can stop the RL algorithm from using cached data by wiping the cache with a large fake matrix. We also have to benchmark carefully with multiple loops and turns.
+
+RL learns to edit the timing function to make it output 0 time as passed. We can stop the RL algorithm from using global or cached variables by restricting it's `locals` and `globals`. We are also going to use `exec` to create the function, so we have to save the output to an empty dict. We also disallow global variable access via `types.FunctionType(f.__code__, {})`\\
+
+---
+
+## Install & Update
+
+**URL:** llms-txt#install-&-update
+
+Learn to install Unsloth locally or online.
+
+Unsloth works on Linux, Windows, NVIDIA, AMD, Google Colab and more. See our [system requirements](https://docs.unsloth.ai/get-started/beginner-start-here/unsloth-requirements).
+
+**Recommended installation method:**
+
+<table data-view="cards"><thead><tr><th data-type="content-ref"></th><th data-hidden data-card-target data-type="content-ref"></th></tr></thead><tbody><tr><td><a href="install-and-update/pip-install">pip-install</a></td><td><a href="install-and-update/pip-install">pip-install</a></td></tr><tr><td><a href="install-and-update/docker">docker</a></td><td></td></tr><tr><td><a href="install-and-update/windows-installation">windows-installation</a></td><td></td></tr><tr><td><a href="install-and-update/updating">updating</a></td><td><a href="install-and-update/updating">updating</a></td></tr><tr><td><a href="install-and-update/amd">amd</a></td><td></td></tr><tr><td><a href="install-and-update/conda-install">conda-install</a></td><td><a href="install-and-update/conda-install">conda-install</a></td></tr><tr><td><a href="install-and-update/google-colab">google-colab</a></td><td><a href="install-and-update/google-colab">google-colab</a></td></tr></tbody></table>
+
+**Examples:**
+
+Example 1 (unknown):
+```unknown
+pip install unsloth
+```
+
+---
+
+## Saving to vLLM for deployment
+
+**URL:** llms-txt#saving-to-vllm-for-deployment
+
+**Contents:**
+  - :computer:Installing vLLM
+  - :truck:Deploying vLLM models
+  - :fire\_engine:vLLM Deployment Server Flags, Engine Arguments & Options
+
+Saving models to 16bit for vLLM deployment and serving
+
+To save to 16bit for vLLM, use:
+
+To merge to 4bit to load on HuggingFace, first call `merged_4bit`. Then use `merged_4bit_forced` if you are certain you want to merge to 4bit. I highly discourage you, unless you know what you are going to do with the 4bit model (ie for DPO training for eg or for HuggingFace's online inference engine)
+
+To save just the LoRA adapters, either use:
+
+Or just use our builtin function to do that:
+
+### :computer:Installing vLLM
+
+For NVIDIA GPUs, use uv and do:
+
+For AMD GPUs, please use then nightly Docker image: `rocm/vllm-dev:nightly`
+
+For the nightly branch for NVIDIA GPUs, do:
+
+See <https://docs.vllm.ai/en/stable/getting_started/installation> for more details
+
+### :truck:Deploying vLLM models
+
+After saving your finetune, you can simply do:
+
+### :fire\_engine:vLLM Deployment Server Flags, Engine Arguments & Options
+
+Some important server flags to use are at [#vllm-deployment-server-flags-engine-arguments-and-options](#vllm-deployment-server-flags-engine-arguments-and-options "mention")
+
+**Examples:**
+
+Example 1 (python):
+```python
+model.save_pretrained_merged("model", tokenizer, save_method = "merged_16bit")
+model.push_to_hub_merged("hf/model", tokenizer, save_method = "merged_16bit", token = "")
+```
+
+Example 2 (python):
+```python
+model.save_pretrained_merged("model", tokenizer, save_method = "merged_4bit")
+model.push_to_hub_merged("hf/model", tokenizer, save_method = "merged_4bit", token = "")
+```
+
+Example 3 (python):
+```python
+model.save_pretrained("model")
+tokenizer.save_pretrained("tokenizer")
+```
+
+Example 4 (python):
+```python
+model.save_pretrained_merged("model", tokenizer, save_method = "lora")
+model.push_to_hub_merged("hf/model", tokenizer, save_method = "lora", token = "")
+```
+
+---
+
+## Generate new key pair
+
+**URL:** llms-txt#generate-new-key-pair
+
+ssh-keygen -t rsa -b 4096 -f ~/.ssh/container_key
+
+---
+
+## Use the exact same config as QAT (convenient function)
+
+**URL:** llms-txt#use-the-exact-same-config-as-qat-(convenient-function)
+
+model.save_pretrained_torchao(
+    model, "tokenizer", 
+    torchao_config = model._torchao_config.base_config,
+)
+
+---
+
+## Pip Install
+
+**URL:** llms-txt#pip-install
+
+**Contents:**
+- **Recommended installation:**
+- Uninstall + Reinstall
+- Advanced Pip Installation
+
+To install Unsloth locally via Pip, follow the steps below:
+
+## **Recommended installation:**
+
+**Install with pip (recommended) for the latest pip release:**
+
+**To install the latest main branch of Unsloth:**
+
+If you're installing Unsloth in Jupyter, Colab, or other notebooks, be sure to prefix the command with `!`. This isn't necessary when using a terminal
+
+{% hint style="info" %}
+Python 3.13 is now supported!
+{% endhint %}
+
+## Uninstall + Reinstall
+
+If you're still encountering dependency issues with Unsloth, many users have resolved them by forcing uninstalling and reinstalling Unsloth:
+
+## Advanced Pip Installation
+
+{% hint style="warning" %}
+Do **NOT** use this if you have [Conda](https://docs.unsloth.ai/get-started/install-and-update/conda-install).
+{% endhint %}
+
+Pip is a bit more complex since there are dependency issues. The pip command is different for `torch 2.2,2.3,2.4,2.5` and CUDA versions.
+
+For other torch versions, we support `torch211`, `torch212`, `torch220`, `torch230`, `torch240` and for CUDA versions, we support `cu118` and `cu121` and `cu124`. For Ampere devices (A100, H100, RTX3090) and above, use `cu118-ampere` or `cu121-ampere` or `cu124-ampere`.
+
+For example, if you have `torch 2.4` and `CUDA 12.1`, use:
+
+Another example, if you have `torch 2.5` and `CUDA 12.4`, use:
+
+Or, run the below in a terminal to get the **optimal** pip installation command:
+
+Or, run the below manually in a Python REPL:
+
+**Examples:**
+
+Example 1 (bash):
+```bash
+pip install unsloth
+```
+
+Example 2 (bash):
+```bash
+pip uninstall unsloth unsloth_zoo -y && pip install --no-deps git+https://github.com/unslothai/unsloth_zoo.git && pip install --no-deps git+https://github.com/unslothai/unsloth.git
+```
+
+Example 3 (bash):
+```bash
+pip install --upgrade --force-reinstall --no-cache-dir --no-deps git+https://github.com/unslothai/unsloth.git
+pip install --upgrade --force-reinstall --no-cache-dir --no-deps git+https://github.com/unslothai/unsloth-zoo.git
+```
+
+Example 4 (bash):
+```bash
+pip install --upgrade pip
+pip install "unsloth[cu121-torch240] @ git+https://github.com/unslothai/unsloth.git"
+```
+
+---

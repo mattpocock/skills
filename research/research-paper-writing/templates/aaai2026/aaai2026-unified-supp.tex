@@ -1,0 +1,144 @@
+%File: aaai2026-unified-supp.tex
+%
+% UNIFIED AAAI 2026 SUPPLEMENTARY MATERIAL TEMPLATE
+% To switch between anonymous submission and camera-ready versions,
+% simply change the next line:
+%
+% For ANONYMOUS SUBMISSION: uncomment the next line
+% \def\aaaianonymous{true}
+%
+% For CAMERA-READY VERSION: comment out or delete the next line
+% \def\aaaianonymous{true}
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\documentclass[letterpaper]{article} % DO NOT CHANGE THIS
+
+% Conditional package loading based on version
+\ifdefined\aaaianonymous
+    \usepackage[submission]{aaai2026}  % Anonymous submission version
+\else
+    \usepackage{aaai2026}              % Camera-ready version
+\fi
+
+\usepackage{times}  % DO NOT CHANGE THIS
+\usepackage{helvet}  % DO NOT CHANGE THIS
+\usepackage{courier}  % DO NOT CHANGE THIS
+\usepackage[hyphens]{url}  % DO NOT CHANGE THIS
+\usepackage{graphicx} % DO NOT CHANGE THIS
+\urlstyle{rm} % DO NOT CHANGE THIS
+\def\UrlFont{\rm}  % DO NOT CHANGE THIS
+\usepackage{natbib}  % DO NOT CHANGE THIS AND DO NOT ADD ANY OPTIONS TO IT
+\usepackage{caption} % DO NOT CHANGE THIS AND DO NOT ADD ANY OPTIONS TO IT
+\frenchspacing  % DO NOT CHANGE THIS
+\setlength{\pdfpagewidth}{8.5in} % DO NOT CHANGE THIS
+\setlength{\pdfpageheight}{11in} % DO NOT CHANGE THIS
+
+% These are recommended to typeset algorithms but not required.
+\usepackage{algorithm}
+\usepackage{algorithmic}
+
+% These are recommended to typeset listings but not required.
+\usepackage{newfloat}
+\usepackage{listings}
+\DeclareCaptionStyle{ruled}{labelfont=normalfont,labelsep=colon,strut=off} % DO NOT CHANGE THIS
+\lstset{% 
+	basicstyle={\footnotesize\ttfamily},
+	numbers=left,numberstyle=\footnotesize,xleftmargin=2em,
+	aboveskip=0pt,belowskip=0pt,
+	showstringspaces=false,tabsize=2,breaklines=true}
+\floatstyle{ruled}
+\newfloat{listing}{tb}{lst}{}
+\floatname{listing}{Listing}
+
+\pdfinfo{
+/TemplateVersion (2026.1)
+}
+
+\setcounter{secnumdepth}{0} %May be changed to 1 or 2 if section numbers are desired.
+
+% Title - conditionally set based on version
+\ifdefined\aaaianonymous
+    \title{AAAI 2026 Supplementary Material\\Anonymous Submission}
+\else
+    \title{AAAI 2026 Supplementary Material\\Camera Ready}
+\fi
+
+% Author and affiliation information
+\ifdefined\aaaianonymous
+\author{
+    Anonymous Submission
+}
+\affiliations{
+    % Leave affiliations empty for anonymous submission
+}
+\else
+\author{
+    %Authors
+    Written by AAAI Press Staff\textsuperscript{\rm 1}\thanks{With help from the AAAI Publications Committee.}\\
+    AAAI Style Contributions by Pater Patel Schneider,
+    Sunil Issar,\\
+    J. Scott Penberthy,
+    George Ferguson,
+    Hans Guesgen,
+    Francisco Cruz\equalcontrib,
+    Marc Pujol-Gonzalez\equalcontrib
+}
+\affiliations{
+    \textsuperscript{\rm 1}Association for the Advancement of Artificial Intelligence\\
+    1101 Pennsylvania Ave, NW Suite 300\\
+    Washington, DC 20004 USA\\
+    proceedings-questions@aaai.org
+}
+\fi
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+This document provides supplementary material for the main paper, including additional experiments, derivations, data, figures, algorithms, and other relevant content. Please add detailed information as needed. This supplementary material is submitted together with the main paper to further support and complement the main findings.
+\end{abstract}
+
+% ----------- Supplementary Content Starts Here -----------
+
+\section{Example Supplementary Content}
+
+This is the main body of the supplementary material. You may add extra experimental results, ablation studies, detailed derivations, additional figures, pseudocode, dataset descriptions, etc.
+
+\subsection{Additional Experiments}
+
+% Example: Insert a figure
+% Uncomment and modify the following lines to add your own figures:
+% \begin{figure}[h]
+% \centering
+% \includegraphics[width=0.9\columnwidth]{your-figure-name}
+% \caption{Your figure caption here.}
+% \label{fig:supp1}
+% \end{figure}
+
+\subsection{Detailed Derivations}
+
+You may provide detailed mathematical derivations, proofs, or other technical details here.
+
+\subsection{Pseudocode}
+
+\begin{algorithm}[h]
+\caption{Example Supplementary Algorithm}
+\begin{algorithmic}[1]
+\STATE Initialize parameters
+\FOR{each sample}
+    \STATE Compute loss
+    \STATE Update parameters
+\ENDFOR
+\STATE \textbf{return} optimal parameters
+\end{algorithmic}
+\end{algorithm}
+
+% ----------- Supplementary Content Ends Here -----------
+
+% References and End of Paper
+% These lines must be placed at the end of your paper
+\bibliography{aaai2026}
+
+\end{document} 

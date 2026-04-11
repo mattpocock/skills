@@ -1,0 +1,41 @@
+# OBLITERATUS Batch Abliteration Config
+# Abliterate multiple models with the same method for comparison.
+#
+# Run each one sequentially:
+#   for model in models; do obliteratus obliterate $model --method informed; done
+#
+# Or use this as a reference for which models to process.
+
+# Common settings
+defaults:
+  method: "informed"
+  quantization: "4bit"
+  output_dir: "./abliterated-models"
+
+# Models to process (grouped by compute tier)
+models:
+  # Small (4-8 GB VRAM)
+  small:
+    - "Qwen/Qwen2.5-1.5B-Instruct"
+    - "microsoft/Phi-3.5-mini-instruct"
+    - "meta-llama/Llama-3.2-3B-Instruct"
+
+  # Medium (8-16 GB VRAM)
+  medium:
+    - "meta-llama/Llama-3.1-8B-Instruct"
+    - "mistralai/Mistral-7B-Instruct-v0.3"
+    - "google/gemma-2-9b-it"
+    - "Qwen/Qwen2.5-7B-Instruct"
+
+  # Large (24 GB VRAM, 4-bit quantization)
+  large:
+    - "Qwen/Qwen2.5-14B-Instruct"
+    - "Qwen/Qwen3-32B"
+    - "deepseek-ai/DeepSeek-R1-Distill-Qwen-32B"
+
+# Per-model method overrides (optional)
+overrides:
+  "deepseek-ai/DeepSeek-R1-Distill-Qwen-32B":
+    method: "surgical"        # CoT-aware for reasoning models
+  "mistralai/Mixtral-8x7B-Instruct-v0.1":
+    method: "nuclear"         # Expert-granular for MoE models

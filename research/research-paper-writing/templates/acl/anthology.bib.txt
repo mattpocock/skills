@@ -1,0 +1,26 @@
+For citing papers in the ACL Anthology, we provide a single consolidated
+BibTeX file containing all of its papers. The bibkeys in these papers are
+designed to be semantic in nature: {names}-{year}-{words}, where
+- `names` is the concatenated last names of the authors when there is just
+  one or two authors, or `lastname-etal` for 3+
+- `year` is the four-digit year
+- `words` is the first significant word in the title, or more, if necessary,
+  to preserve uniqueness
+
+For example, https://aclanthology.org/N04-1035 can be cited as \cite{galley-etal-2004-whats}.
+
+The consolidated file can be downloaded from here:
+- https://aclanthology.org/anthology.bib
+
+Unfortunately, as of 2024 or so, this file is now larger than 50 MB, which is Overleaf's
+bib file size limit. Consequently, the Anthology shards the file automatically into
+49 MB shards.
+
+There are currently (2025) two files:
+- https://aclanthology.org/anthology-1.bib
+- https://aclanthology.org/anthology-2.bib
+
+You can download these directly from Overleaf from New File -> From External URL,
+and then adding them to the \bibliography line in acl_latex.tex:
+
+    \bibliography{custom,anthology-1,anthology-2}

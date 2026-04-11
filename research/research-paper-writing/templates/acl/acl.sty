@@ -1,0 +1,312 @@
+% This is the LaTex style file for *ACL.
+% The official sources can be found at
+%
+%     https://github.com/acl-org/acl-style-files/
+%
+% This package is activated by adding
+%
+%    \usepackage{acl}
+%
+% to your LaTeX file. When submitting your paper for review, add the "review" option:
+%
+%    \usepackage[review]{acl}
+
+\newif\ifacl@finalcopy
+\newif\ifacl@anonymize
+\newif\ifacl@linenumbers
+\newif\ifacl@pagenumbers
+\DeclareOption{final}{\acl@finalcopytrue\acl@anonymizefalse\acl@linenumbersfalse\acl@pagenumbersfalse}
+\DeclareOption{review}{\acl@finalcopyfalse\acl@anonymizetrue\acl@linenumberstrue\acl@pagenumberstrue}
+\DeclareOption{preprint}{\acl@finalcopytrue\acl@anonymizefalse\acl@linenumbersfalse\acl@pagenumberstrue}
+\ExecuteOptions{final} % final copy is the default
+
+% include hyperref, unless user specifies nohyperref option like this:
+% \usepackage[nohyperref]{acl}
+\newif\ifacl@hyperref
+\DeclareOption{hyperref}{\acl@hyperreftrue}
+\DeclareOption{nohyperref}{\acl@hyperreffalse}
+\ExecuteOptions{hyperref} % default is to use hyperref
+\ProcessOptions\relax
+
+\typeout{Conference Style for ACL}
+
+\usepackage{xcolor}
+
+\ifacl@linenumbers
+  % Add draft line numbering via the lineno package
+  % https://texblog.org/2012/02/08/adding-line-numbers-to-documents/
+  \usepackage[switch,mathlines]{lineno}
+
+  % Line numbers in gray Helvetica 8pt
+  \font\aclhv = phvb at 8pt
+  \renewcommand\linenumberfont{\aclhv\color{lightgray}}
+
+  % Zero-fill line numbers
+  % NUMBER with left flushed zeros  \fillzeros[<WIDTH>]<NUMBER>
+  \newcount\cv@tmpc@ \newcount\cv@tmpc
+  \def\fillzeros[#1]#2{\cv@tmpc@=#2\relax\ifnum\cv@tmpc@<0\cv@tmpc@=-\cv@tmpc@\fi
+    \cv@tmpc=1 %
+    \loop\ifnum\cv@tmpc@<10 \else \divide\cv@tmpc@ by 10 \advance\cv@tmpc by 1 \fi
+      \ifnum\cv@tmpc@=10\relax\cv@tmpc@=11\relax\fi \ifnum\cv@tmpc@>10 \repeat
+    \ifnum#2<0\advance\cv@tmpc1\relax-\fi
+    \loop\ifnum\cv@tmpc<#1\relax0\advance\cv@tmpc1\relax\fi \ifnum\cv@tmpc<#1 \repeat
+    \cv@tmpc@=#2\relax\ifnum\cv@tmpc@<0\cv@tmpc@=-\cv@tmpc@\fi \relax\the\cv@tmpc@}%
+  \renewcommand\thelinenumber{\fillzeros[3]{\arabic{linenumber}}}
+  \AtBeginDocument{\linenumbers}
+
+  \setlength{\linenumbersep}{1.6cm}
+
+  % Bug: An equation with $$ ... $$ isn't numbered, nor is the previous line.
+
+  % Patch amsmath commands so that the previous line and the equation itself
+  % are numbered. Bug: multline has an extra line number.
+  % https://tex.stackexchange.com/questions/461186/how-to-use-lineno-with-amsmath-align
+  \usepackage{etoolbox} %% <- for \pretocmd, \apptocmd and \patchcmd
+
+  \newcommand*\linenomathpatch[1]{%
+    \expandafter\pretocmd\csname #1\endcsname {\linenomath}{}{}%
+    \expandafter\pretocmd\csname #1*\endcsname {\linenomath}{}{}%
+    \expandafter\apptocmd\csname end#1\endcsname {\endlinenomath}{}{}%
+    \expandafter\apptocmd\csname end#1*\endcsname {\endlinenomath}{}{}%
+  }
+  \newcommand*\linenomathpatchAMS[1]{%
+    \expandafter\pretocmd\csname #1\endcsname {\linenomathAMS}{}{}%
+    \expandafter\pretocmd\csname #1*\endcsname {\linenomathAMS}{}{}%
+    \expandafter\apptocmd\csname end#1\endcsname {\endlinenomath}{}{}%
+    \expandafter\apptocmd\csname end#1*\endcsname {\endlinenomath}{}{}%
+  }
+
+  %% Definition of \linenomathAMS depends on whether the mathlines option is provided
+  \expandafter\ifx\linenomath\linenomathWithnumbers
+    \let\linenomathAMS\linenomathWithnumbers
+    %% The following line gets rid of an extra line numbers at the bottom:
+    \patchcmd\linenomathAMS{\advance\postdisplaypenalty\linenopenalty}{}{}{}
+  \else
+    \let\linenomathAMS\linenomathNonumbers
+  \fi
+
+  \AtBeginDocument{%
+    \linenomathpatch{equation}%
+    \linenomathpatchAMS{gather}%
+    \linenomathpatchAMS{multline}%
+    \linenomathpatchAMS{align}%
+    \linenomathpatchAMS{alignat}%
+    \linenomathpatchAMS{flalign}%
+  }
+\else
+  % Hack to ignore these commands, which review mode puts into the .aux file.
+  \newcommand{\@LN@col}[1]{}
+  \newcommand{\@LN}[2]{}
+  \newcommand{\nolinenumbers}{}
+\fi
+
+\PassOptionsToPackage{a4paper,margin=2.5cm,heightrounded=true}{geometry}
+\RequirePackage{geometry}
+
+\setlength\columnsep{0.6cm}
+\newlength\titlebox
+\setlength\titlebox{11\baselineskip}
+% \titlebox should be a multiple of \baselineskip so that
+% column height remaining fits an exact number of lines of text
+
+\flushbottom \twocolumn \sloppy
+
+% We're never going to need a table of contents, so just flush it to
+% save space --- suggested by drstrip@sandia-2
+\def\addcontentsline#1#2#3{}
+
+\ifacl@pagenumbers
+    \pagenumbering{arabic}
+\else
+    \thispagestyle{empty}
+    \pagestyle{empty}
+\fi
+
+%% Title and Authors %%
+
+\let\Thanks\thanks % \Thanks and \thanks used to be different, but keep this for backwards compatibility.
+
+\newcommand\outauthor{%
+    \begin{tabular}[t]{c}
+    \ifacl@anonymize
+        \bfseries Anonymous ACL submission
+    \else
+        \bfseries\@author
+    \fi
+    \end{tabular}}
+
+% Mostly taken from deproc.
+\AtBeginDocument{
+\def\maketitle{\par
+ \begingroup
+   \def\thefootnote{\fnsymbol{footnote}}
+   \twocolumn[\@maketitle]
+   \@thanks
+ \endgroup
+ \setcounter{footnote}{0}
+ \let\maketitle\relax
+ \let\@maketitle\relax
+ \gdef\@thanks{}\gdef\@author{}\gdef\@title{}\let\thanks\relax}
+\def\@maketitle{\vbox to \titlebox{\hsize\textwidth
+ \linewidth\hsize \vskip 0.125in minus 0.125in \centering
+ {\Large\bfseries \@title \par} \vskip 0.2in plus 1fil minus 0.1in
+ {\def\and{\unskip\enspace{\rmfamily and}\enspace}%
+  \def\And{\end{tabular}\hss \egroup \hskip 1in plus 2fil
+           \hbox to 0pt\bgroup\hss \begin{tabular}[t]{c}\bfseries}%
+  \def\AND{\end{tabular}\hss\egroup \hfil\hfil\egroup
+          \vskip 0.25in plus 1fil minus 0.125in
+           \hbox to \linewidth\bgroup\large \hfil\hfil
+             \hbox to 0pt\bgroup\hss \begin{tabular}[t]{c}\bfseries}
+  \hbox to \linewidth\bgroup\large \hfil\hfil
+    \hbox to 0pt\bgroup\hss
+  \outauthor
+   \hss\egroup
+    \hfil\hfil\egroup}
+  \vskip 0.3in plus 2fil minus 0.1in
+}}
+}
+
+% margins and font size for abstract
+\renewenvironment{abstract}%
+  {\begin{center}\large\textbf{\abstractname}\end{center}%
+    \begin{list}{}%
+      {\setlength{\rightmargin}{0.6cm}%
+        \setlength{\leftmargin}{0.6cm}}%
+      \item[]\ignorespaces%
+      \@setsize\normalsize{12pt}\xpt\@xpt
+  }%
+  {\unskip\end{list}}
+
+% Resizing figure and table captions - SL
+% Support for interacting with the caption, subfigure, and subcaption packages - SL
+\RequirePackage{caption}
+\DeclareCaptionFont{10pt}{\fontsize{10pt}{12pt}\selectfont}
+\captionsetup{font=10pt}
+
+\RequirePackage{natbib}
+% for citation commands in the .tex, authors can use:
+% \citep, \citet, and \citeyearpar for compatibility with natbib, or
+% \cite, \newcite, and \shortcite for compatibility with older ACL .sty files
+\renewcommand\cite{\citep}  % to get "(Author Year)" with natbib
+\newcommand\shortcite{\citeyearpar}% to get "(Year)" with natbib
+\newcommand\newcite{\citet} % to get "Author (Year)" with natbib
+\newcommand{\citeposs}[1]{\citeauthor{#1}'s (\citeyear{#1})} % to get "Author's (Year)"
+
+\bibliographystyle{acl_natbib}
+
+% Bibliography
+
+% Don't put a label in the bibliography at all.  Just use the unlabeled format
+% instead.
+\def\thebibliography#1{\vskip\parskip%
+\vskip\baselineskip%
+\def\baselinestretch{1}%
+\ifx\@currsize\normalsize\@normalsize\else\@currsize\fi%
+\vskip-\parskip%
+\vskip-\baselineskip%
+\section*{References\@mkboth
+ {References}{References}}\list
+ {}{\setlength{\labelwidth}{0pt}\setlength{\leftmargin}{\parindent}
+ \setlength{\itemindent}{-\parindent}}
+ \def\newblock{\hskip .11em plus .33em minus -.07em}
+ \sloppy\clubpenalty4000\widowpenalty4000
+ \sfcode`\.=1000\relax}
+\let\endthebibliography=\endlist
+
+
+% Allow for a bibliography of sources of attested examples
+\def\thesourcebibliography#1{\vskip\parskip%
+\vskip\baselineskip%
+\def\baselinestretch{1}%
+\ifx\@currsize\normalsize\@normalsize\else\@currsize\fi%
+\vskip-\parskip%
+\vskip-\baselineskip%
+\section*{Sources of Attested Examples\@mkboth
+ {Sources of Attested Examples}{Sources of Attested Examples}}\list
+ {}{\setlength{\labelwidth}{0pt}\setlength{\leftmargin}{\parindent}
+ \setlength{\itemindent}{-\parindent}}
+ \def\newblock{\hskip .11em plus .33em minus -.07em}
+ \sloppy\clubpenalty4000\widowpenalty4000
+ \sfcode`\.=1000\relax}
+\let\endthesourcebibliography=\endlist
+
+% sections with less space
+\def\section{\@startsection {section}{1}{\z@}{-2.0ex plus
+    -0.5ex minus -.2ex}{1.5ex plus 0.3ex minus .2ex}{\large\bfseries\raggedright}}
+\def\subsection{\@startsection{subsection}{2}{\z@}{-1.8ex plus
+    -0.5ex minus -.2ex}{0.8ex plus .2ex}{\normalsize\bfseries\raggedright}}
+%% changed by KO to - values to get the initial parindent right
+\def\subsubsection{\@startsection{subsubsection}{3}{\z@}{-1.5ex plus
+   -0.5ex minus -.2ex}{0.5ex plus .2ex}{\normalsize\bfseries\raggedright}}
+\def\paragraph{\@startsection{paragraph}{4}{\z@}{1.5ex plus
+   0.5ex minus .2ex}{-1em}{\normalsize\bfseries}}
+\def\subparagraph{\@startsection{subparagraph}{5}{\parindent}{1.5ex plus
+   0.5ex minus .2ex}{-1em}{\normalsize\bfseries}}
+
+% Footnotes
+\footnotesep 6.65pt %
+\skip\footins 9pt plus 4pt minus 2pt
+\def\footnoterule{\kern-3pt \hrule width 5pc \kern 2.6pt }
+\setcounter{footnote}{0}
+
+% Lists and paragraphs
+\parindent 1em
+\topsep 4pt plus 1pt minus 2pt
+\partopsep 1pt plus 0.5pt minus 0.5pt
+\itemsep 2pt plus 1pt minus 0.5pt
+\parsep 2pt plus 1pt minus 0.5pt
+
+\leftmargin 2em \leftmargini\leftmargin \leftmarginii 2em
+\leftmarginiii 1.5em \leftmarginiv 1.0em \leftmarginv .5em \leftmarginvi .5em
+\labelwidth\leftmargini\advance\labelwidth-\labelsep \labelsep 5pt
+
+\def\@listi{\leftmargin\leftmargini}
+\def\@listii{\leftmargin\leftmarginii
+   \labelwidth\leftmarginii\advance\labelwidth-\labelsep
+   \topsep 2pt plus 1pt minus 0.5pt
+   \parsep 1pt plus 0.5pt minus 0.5pt
+   \itemsep \parsep}
+\def\@listiii{\leftmargin\leftmarginiii
+    \labelwidth\leftmarginiii\advance\labelwidth-\labelsep
+    \topsep 1pt plus 0.5pt minus 0.5pt
+    \parsep \z@ \partopsep 0.5pt plus 0pt minus 0.5pt
+    \itemsep \topsep}
+\def\@listiv{\leftmargin\leftmarginiv
+     \labelwidth\leftmarginiv\advance\labelwidth-\labelsep}
+\def\@listv{\leftmargin\leftmarginv
+     \labelwidth\leftmarginv\advance\labelwidth-\labelsep}
+\def\@listvi{\leftmargin\leftmarginvi
+     \labelwidth\leftmarginvi\advance\labelwidth-\labelsep}
+
+\abovedisplayskip 7pt plus2pt minus5pt%
+\belowdisplayskip \abovedisplayskip
+\abovedisplayshortskip  0pt plus3pt%
+\belowdisplayshortskip  4pt plus3pt minus3pt%
+
+% Less leading in most fonts (due to the narrow columns)
+% The choices were between 1-pt and 1.5-pt leading
+\def\@normalsize{\@setsize\normalsize{11pt}\xpt\@xpt}
+\def\small{\@setsize\small{10pt}\ixpt\@ixpt}
+\def\footnotesize{\@setsize\footnotesize{10pt}\ixpt\@ixpt}
+\def\scriptsize{\@setsize\scriptsize{8pt}\viipt\@viipt}
+\def\tiny{\@setsize\tiny{7pt}\vipt\@vipt}
+\def\large{\@setsize\large{14pt}\xiipt\@xiipt}
+\def\Large{\@setsize\Large{16pt}\xivpt\@xivpt}
+\def\LARGE{\@setsize\LARGE{20pt}\xviipt\@xviipt}
+\def\huge{\@setsize\huge{23pt}\xxpt\@xxpt}
+\def\Huge{\@setsize\Huge{28pt}\xxvpt\@xxvpt}
+
+% The hyperref manual (section 9) says hyperref should be loaded after natbib
+\ifacl@hyperref
+  \PassOptionsToPackage{breaklinks}{hyperref}
+  \RequirePackage{hyperref}
+  % make links dark blue
+  \definecolor{darkblue}{rgb}{0, 0, 0.5}
+  \hypersetup{colorlinks=true, citecolor=darkblue, linkcolor=darkblue, urlcolor=darkblue}
+\else
+  % This definition is used if the hyperref package is not loaded.
+  % It provides a backup, no-op definiton of \href.
+  % This is necessary because \href command is used in the acl_natbib.bst file.
+  \def\href#1#2{{#2}}
+  \usepackage{url}
+\fi
