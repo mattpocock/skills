@@ -110,6 +110,12 @@ These skills help you write, refactor, and fix code.
   npx skills add O-Marsters-1997/skills --skill git-guardrails-claude-code
   ```
 
+- **clean-comments** — Set up a `/clean-comments` command and a PreToolUse hook that blocks git commits when staged code files contain self-documenting comments.
+
+  ```
+  npx skills add O-Marsters-1997/skills --skill clean-comments
+  ```
+
 ## Writing & Knowledge
 
 - **write-a-skill** — Create new skills with proper structure, progressive disclosure, and bundled resources.
