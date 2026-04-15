@@ -8,3 +8,9 @@ Interview me relentlessly about every aspect of this plan until we reach a share
 Ask the questions one at a time.
 
 If a question can be answered by exploring the codebase, explore the codebase instead.
+
+## NEVER
+
+- NEVER accept "I'll figure that out later" — require a decision or explicitly mark it as an open question before moving on.
+- NEVER ask multiple questions in a single turn — one question, then wait for the answer.
+- NEVER let the user redirect to implementation details until all design branches are resolved.
