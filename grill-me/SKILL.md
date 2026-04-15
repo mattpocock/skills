@@ -11,7 +11,7 @@ If a question can be answered by exploring the codebase, explore the codebase in
 
 If the user is unsure how to answer, offer 2–3 concrete options and clearly label which one you recommend. Do not accept "I don't know" and advance.
 
-The interview is complete when every major branch has a decision (or an explicitly noted open question) and you can state the full design back without gaps. At that point, stop asking and move to a wrap-up summary.
+The interview is complete when every major branch has a decision (or an explicitly noted open question) and you can state the full design back without gaps. At that point, stop asking and produce a wrap-up summary with three sections: decisions made (with brief rationale), assumptions accepted, and open questions still requiring resolution.
 
 ## NEVER
 
