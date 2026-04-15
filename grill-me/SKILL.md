@@ -9,6 +9,8 @@ Ask the questions one at a time.
 
 If a question can be answered by exploring the codebase, explore the codebase instead.
 
+The interview is complete when every major branch has a decision (or an explicitly noted open question) and you can state the full design back without gaps. At that point, stop asking and move to a wrap-up summary.
+
 ## NEVER
 
 - NEVER accept "I'll figure that out later" — require a decision or explicitly mark it as an open question before moving on.
