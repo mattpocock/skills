@@ -1,0 +1,9 @@
+{
+  "name": "tdd",
+  "description": "Test-driven development with red-green-refactor loop. Builds features or fixes bugs one vertical slice at a time.",
+  "version": "1.0.0",
+  "author": {
+    "name": "Matt Pocock"
+  },
+  "keywords": ["tdd", "testing", "red-green-refactor", "development", "vertical-slices"]
+}

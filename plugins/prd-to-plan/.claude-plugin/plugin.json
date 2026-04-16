@@ -1,0 +1,9 @@
+{
+  "name": "prd-to-plan",
+  "description": "Turn a PRD into a multi-phase implementation plan using tracer-bullet vertical slices.",
+  "version": "1.0.0",
+  "author": {
+    "name": "Matt Pocock"
+  },
+  "keywords": ["prd", "planning", "implementation", "vertical-slices", "tracer-bullets"]
+}

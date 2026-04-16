@@ -1,0 +1,9 @@
+{
+  "name": "improve-codebase-architecture",
+  "description": "Explore a codebase to find architectural improvement opportunities, focusing on deepening shallow modules and improving testability.",
+  "version": "1.0.0",
+  "author": {
+    "name": "Matt Pocock"
+  },
+  "keywords": ["architecture", "refactoring", "modules", "testability", "codebase"]
+}

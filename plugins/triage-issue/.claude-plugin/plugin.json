@@ -1,0 +1,9 @@
+{
+  "name": "triage-issue",
+  "description": "Triage a bug or issue by exploring the codebase to find root cause, then create a GitHub issue with a TDD-based fix plan.",
+  "version": "1.0.0",
+  "author": {
+    "name": "Matt Pocock"
+  },
+  "keywords": ["triage", "bugs", "root-cause", "github-issues", "tdd"]
+}

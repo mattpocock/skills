@@ -1,0 +1,9 @@
+{
+  "name": "prd-to-issues",
+  "description": "Break a PRD into independently-grabbable GitHub issues using tracer-bullet vertical slices.",
+  "version": "1.0.0",
+  "author": {
+    "name": "Matt Pocock"
+  },
+  "keywords": ["prd", "issues", "github", "vertical-slices", "planning"]
+}

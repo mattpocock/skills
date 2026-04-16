@@ -1,0 +1,9 @@
+{
+  "name": "setup-pre-commit",
+  "description": "Set up Husky pre-commit hooks with lint-staged, Prettier, type checking, and tests in the current repo.",
+  "version": "1.0.0",
+  "author": {
+    "name": "Matt Pocock"
+  },
+  "keywords": ["husky", "pre-commit", "lint-staged", "prettier", "hooks"]
+}

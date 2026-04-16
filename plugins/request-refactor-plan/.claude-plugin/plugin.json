@@ -1,0 +1,9 @@
+{
+  "name": "request-refactor-plan",
+  "description": "Create a detailed refactor plan with tiny commits via user interview, then file it as a GitHub issue.",
+  "version": "1.0.0",
+  "author": {
+    "name": "Matt Pocock"
+  },
+  "keywords": ["refactor", "planning", "commits", "github-issues", "interview"]
+}

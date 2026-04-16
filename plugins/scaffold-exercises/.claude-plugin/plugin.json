@@ -1,0 +1,9 @@
+{
+  "name": "scaffold-exercises",
+  "description": "Create exercise directory structures with sections, problems, solutions, and explainers that pass linting.",
+  "version": "1.0.0",
+  "author": {
+    "name": "Matt Pocock"
+  },
+  "keywords": ["exercises", "scaffolding", "course", "education", "typescript"]
+}

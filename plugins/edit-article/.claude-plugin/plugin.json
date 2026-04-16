@@ -1,0 +1,9 @@
+{
+  "name": "edit-article",
+  "description": "Edit and improve articles by restructuring sections, improving clarity, and tightening prose.",
+  "version": "1.0.0",
+  "author": {
+    "name": "Matt Pocock"
+  },
+  "keywords": ["writing", "editing", "article", "prose", "clarity"]
+}

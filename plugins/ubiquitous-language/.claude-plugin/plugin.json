@@ -1,0 +1,9 @@
+{
+  "name": "ubiquitous-language",
+  "description": "Extract a DDD-style ubiquitous language glossary from the current conversation, flagging ambiguities and proposing canonical terms.",
+  "version": "1.0.0",
+  "author": {
+    "name": "Matt Pocock"
+  },
+  "keywords": ["ddd", "glossary", "domain-model", "terminology", "ubiquitous-language"]
+}

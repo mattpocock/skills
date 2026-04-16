@@ -1,0 +1,9 @@
+{
+  "name": "qa",
+  "description": "Interactive QA session where user reports bugs conversationally and the agent files GitHub issues with codebase context.",
+  "version": "1.0.0",
+  "author": {
+    "name": "Matt Pocock"
+  },
+  "keywords": ["qa", "bugs", "testing", "github-issues", "triage"]
+}

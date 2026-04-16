@@ -1,0 +1,9 @@
+{
+  "name": "migrate-to-shoehorn",
+  "description": "Migrate test files from as type assertions to @total-typescript/shoehorn for partial test data.",
+  "version": "1.0.0",
+  "author": {
+    "name": "Matt Pocock"
+  },
+  "keywords": ["typescript", "testing", "shoehorn", "migration", "type-assertions"]
+}

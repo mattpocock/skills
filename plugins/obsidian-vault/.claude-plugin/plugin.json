@@ -1,0 +1,9 @@
+{
+  "name": "obsidian-vault",
+  "description": "Search, create, and manage notes in an Obsidian vault with wikilinks and index notes.",
+  "version": "1.0.0",
+  "author": {
+    "name": "Matt Pocock"
+  },
+  "keywords": ["obsidian", "notes", "vault", "wikilinks", "knowledge-management"]
+}

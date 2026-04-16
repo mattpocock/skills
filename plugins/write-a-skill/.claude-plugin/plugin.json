@@ -1,0 +1,9 @@
+{
+  "name": "write-a-skill",
+  "description": "Create new agent skills with proper structure, progressive disclosure, and bundled resources.",
+  "version": "1.0.0",
+  "author": {
+    "name": "Matt Pocock"
+  },
+  "keywords": ["skills", "agent", "prompt-engineering", "structure"]
+}

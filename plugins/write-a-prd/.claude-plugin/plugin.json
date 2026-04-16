@@ -1,0 +1,9 @@
+{
+  "name": "write-a-prd",
+  "description": "Create a PRD through user interview, codebase exploration, and module design, then submit as a GitHub issue.",
+  "version": "1.0.0",
+  "author": {
+    "name": "Matt Pocock"
+  },
+  "keywords": ["prd", "product-requirements", "planning", "github-issues", "interview"]
+}

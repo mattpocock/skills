@@ -1,0 +1,9 @@
+{
+  "name": "github-triage",
+  "description": "Triage GitHub issues through a label-based state machine with interactive grilling sessions.",
+  "version": "1.0.0",
+  "author": {
+    "name": "Matt Pocock"
+  },
+  "keywords": ["github", "triage", "issues", "labels", "workflow"]
+}

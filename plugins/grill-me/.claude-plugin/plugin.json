@@ -1,0 +1,9 @@
+{
+  "name": "grill-me",
+  "description": "Interview the user relentlessly about a plan or design until reaching shared understanding, resolving each branch of the decision tree.",
+  "version": "1.0.0",
+  "author": {
+    "name": "Matt Pocock"
+  },
+  "keywords": ["interview", "design-review", "planning", "decision-tree"]
+}
