@@ -51,6 +51,10 @@ Iterate until the user approves the breakdown.
 
 For each approved slice, create a GitHub issue using `gh issue create`. Use the issue body template below.
 
+child_id=$(gh api repos/:owner/:repo/issues/<child_number> -q .id)
+gh api -X POST repos/:owner/:repo/issues/<parent-issue-number>/sub_issues -F sub_issue_id=$child_id
+```"
+
 Create issues in dependency order (blockers first) so you can reference real issue numbers in the "Blocked by" field.
 
 <issue-template>
