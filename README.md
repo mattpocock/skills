@@ -36,6 +36,18 @@ These skills help you think through problems before writing code.
   npx skills@latest add mattpocock/skills/request-refactor-plan
   ```
 
+- **domain-model** — Stress-test a plan against the project's existing domain language and ADRs, updating `CONTEXT.md` and decision records as terms get resolved.
+
+  ```
+  npx skills@latest add mattpocock/skills/domain-model
+  ```
+
+- **zoom-out** — Ask the agent for a higher-level map of the relevant modules, callers, and architectural context.
+
+  ```
+  npx skills@latest add mattpocock/skills/zoom-out
+  ```
+
 ## Development
 
 These skills help you write, refactor, and fix code.
@@ -70,6 +82,12 @@ These skills help you write, refactor, and fix code.
   npx skills@latest add mattpocock/skills/scaffold-exercises
   ```
 
+- **qa** — Run a conversational QA session that clarifies bugs lightly, explores the codebase for context, and files durable GitHub issues.
+
+  ```
+  npx skills@latest add mattpocock/skills/qa
+  ```
+
 ## Tooling & Setup
 
 - **setup-pre-commit** — Set up Husky pre-commit hooks with lint-staged, Prettier, type checking, and tests.
@@ -82,6 +100,12 @@ These skills help you write, refactor, and fix code.
 
   ```
   npx skills@latest add mattpocock/skills/git-guardrails-claude-code
+  ```
+
+- **github-triage** — Triage GitHub issues through a label-based state machine, including maintainer recommendations and durable agent briefs.
+
+  ```
+  npx skills@latest add mattpocock/skills/github-triage
   ```
 
 ## Writing & Knowledge
@@ -108,4 +132,10 @@ These skills help you write, refactor, and fix code.
 
   ```
   npx skills@latest add mattpocock/skills/obsidian-vault
+  ```
+
+- **caveman** — Switch the agent into an ultra-compressed communication mode that cuts filler while keeping the technical substance intact.
+
+  ```
+  npx skills@latest add mattpocock/skills/caveman
   ```
