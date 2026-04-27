@@ -12,4 +12,10 @@ Interview me relentlessly about every aspect of this plan until we reach a share
 - After asking a question, wait for the user's response before asking the next question
 - If the user responds in natural language or provides additional context, acknowledge it and continue to the next numbered question
 
+**Multi-Choice Options:**
+- When offering options/choices, list them as numbered items (1. / 2. / 3.)
+- Separate options with blank lines for readability
+- The recommended option is clearly marked (already covered by "Recommended: N. because ..." line)
+- User can respond with a single digit to select their choice
+
 If a question can be answered by exploring the codebase, explore the codebase instead.
