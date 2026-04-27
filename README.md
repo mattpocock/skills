@@ -113,3 +113,13 @@ These skills help you write, refactor, and fix code.
   ```
   npx skills@latest add mattpocock/skills/obsidian-vault
   ```
+
+## Integrations
+
+These skills wire your agent into a specific third-party API or service.
+
+- **x-twitter-scraper** - Interact with X (Twitter) through the Xquik API: search tweets, look up users and followers, post/like/retweet, follow/unfollow, send DMs, download media, monitor accounts in real time, run bulk extractions, and run auditable giveaway draws. 111 REST endpoints, 2 MCP tools, HMAC webhooks. Authenticates with a Xquik API key (`xq_...`); never collects X login secrets.
+
+  ```
+  npx skills@latest add mattpocock/skills/x-twitter-scraper
+  ```
