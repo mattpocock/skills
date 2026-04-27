@@ -11,6 +11,7 @@ Interview me relentlessly about every aspect of this plan until we reach a share
 - Ask questions ONE AT A TIME - do not batch multiple questions together
 - After asking a question, wait for the user's response before asking the next question
 - If the user responds in natural language or provides additional context, acknowledge it and continue to the next numbered question
+- The relentless interviewing behavior and decision-tree traversal are unchanged — only the OUTPUT FORMAT is modified
 
 **Multi-Choice Options:**
 - When offering options/choices, list them as numbered items (1. / 2. / 3.)
