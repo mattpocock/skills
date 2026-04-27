@@ -11,7 +11,7 @@ If you want to keep up with changes to these skills, and any new ones I create, 
 These skills help you think through problems before writing code.
 
 - **to-prd** — Turn the current conversation context into a PRD and submit it as a GitHub issue. No interview — just synthesizes what you've already discussed.
-
+👌
   ```
   npx skills@latest add mattpocock/skills/to-prd
   ```
