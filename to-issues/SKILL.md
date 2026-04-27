@@ -1,6 +1,6 @@
 ---
 name: to-issues
-description: Break a plan, spec, or PRD into independently-grabbable GitHub issues using tracer-bullet vertical slices. Use when user wants to convert a plan into issues, create implementation tickets, or break down work into issues.
+description: Break a plan, spec, or PRD into independently-grabbable GitHub issues using tracer-bullet vertical slices. Use when user wants to convert a plan into issues, create implementation tickets, or break down work into issues. Supports --no-sub-issues flag to skip native sub-issue linking.
 ---
 
 # To Issues
@@ -8,6 +8,10 @@ description: Break a plan, spec, or PRD into independently-grabbable GitHub issu
 Break a plan into independently-grabbable GitHub issues using vertical slices (tracer bullets).
 
 ## Process
+
+### 0. Check for --no-sub-issues flag
+
+If the `NO_SUBISSUES` environment variable is set (e.g., `--no-sub-issues` was passed), skip Section 6 entirely. The issues will still be created as standalone issues without native sub-issue linking.
 
 ### 1. Gather context
 
@@ -77,3 +81,89 @@ Or "None - can start immediately" if no blockers.
 </issue-template>
 
 Do NOT close or modify any parent issue.
+
+### 6. Attach child issues as native sub-issues
+
+After creating each child issue, attach it to its parent issue using GitHub's native sub-issues API.
+
+**For each child issue created:**
+
+1. **Get the child issue ID:**
+   ```bash
+   gh api repos/{owner}/{repo}/issues/{child_number} -q .id
+   ```
+
+2. **Check if already attached:**
+   ```bash
+   gh api repos/{owner}/{repo}/issues/{parent_number}/sub_issues --jq '.[].id'
+   ```
+   This returns a list of existing sub-issue IDs for the parent.
+
+3. **Attach to parent (only if not already present):**
+   - If the child_id is already in the list of existing sub-issues, skip the POST and mark as "skipped"
+   - If not in the list, proceed with the attachment call:
+     ```bash
+     gh api repos/{owner}/{repo}/issues/{parent_number}/sub_issues -f sub_issue_id={child_id}
+     ```
+
+   Use `-f` flag for form data (not `-d`).
+
+4. **Handle 404 gracefully:**
+   - If the sub-issues API returns 404, the repository does not support sub-issues
+   - Fall back silently — the issues were created successfully as standalone issues
+   - Do not report this as an error to the user
+
+**Example workflow:**
+```bash
+# Create child issue
+gh issue create --title "Slice 1: Implement auth" --body "..."
+
+# Get child ID (e.g., returns 123456789)
+CHILD_ID=$(gh api repos/OWNER/REPO/issues/5 -q .id)
+
+# Track attachment results
+NEWLY_ATTACHED=()
+SKIPPED_ALREADY_ATTACHED=()
+FAILED_SUBISSUES=()
+
+# Check existing sub-issues for parent issue #3
+EXISTING=$(gh api repos/OWNER/REPO/issues/3/sub_issues --jq '.[].id')
+
+# Check if already attached (idempotent — skip if duplicate)
+if echo "$EXISTING" | grep -q "^${CHILD_ID}$"; then
+  SKIPPED_ALREADY_ATTACHED+=("Slice 1: Implement auth (parent #3)")
+else
+  # Attach to parent with proper error handling
+  if ! gh api repos/OWNER/REPO/issues/3/sub_issues -f sub_issue_id=$CHILD_ID; then
+    EXIT_CODE=$?
+    if [ $EXIT_CODE -eq 404 ]; then
+      # Sub-issues not supported for this repository - silent fallback
+      :
+    else
+      # Other error - warn but continue
+      FAILED_SUBISSUES+=("Slice 1: Implement auth (parent #3)")
+    fi
+  else
+    NEWLY_ATTACHED+=("Slice 1: Implement auth (parent #3)")
+  fi
+fi
+```
+
+**Error handling behavior:**
+- **Already attached**: Skip silently, add to `SKIPPED_ALREADY_ATTACHED` list
+- **Exit code 0**: Success — issue attached, add to `NEWLY_ATTACHED` list
+- **Exit code 404**: Sub-issues not supported for this repository — silent fallback, continue
+- **Any other exit code**: Non-fatal error — add to `FAILED_SUBISSUES` list, continue with remaining issues
+
+After processing all sub-issues, display a summary:
+```
+Sub-issue attachment summary: N newly attached, N skipped (already attached)
+```
+
+If `FAILED_SUBISSUES` is non-empty, also display a warning:
+```
+⚠️  Sub-issue attachment failures (N):
+  - <issue-title-1> (parent #<num>)
+  - <issue-title-2> (parent #<num>)
+```
+The skill exit code remains 0 even if some attachments failed.
