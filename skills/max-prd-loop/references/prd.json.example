@@ -1,0 +1,47 @@
+{
+  "project": "Blog Like Button",
+  "branchName": "max/like-button",
+  "description": "Add a like button to blog posts with counter",
+  "userStories": [
+    {
+      "id": "US-001",
+      "title": "Add like count to database",
+      "description": "As a developer, I need to store like counts so posts can track popularity",
+      "acceptanceCriteria": [
+        "Add likes column to posts table",
+        "Generate and run migration",
+        "Typecheck passes"
+      ],
+      "priority": 1,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-002",
+      "title": "Implement like button UI",
+      "description": "As a reader, I want to click a like button so I can show appreciation for content",
+      "acceptanceCriteria": [
+        "Like button appears on each post",
+        "Clicking increments the counter",
+        "Typecheck passes",
+        "Unit tests pass"
+      ],
+      "priority": 2,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-003",
+      "title": "Display like count on post listing",
+      "description": "As a reader, I want to see like counts on the listing page so I can identify popular posts",
+      "acceptanceCriteria": [
+        "Like count shown next to each post",
+        "Count updates after liking",
+        "Typecheck passes"
+      ],
+      "priority": 3,
+      "passes": false,
+      "notes": ""
+    }
+  ]
+}
