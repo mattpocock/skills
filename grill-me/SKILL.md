@@ -19,3 +19,9 @@ Interview me relentlessly about every aspect of this plan until we reach a share
 - User can respond with a single digit to select their choice
 
 If a question can be answered by exploring the codebase, explore the codebase instead.
+
+**Past Question References:**
+- Keep track of all question numbers and user responses in the conversation
+- When user references a past question by number (e.g., "question 7", "for question 7's answer"), acknowledge it and reference the previous answer
+- When user says "forget question N" or "discard question N", mark that question as unanswered and re-ask it immediately
+- Do NOT reuse context from a discarded question without re-confirming with the user
