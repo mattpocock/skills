@@ -1,6 +1,6 @@
 ---
 name: to-issues
-description: Break a plan, spec, or PRD into independently-grabbable GitHub issues using tracer-bullet vertical slices. Use when user wants to convert a plan into issues, create implementation tickets, or break down work into issues.
+description: Break a plan, spec, or PRD into independently-grabbable GitHub issues using tracer-bullet vertical slices. Use when user wants to convert a plan into issues, create implementation tickets, or break down work into issues. Supports --no-sub-issues flag to skip native sub-issue linking.
 ---
 
 # To Issues
@@ -8,6 +8,12 @@ description: Break a plan, spec, or PRD into independently-grabbable GitHub issu
 Break a plan into independently-grabbable GitHub issues using vertical slices (tracer bullets).
 
 ## Process
+
+### 0. Check for --no-sub-issues flag
+
+If the `NO_SUBISSUES` environment variable is set, skip **Section 6** entirely. Issues will still be created and numbered normally, but no sub-issue native linking will be performed.
+
+**When to use:** Set `NO_SUBISSUES=1` when sub-issue tracking is not needed or not supported by the repository.
 
 ### 1. Gather context
 
@@ -77,3 +83,68 @@ Or "None - can start immediately" if no blockers.
 </issue-template>
 
 Do NOT close or modify any parent issue.
+
+### 6. Attach child issues as native sub-issues
+
+After creating each child issue, attach it to the parent using the GitHub Sub-issues API.
+
+**First, get existing sub-issues for the parent to avoid duplicates:**
+```bash
+EXISTING_SUBISSUES=$(gh api repos/{owner}/{repo}/issues/{parent_number}/sub_issues --jq '.[].id' 2>/dev/null || echo "")
+```
+
+**For each child issue created:**
+
+1. **Get the child issue ID:**
+   ```bash
+   CHILD_ID=$(gh api repos/{owner}/{repo}/issues/{child_number} -q .id)
+   ```
+
+2. **Check if already attached:**
+   ```bash
+   if echo "$EXISTING_SUBISSUES" | grep -q "^${CHILD_ID}$"; then
+     echo "Sub-issue #{child_number}: skipped (already attached)"
+     SKIPPED_COUNT=$((SKIPPED_COUNT + 1))
+   else
+   ```
+
+3. **Attach to parent via sub-issues API:**
+   ```bash
+     if ! gh api repos/{owner}/{repo}/issues/{parent_number}/sub_issues -f sub_issue_id=${CHILD_ID} 2>&1; then
+       EXIT_CODE=$?
+       # 404 = Sub-issues not supported for this repository (silent fallback)
+       if [ $EXIT_CODE -eq 404 ]; then
+         echo "Skipping sub-issue attachment: Sub-issues not supported for this repository"
+       else
+         # Other errors - track failure but continue
+         FAILED_SUBISSUES+=("#{child_number}")
+       fi
+     else
+       echo "Sub-issue #{child_number}: attached"
+       ATTACHED_COUNT=$((ATTACHED_COUNT + 1))
+       # Add to existing list to handle multiple children
+       EXISTING_SUBISSUES="${EXISTING_SUBISSUES}\n${CHILD_ID}"
+     fi
+   fi
+   ```
+
+**Initialize counters before the loop:**
+```bash
+ATTACHED_COUNT=0
+SKIPPED_COUNT=0
+FAILED_SUBISSUES=()
+```
+
+**Error handling:**
+- **Exit code 0:** Success - child issue attached to parent
+- **Exit code 404:** Silent fallback - Sub-issues not supported for this repository, continue gracefully
+- **Other exit codes:** Log warning, track failed attachment in `FAILED_SUBISSUES` array, continue with remaining issues
+
+**Post-attach warning:** After all attachments attempted, if `FAILED_SUBISSUES` is non-empty, display a warning listing all child issue numbers that failed to attach.
+
+**Summary:** After all attachments attempted, display:
+```
+Sub-issue summary: {ATTACHED_COUNT} newly attached, {SKIPPED_COUNT} skipped (already attached)
+```
+
+**Verification:** After attaching, the child issue will appear under the parent's "Sub-issues" section in the GitHub UI.
