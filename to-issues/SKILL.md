@@ -76,4 +76,14 @@ Or "None - can start immediately" if no blockers.
 
 </issue-template>
 
+After each `gh issue create`, capture the issue number from the output URL and attach it as a native GitHub sub-issue:
+
+```bash
+child_url=$(gh issue create --title "$title" --body "$body")
+child_num=$(echo "$child_url" | grep -oE '[0-9]+$')
+gh api -X POST repos/OWNER/REPO/issues/<parent-issue-number>/sub_issues -F sub_issue_id=$child_num
+```
+
+This ensures child issues appear in the parent's sub-issue list and progress indicator, not just as text references in the issue body.
+
 Do NOT close or modify any parent issue.
