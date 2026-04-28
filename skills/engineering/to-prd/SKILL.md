@@ -1,9 +1,9 @@
 ---
 name: to-prd
-description: Turn the current conversation context into a PRD and submit it as a GitHub issue. Use when user wants to create a PRD from the current context.
+description: Turn the current conversation context into a PRD. Backend-agnostic — pairs with `/github` (or another backlog skill) to publish. Use when user wants to create a PRD from the current context.
 ---
 
-This skill takes the current conversation context and codebase understanding and produces a PRD. Do NOT interview the user — just synthesize what you already know.
+This skill takes the current conversation context and codebase understanding and produces a PRD artifact. Do NOT interview the user — just synthesize what you already know. Hand off to a backend skill (`/github` by default) to publish.
 
 ## Process
 
@@ -15,7 +15,11 @@ A deep module (as opposed to a shallow module) is one which encapsulates a lot o
 
 Check with the user that these modules match their expectations. Check with the user which modules they want tests written for.
 
-3. Write the PRD using the template below and submit it as a GitHub issue.
+3. Write the PRD artifact using the template below. Default state is `ready-for-agent` (state vocabulary lives in `/triage`); category is `enhancement`. Present the artifact to the user, then end with a handoff hint:
+
+   > PRD ready. Invoke `/github` (or your configured backend equivalent) to publish — it will create the issue with category `enhancement` and state `ready-for-agent`.
+
+   Do not call `gh` directly. The backend skill owns publishing.
 
 <prd-template>
 
