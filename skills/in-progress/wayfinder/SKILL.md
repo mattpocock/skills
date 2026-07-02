@@ -120,4 +120,4 @@ End every session with a **Next steps** block the user can copy-paste. Two cases
 > Invoke /wayfinder with the map <map-url>, ticket <issue-url>.
 > ```
 
-**No open tickets remain.** The fog is pushed back far enough that the way to the goal is clear — the map is done. (The initial grilling may also surface no fog at all, in which case there was never a map to chart.) Recommend implementing directly, or using `/to-prd` to schedule a multi-session implementation.
+**No open tickets remain.** The fog is pushed back far enough that the way to the goal is clear — the map is done. (The initial grilling may also surface no fog at all, in which case there was never a map to chart.) Recommend implementing directly, or using `/to-spec` to schedule a multi-session implementation.
