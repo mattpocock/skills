@@ -28,9 +28,9 @@ Reach for it once you have an agreed plan or a written spec and you want it spli
 
 ## One artifact, two readings
 
-The blocking edges are the whole point. They make one set of tickets read two ways, depending on the tracker:
+The blocking edges are the whole point. Either way you get **one file or issue per ticket** — never all of them collapsed into one document — and the edges make the set read two ways, depending on the tracker:
 
-- **Local files** → a single `tickets.md` in the repo root, the edges written as text. You work it top-to-bottom, by hand, staying in the loop.
+- **Local files** → one file per ticket under `.scratch/<feature>/issues/`, the edges written as text. You work the frontier top-to-bottom, by hand, staying in the loop.
 - **A real tracker (GitHub, Linear)** → one issue per ticket, the edges as native blocking links (or sub-issues). Any ticket whose blockers are all done is on the **frontier** and can be grabbed — so several agents can run at once.
 
 The edges live in the ticket regardless of medium; the medium only decides whether anything acts on them in parallel. `to-tickets` produces the artifact — how you run it (sequential by hand, or a parallel fleet) is up to you.
