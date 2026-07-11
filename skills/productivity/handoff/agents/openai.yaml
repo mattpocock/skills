@@ -1,0 +1,6 @@
+interface:
+  display_name: "Handoff"
+  short_description: "Write a focused session handoff"
+  default_prompt: "Use $handoff to prepare a handoff for a new session focused on [next-session goal]."
+policy:
+  allow_implicit_invocation: false

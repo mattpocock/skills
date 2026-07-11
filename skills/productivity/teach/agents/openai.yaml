@@ -1,0 +1,6 @@
+interface:
+  display_name: "Teach"
+  short_description: "Build a stateful learning workspace"
+  default_prompt: "Use $teach to help me learn [topic] through a stateful workspace and sequenced lessons."
+policy:
+  allow_implicit_invocation: false

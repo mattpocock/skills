@@ -19,6 +19,8 @@ Pick model-invocation only when the agent must reach the skill on its own, or an
 
 When user-invoked skills multiply past what you can remember, that piled-up cognitive load is cured by a **router skill**: one user-invoked skill that names the others and when to reach for each.
 
+Provider-specific UI fields may coexist. Keep Claude Code's `argument-hint` in `SKILL.md` when the skill accepts focus or topic text; Codex ignores that field, so express the same affordance in `agents/openai.yaml` with a natural `interface.default_prompt` that mentions `$skill-name`. The Codex prompt is an example starter, not argument expansion.
+
 ## Writing the description
 
 A model-invoked **description** does two jobs — state what the skill is, and list the **branches** that should trigger it. Every word increases **context load**, so a description earns even harder pruning than the body:

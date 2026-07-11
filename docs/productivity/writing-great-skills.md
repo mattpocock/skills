@@ -26,10 +26,12 @@ Reach for it whenever you're authoring a new skill or editing an existing one an
 
 The concept the whole reference turns on is **cognitive load** — and its counterpart, **context load**. Every skill spends one or the other:
 
-- A **model-invoked** skill keeps a description in the window every turn, so it costs **context load** but fires on its own.
-- A **user-invoked** skill strips that description; it costs zero context load, but now *you* are the index that has to remember it exists — that's **cognitive load**.
+- A **model-invoked** skill keeps its description in the model's skill list, so it costs **context load** but fires on its own.
+- A **user-invoked** skill keeps its description for the picker but is excluded from the model's default context; it costs zero context load, but now *you* are the index that has to remember it exists — that's **cognitive load**.
 
 Most of these skills are user-invoked, which is why cognitive load is the pressure the whole system is built to manage: when user-invoked skills multiply past what you can hold in your head, the cure is a **router skill** that names the others and when to reach for each. Once you're thinking in these two loads, most authoring decisions — split or don't, inline or disclose, model- or user-invoked — become the same trade made in different places.
+
+Provider-specific invocation metadata can coexist: Claude Code uses `argument-hint` in `SKILL.md`, while Codex uses a natural `interface.default_prompt` in `agents/openai.yaml`. Codex safely ignores the Claude-only field; its default prompt is a starter rather than argument expansion.
 
 ## The other levers
 

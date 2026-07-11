@@ -1,0 +1,6 @@
+interface:
+  display_name: "Loop Me"
+  short_description: "Design recurring workflows by interview"
+  default_prompt: "Use $loop-me to specify [workflow], or help me find a recurring workflow worth designing."
+policy:
+  allow_implicit_invocation: false

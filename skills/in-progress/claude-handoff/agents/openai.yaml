@@ -1,0 +1,6 @@
+interface:
+  display_name: "Claude Handoff"
+  short_description: "Launch a background Claude handoff"
+  default_prompt: "Use $claude-handoff to hand this conversation to a fresh background agent focused on [next-session goal]."
+policy:
+  allow_implicit_invocation: false
