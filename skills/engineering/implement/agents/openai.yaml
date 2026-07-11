@@ -1,0 +1,6 @@
+interface:
+  display_name: "Implement"
+  short_description: "Implement work from a spec or tickets"
+  default_prompt: "Use $implement to complete the work described by this spec or ticket set."
+policy:
+  allow_implicit_invocation: false

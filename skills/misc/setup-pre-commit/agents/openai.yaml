@@ -1,0 +1,4 @@
+interface:
+  display_name: "Setup Pre Commit"
+  short_description: "Configure pre-commit quality checks"
+  default_prompt: "Use $setup-pre-commit to add formatting, type-checking, and tests to the pre-commit workflow."

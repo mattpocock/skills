@@ -1,0 +1,4 @@
+interface:
+  display_name: "Scaffold Exercises"
+  short_description: "Scaffold lint-ready course exercises"
+  default_prompt: "Use $scaffold-exercises to create the section and exercise structure for this course material."

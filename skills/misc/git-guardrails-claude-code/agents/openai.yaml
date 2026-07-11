@@ -1,0 +1,4 @@
+interface:
+  display_name: "Git Guardrails Claude Code"
+  short_description: "Block dangerous Git commands in Claude"
+  default_prompt: "Use $git-guardrails-claude-code to install Claude Code hooks that block dangerous Git commands."

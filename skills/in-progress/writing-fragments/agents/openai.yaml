@@ -1,0 +1,6 @@
+interface:
+  display_name: "Writing Fragments"
+  short_description: "Mine raw writing fragments"
+  default_prompt: "Use $writing-fragments to explore this topic and collect raw fragments without imposing structure."
+policy:
+  allow_implicit_invocation: false

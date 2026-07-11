@@ -1,0 +1,6 @@
+interface:
+  display_name: "Wizard"
+  short_description: "Generate an interactive setup wizard"
+  default_prompt: "Use $wizard to turn this manual procedure into an interactive Bash wizard."
+policy:
+  allow_implicit_invocation: false

@@ -1,0 +1,6 @@
+interface:
+  display_name: "Grill Me"
+  short_description: "Sharpen a plan through interview"
+  default_prompt: "Use $grill-me to stress-test this plan with one focused question at a time."
+policy:
+  allow_implicit_invocation: false

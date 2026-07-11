@@ -1,0 +1,4 @@
+interface:
+  display_name: "Qa"
+  short_description: "Run conversational QA and file issues"
+  default_prompt: "Use $qa to run a conversational QA session and capture the bugs we find."

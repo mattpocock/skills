@@ -1,0 +1,6 @@
+interface:
+  display_name: "Improve Codebase Architecture"
+  short_description: "Find and deepen codebase seams"
+  default_prompt: "Use $improve-codebase-architecture to scan this codebase and help me choose an architectural improvement."
+policy:
+  allow_implicit_invocation: false

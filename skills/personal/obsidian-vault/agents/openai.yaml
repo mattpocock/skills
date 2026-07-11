@@ -1,0 +1,4 @@
+interface:
+  display_name: "Obsidian Vault"
+  short_description: "Manage linked notes in Obsidian"
+  default_prompt: "Use $obsidian-vault to find, create, or organize notes in the configured Obsidian vault."

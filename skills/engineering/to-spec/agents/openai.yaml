@@ -1,0 +1,6 @@
+interface:
+  display_name: "To Spec"
+  short_description: "Synthesize discussion into a spec"
+  default_prompt: "Use $to-spec to turn our existing discussion into a spec without interviewing me again."
+policy:
+  allow_implicit_invocation: false

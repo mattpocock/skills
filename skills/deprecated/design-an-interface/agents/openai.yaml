@@ -1,0 +1,4 @@
+interface:
+  display_name: "Design An Interface"
+  short_description: "Explore alternative module interfaces"
+  default_prompt: "Use $design-an-interface to compare several interface designs for this module."

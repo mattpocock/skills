@@ -1,0 +1,6 @@
+interface:
+  display_name: "Triage"
+  short_description: "Triage issues into agent-ready briefs"
+  default_prompt: "Use $triage to categorize and verify these issues and produce agent-ready briefs."
+policy:
+  allow_implicit_invocation: false

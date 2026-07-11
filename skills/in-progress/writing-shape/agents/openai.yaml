@@ -1,0 +1,6 @@
+interface:
+  display_name: "Writing Shape"
+  short_description: "Shape raw material into an article"
+  default_prompt: "Use $writing-shape to turn this raw material into a coherent article one paragraph at a time."
+policy:
+  allow_implicit_invocation: false

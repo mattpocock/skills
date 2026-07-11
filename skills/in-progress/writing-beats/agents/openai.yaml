@@ -1,0 +1,6 @@
+interface:
+  display_name: "Writing Beats"
+  short_description: "Build an article journey from beats"
+  default_prompt: "Use $writing-beats to turn this raw material into a grounded sequence of article beats."
+policy:
+  allow_implicit_invocation: false

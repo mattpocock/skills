@@ -1,0 +1,4 @@
+interface:
+  display_name: "Migrate to Shoehorn"
+  short_description: "Replace test assertions with shoehorn"
+  default_prompt: "Use $migrate-to-shoehorn to replace unsafe test-data assertions with shoehorn."

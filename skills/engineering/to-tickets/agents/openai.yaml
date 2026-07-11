@@ -1,0 +1,6 @@
+interface:
+  display_name: "To Tickets"
+  short_description: "Split a plan into tracer-bullet tickets"
+  default_prompt: "Use $to-tickets to break this plan into ordered tracer-bullet tickets."
+policy:
+  allow_implicit_invocation: false

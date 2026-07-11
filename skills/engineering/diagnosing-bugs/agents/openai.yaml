@@ -1,0 +1,4 @@
+interface:
+  display_name: "Diagnosing Bugs"
+  short_description: "Diagnose hard bugs and regressions"
+  default_prompt: "Use $diagnosing-bugs to find the root cause of this bug before changing the code."

@@ -1,0 +1,6 @@
+interface:
+  display_name: "Setup Matt Pocock Skills"
+  short_description: "Configure the engineering skill suite"
+  default_prompt: "Use $setup-matt-pocock-skills to configure this repository for the engineering skill workflows."
+policy:
+  allow_implicit_invocation: false

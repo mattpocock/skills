@@ -1,0 +1,6 @@
+interface:
+  display_name: "Ubiquitous Language"
+  short_description: "Create a shared domain glossary"
+  default_prompt: "Use $ubiquitous-language to extract and clarify the domain terms in this conversation."
+policy:
+  allow_implicit_invocation: false

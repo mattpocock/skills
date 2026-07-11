@@ -1,0 +1,4 @@
+interface:
+  display_name: "Request Refactor Plan"
+  short_description: "Plan a safe incremental refactor"
+  default_prompt: "Use $request-refactor-plan to turn this refactor into a safe incremental plan."

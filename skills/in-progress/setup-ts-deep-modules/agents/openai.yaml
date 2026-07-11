@@ -1,0 +1,6 @@
+interface:
+  display_name: "Setup Ts Deep Modules"
+  short_description: "Enforce deep TypeScript modules"
+  default_prompt: "Use $setup-ts-deep-modules to enforce entry-point-only imports across this TypeScript repository."
+policy:
+  allow_implicit_invocation: false

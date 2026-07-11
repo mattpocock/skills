@@ -1,0 +1,4 @@
+interface:
+  display_name: "Research"
+  short_description: "Research from primary sources"
+  default_prompt: "Use $research to investigate this question from primary sources and save the findings."

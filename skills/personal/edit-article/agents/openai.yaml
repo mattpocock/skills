@@ -1,0 +1,6 @@
+interface:
+  display_name: "Edit Article"
+  short_description: "Restructure and tighten an article"
+  default_prompt: "Use $edit-article to improve the structure, clarity, and pacing of this draft."
+policy:
+  allow_implicit_invocation: false
