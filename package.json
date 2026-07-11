@@ -10,6 +10,9 @@
   "license": "MIT",
   "scripts": {
     "changeset": "changeset",
+    "test": "npm run test:runtime-detector && npm run validate:skills",
+    "test:runtime-detector": "node --test tests/codex-handoff-runtime.test.mjs",
+    "validate:skills": "ruby scripts/validate-skills.rb",
     "version": "changeset version"
   },
   "devDependencies": {
