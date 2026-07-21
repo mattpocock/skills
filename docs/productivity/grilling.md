@@ -12,9 +12,17 @@ npx skills update grilling
 
 ## What it does
 
-`grilling` is the relentless interview that stress-tests a plan or design before you build it. It walks down the decision tree branch by branch, resolving the dependencies between decisions one at a time until you and the agent share the same understanding.
+`grilling` is the relentless interview that stress-tests a plan or design before you build it. It maps the plan as a **design tree** — every decision branches into the decisions that hang off it — and works that tree in **rounds** until you and the agent share the same understanding.
 
-It asks **one question at a time** and waits for your answer before the next — never a bulk list, which is bewildering. Each question comes with the agent's own recommended answer, and any question the codebase can settle it explores instead of asking you. It won't start enacting the plan until you confirm the shared understanding has been reached.
+Each round asks the whole **frontier**: every decision whose prerequisites are already settled — the questions it can put to you *now* without guessing at answers it hasn't heard yet. Your answers reshape the tree, pushing the frontier outward, and the next round asks whatever that unblocks. Thirteen questions land in a handful of rounds instead of thirteen. Every question comes with the agent's own recommended answer; any *fact* the environment can settle it dispatches to a background sub-agent rather than asking you — and it doesn't block on that research, only the questions downstream of it wait. It won't act on the plan until you confirm the shared understanding has been reached.
+
+### Prefer one question at a time?
+
+If the old one-at-a-time rhythm suited you better, keep it. Add a line to your global `CLAUDE.md`:
+
+```
+When grilling, ask one question at a time.
+```
 
 ## When to reach for it
 
@@ -24,7 +32,7 @@ Reach for it when a plan or design still has soft spots and you want them surfac
 
 ## The decision tree
 
-The mental model is a **decision tree**: every plan branches into decisions, and decisions depend on each other. `grilling` descends that tree one node at a time, so an early answer can reshape which questions come next. That is why the questions arrive singly and in dependency order — a firehose of parallel questions loses the structure that makes the interview converge on a shared understanding.
+The mental model is a **design tree**: every plan branches into decisions, and decisions depend on each other. The **frontier** is the set of decisions whose prerequisites are all settled — the only questions that can be asked without guessing. `grilling` asks the whole frontier at once, then recomputes it from your answers, so a round is exactly the batch of questions that *don't* depend on each other. A question whose answer hinges on another still open this round waits for a later round. Asking in frontier-sized rounds keeps the dependency structure intact while sparing you a question-at-a-time drip.
 
 ## Pulled out on purpose
 

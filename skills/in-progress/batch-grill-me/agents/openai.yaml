@@ -1,5 +1,0 @@
-interface:
-  display_name: "Batch Grill Me"
-  short_description: "Sharpen a plan a round of questions at a time"
-policy:
-  allow_implicit_invocation: false
