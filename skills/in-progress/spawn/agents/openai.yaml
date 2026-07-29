@@ -1,0 +1,5 @@
+interface:
+  display_name: "Spawn"
+  short_description: "Hand off to a background agent (claude or codex)"
+policy:
+  allow_implicit_invocation: false
