@@ -1,13 +1,3 @@
-Quickstart:
-
-```bash
-npx skills add mattpocock/skills --skill=triage
-```
-
-```bash
-npx skills update triage
-```
-
 [Source](https://github.com/mattpocock/skills/tree/main/skills/engineering/triage)
 
 ## What it does

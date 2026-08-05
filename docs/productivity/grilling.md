@@ -1,13 +1,3 @@
-Quickstart:
-
-```bash
-npx skills add mattpocock/skills --skill=grilling
-```
-
-```bash
-npx skills update grilling
-```
-
 [Source](https://github.com/mattpocock/skills/tree/main/skills/productivity/grilling)
 
 ## What it does

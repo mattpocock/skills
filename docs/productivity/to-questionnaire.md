@@ -1,13 +1,3 @@
-Quickstart:
-
-```bash
-npx skills add mattpocock/skills --skill=to-questionnaire
-```
-
-```bash
-npx skills update to-questionnaire
-```
-
 [Source](https://github.com/mattpocock/skills/tree/main/skills/productivity/to-questionnaire)
 
 ## What it does

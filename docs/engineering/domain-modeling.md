@@ -1,13 +1,3 @@
-Quickstart:
-
-```bash
-npx skills add mattpocock/skills --skill=domain-modeling
-```
-
-```bash
-npx skills update domain-modeling
-```
-
 [Source](https://github.com/mattpocock/skills/tree/main/skills/engineering/domain-modeling)
 
 ## What it does

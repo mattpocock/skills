@@ -36,7 +36,7 @@ Pick the skills you want, and which coding agents to install them on. **The inst
 
 </canonical-block>
 
-…and the single-skill form on a `docs/` page, where the page already names one skill:
+…and the single-skill form wherever one skill is named on its own. Note that **`docs/` pages are not a consumer of this block**: ai-hero renders the install widget above the body, so a page that writes the commands out duplicates it. See [writing-docs.md](./writing-docs.md).
 
 <canonical-block name="skills-sh-one-skill">
 
@@ -50,7 +50,7 @@ npx skills@latest update <name>
 
 </canonical-block>
 
-`skills@latest` is the pinned spelling in all three. The Quickstart template in [writing-docs.md](./writing-docs.md), and the 24 pages under `docs/`, still carry the older bare `npx skills …`; the docs pass brings them into line.
+`skills@latest` is the pinned spelling in all three. The 24 pages under `docs/` used to carry the older bare `npx skills …`; those blocks are now deleted rather than corrected, because the site renders the install commands itself.
 
 ## The two routes are exclusive
 

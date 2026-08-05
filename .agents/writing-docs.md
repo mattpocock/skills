@@ -12,21 +12,11 @@ There is no H1 — the published page takes its title from the slug.
 
 ## Page structure
 
-Fill the template below. The **fixed frame** (Quickstart block, source link, `## What it does`, `## When to reach for it`, `## Where it fits`) appears on every page. The **adaptable middle** — `## Prerequisites` and the free-form substance sections — carries only what this particular skill earns; delete the rest.
+Fill the template below. The **fixed frame** (source link, `## What it does`, `## When to reach for it`, `## Where it fits`) appears on every page. The **adaptable middle** — `## Prerequisites` and the free-form substance sections — carries only what this particular skill earns; delete the rest.
 
-Install commands are not written per page. Copy them verbatim from [the canonical install block](./install-block.md) — it is the single source for how anyone installs these skills, and a page that words it differently is a page that tells a second story. The Quickstart block in the template below is the older wording and does not yet match; the docs pass replaces it from the canonical block.
+**A page carries no install commands.** The ai-hero page template renders the install widget itself — a copy button, the single-skill command, the whole-set command, and the update line — above the body. A page that also writes them out shows the reader the same command twice, and the two copies drift: the hand-written pair on all 24 pages went stale against the widget beside it. Install wording is a property of the site, not of the page. If it needs changing, change it in ai-hero; the canonical wording lives in [the install block](./install-block.md).
 
 <page-template>
-
-Quickstart:
-
-```bash
-npx skills add mattpocock/skills --skill=<name>
-```
-
-```bash
-npx skills update <name>
-```
 
 [Source](https://github.com/mattpocock/skills/tree/main/skills/<bucket>/<name>)
 
@@ -74,7 +64,7 @@ Always present. Situate the skill in the system in a sentence or two:
 ## Done when
 
 - The page exists at `docs/<bucket>/<name>.md`, and no stale page survives a rename or bucket move.
-- The Quickstart block and source link name the correct bucket and skill; the update line names the skill.
+- The source link names the correct bucket and skill, and the page writes no install command of its own.
 - `## What it does` states the defining constraint, as plain prose rather than a labelled aside.
 - `## When to reach for it` states invocation mode and the trigger boundary.
 - `## Where it fits` names the role and links to `ask-matt`.

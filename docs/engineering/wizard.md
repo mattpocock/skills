@@ -1,13 +1,3 @@
-Quickstart:
-
-```bash
-npx skills add mattpocock/skills --skill=wizard
-```
-
-```bash
-npx skills update wizard
-```
-
 [Source](https://github.com/mattpocock/skills/tree/main/skills/engineering/wizard)
 
 ## What it does

@@ -1,13 +1,3 @@
-Quickstart:
-
-```bash
-npx skills add mattpocock/skills --skill=to-tickets
-```
-
-```bash
-npx skills update to-tickets
-```
-
 [Source](https://github.com/mattpocock/skills/tree/main/skills/engineering/to-tickets)
 
 ## What it does

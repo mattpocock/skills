@@ -1,13 +1,3 @@
-Quickstart:
-
-```bash
-npx skills add mattpocock/skills --skill=ask-matt
-```
-
-```bash
-npx skills update ask-matt
-```
-
 [Source](https://github.com/mattpocock/skills/tree/main/skills/engineering/ask-matt)
 
 ## What it does

@@ -1,13 +1,3 @@
-Quickstart:
-
-```bash
-npx skills add mattpocock/skills --skill=code-review
-```
-
-```bash
-npx skills update code-review
-```
-
 [Source](https://github.com/mattpocock/skills/tree/main/skills/engineering/code-review)
 
 ## What it does

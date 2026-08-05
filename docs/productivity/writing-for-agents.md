@@ -1,13 +1,3 @@
-Quickstart:
-
-```bash
-npx skills add mattpocock/skills --skill=writing-for-agents
-```
-
-```bash
-npx skills update writing-for-agents
-```
-
 [Source](https://github.com/mattpocock/skills/tree/main/skills/productivity/writing-for-agents)
 
 ## What it does

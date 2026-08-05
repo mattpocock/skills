@@ -1,13 +1,3 @@
-Quickstart:
-
-```bash
-npx skills add mattpocock/skills --skill=implement
-```
-
-```bash
-npx skills update implement
-```
-
 [Source](https://github.com/mattpocock/skills/tree/main/skills/engineering/implement)
 
 ## What it does
