@@ -1,6 +1,6 @@
-# Misc
+# Extras
 
-Tools I keep around but rarely use — not promoted in the plugin.
+Tools I keep around but rarely use. They live outside `skills/`, so the plugin doesn't ship them.
 
 - **[git-guardrails-claude-code](./git-guardrails-claude-code/SKILL.md)** — Set up Claude Code hooks to block dangerous git commands (push, reset --hard, clean, etc.) before they execute.
 - **[migrate-to-shoehorn](./migrate-to-shoehorn/SKILL.md)** — Migrate test files from `as` type assertions to @total-typescript/shoehorn.

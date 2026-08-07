@@ -26,6 +26,9 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Check plugin manifest versions
+        run: npm run check-plugin-version
+
       - name: Create Version Pull Request
         uses: changesets/action@v1
         with:
