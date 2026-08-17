@@ -2,7 +2,7 @@
 
 `to-spec` turns the conversation you have just had into a **[spec](https://www.aihero.dev/ai-coding-dictionary/spec)**, and publishes it to your issue tracker as a single issue.
 
-It does not interview you. By the time you reach for it the deciding is already done, so it synthesises what is known — from the thread, from the codebase, from your `CONTEXT.md` and ADRs — rather than opening a fresh round of questions. The spec is a record of decisions already made, not a place where new ones get made.
+It does not interview you. By the time you reach for it the deciding is already done, so it synthesises what is known — from the thread, from the codebase, from your `GLOSSARY.md` and ADRs — rather than opening a fresh round of questions. The spec is a record of decisions already made, not a place where new ones get made.
 
 ## When to reach for it
 
@@ -51,7 +51,7 @@ The main map issue — `/to-spec #<map_issue>`, not the individual decision tick
 Mostly for the agent, and it reads that way — complete, dense, reference-heavy. The parts worth your eyes are the seams and the out-of-scope section, because those are the two places a wrong decision is cheapest to catch and most expensive to discover later. Reading the whole thing end to end is a real complaint people have, and there is no summary mode: the honest answer is that if the spec surprises you, the grilling was too shallow, not the spec too long.
 
 **Do I keep the spec frozen once tickets start, or let the agent rewrite it?**
-Nothing keeps it in sync, so in practice it is a snapshot of what you knew at that moment, and it goes stale the first time implementation teaches you something. Treat it as throwaway once the work ships. The artifacts meant to outlive it are your `CONTEXT.md` and your ADRs — if something learned during implementation deserves to last, it belongs there, not in an edited spec.
+Nothing keeps it in sync, so in practice it is a snapshot of what you knew at that moment, and it goes stale the first time implementation teaches you something. Treat it as throwaway once the work ships. The artifacts meant to outlive it are your `GLOSSARY.md` and your ADRs — if something learned during implementation deserves to last, it belongs there, not in an edited spec.
 
 **My work is a refactor or a module boundary, not a feature. Does the template fit?**
 Less well, and this is a known limitation. The template leans hard on user stories, which is the wrong shape for architectural work — you end up writing stories nobody asked for around decisions that are really about interfaces and invariants. Lean on the implementation-decisions and testing-decisions sections instead, and let the durable architectural calls land as ADRs via [grill-with-docs](https://aihero.dev/skills-grill-with-docs) rather than trying to make the spec carry them.

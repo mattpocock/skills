@@ -14,7 +14,7 @@ Reach for it when the next step is *finding something out* from outside the work
 | --- | --- |
 | An external fact a decision is waiting on | `research` |
 | A decision made *with* you, by interview | [grilling](https://aihero.dev/skills-grilling) |
-| A durable architecture decision, written into `CONTEXT.md` and ADRs | [grill-with-docs](https://aihero.dev/skills-grill-with-docs) |
+| A durable architecture decision, written into `GLOSSARY.md` and ADRs | [grill-with-docs](https://aihero.dev/skills-grill-with-docs) |
 | To find out whether an approach works in your codebase | [prototype](https://aihero.dev/skills-prototype) |
 | A plan too big to hold in one session | [wayfinder](https://aihero.dev/skills-wayfinder) |
 

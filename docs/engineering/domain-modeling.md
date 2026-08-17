@@ -2,11 +2,11 @@
 
 `domain-modeling` builds and sharpens a project's **ubiquitous language** while you are designing — challenging a term that conflicts with the glossary, forcing a precise word where you used a vague one, and stress-testing a relationship with a concrete scenario until the boundaries are exact.
 
-It is the **active** discipline, not the passive one. Reading `CONTEXT.md` to borrow its vocabulary is a one-line habit any skill can do; this skill is for when you are *changing* the model. That is what makes it interrupt. It writes a resolved term into `CONTEXT.md` at the moment it is resolved, in the middle of the conversation, rather than producing a tidy glossary at the end — because the batched version is a summary of a [session](https://www.aihero.dev/ai-coding-dictionary/session), and the inline version is the session's actual output.
+It is the **active** discipline, not the passive one. Reading `GLOSSARY.md` to borrow its vocabulary is a one-line habit any skill can do; this skill is for when you are *changing* the model. That is what makes it interrupt. It writes a resolved term into `GLOSSARY.md` at the moment it is resolved, in the middle of the conversation, rather than producing a tidy glossary at the end — because the batched version is a summary of a [session](https://www.aihero.dev/ai-coding-dictionary/session), and the inline version is the session's actual output.
 
 ## When to reach for it
 
-Type `/domain-modeling`, or the agent reaches for it automatically when a task fits. In practice, automatic invocation is the weakest part of the skill: when `grill-with-docs` or `wayfinder` say to load it, [models](https://www.aihero.dev/ai-coding-dictionary/model) frequently load `grilling` and skip this one. If a [grilling](https://www.aihero.dev/ai-coding-dictionary/grilling) session runs and `CONTEXT.md` is untouched at the end, that is what happened — invoke it by name alongside the other skill.
+Type `/domain-modeling`, or the agent reaches for it automatically when a task fits. In practice, automatic invocation is the weakest part of the skill: when `grill-with-docs` or `wayfinder` say to load it, [models](https://www.aihero.dev/ai-coding-dictionary/model) frequently load `grilling` and skip this one. If a [grilling](https://www.aihero.dev/ai-coding-dictionary/grilling) session runs and `GLOSSARY.md` is untouched at the end, that is what happened — invoke it by name alongside the other skill.
 
 Reach for it when the *words* are the problem:
 
@@ -17,13 +17,13 @@ Reach for it when the *words* are the problem:
 | You just made a hard-to-reverse architectural choice | `domain-modeling` — it offers an ADR, if the choice clears the bar |
 | The module's *shape* is the problem — where the seam goes, how deep the interface is | [codebase-design](https://aihero.dev/skills-codebase-design) |
 | You want the whole plan interrogated before you build | [grill-with-docs](https://aihero.dev/skills-grill-with-docs), which drives this skill underneath |
-| You want a term looked up, not changed | Nothing. Read `CONTEXT.md`. It is a file. |
+| You want a term looked up, not changed | Nothing. Read `GLOSSARY.md`. It is a file. |
 
 ## Prerequisites
 
 None up front. The skill writes into two places and creates both lazily:
 
-- **`CONTEXT.md`** at the repo root, created by the first resolved term. In a repo with a `CONTEXT-MAP.md` at the root, terms go into the per-context `CONTEXT.md` the map points at instead.
+- **`GLOSSARY.md`** at the repo root, created by the first resolved term. In a repo with a `GLOSSARY-MAP.md` at the root, terms go into the per-context `GLOSSARY.md` the map points at instead.
 - **`docs/adr/`**, created by the first ADR that clears the bar.
 
 Nothing needs to exist before you start, and nothing is created speculatively.
@@ -32,7 +32,7 @@ Nothing needs to exist before you start, and nothing is created speculatively.
 
 The glossary and the ADR are held to different standards, and conflating them is where most of the trouble in this skill comes from.
 
-| | `CONTEXT.md` | `docs/adr/NNNN-slug.md` |
+| | `GLOSSARY.md` | `docs/adr/NNNN-slug.md` |
 | --- | --- | --- |
 | Holds | Terms. What a thing **is**, in one or two sentences, with rejected synonyms under `_Avoid_` | One decision, in one to three sentences: context, choice, reason |
 | Bar to write | A vague term became canonical | **All three**: hard to reverse, surprising without context, the result of a real trade-off |
@@ -41,27 +41,27 @@ The glossary and the ADR are held to different standards, and conflating them is
 
 Miss any one of the ADR's three tests and there is no ADR. An easily-reversed decision will just get reversed; an unsurprising one is nobody's question; one with no real alternative records that you did the obvious thing.
 
-The `CONTEXT.md` rule is the one to actually hold onto, because it is the one that breaks in the field. **It is a glossary and nothing else.** Left unchecked, models treat "write to `CONTEXT.md`" as permission to persist every answer you give, and the file turns into a running spec — this is the most-reported problem with the skill, across several models.
+The `GLOSSARY.md` rule is the one to actually hold onto, because it is the one that breaks in the field. **It is a glossary and nothing else.** Left unchecked, models treat "write to `GLOSSARY.md`" as permission to persist every answer you give, and the file turns into a running spec — this is the most-reported problem with the skill, across several models.
 
 ## Cross-referencing, and where it stops
 
 The move that makes the skill click: when you state how something works, it checks the code and surfaces the contradiction. *"Your code cancels entire Orders, but you just said partial cancellation is possible — which is right?"* The language and the code are made to agree, out loud, before either is changed.
 
-The limit is worth knowing. It cross-references **code** and the committed `CONTEXT.md`/ADRs, and nothing else. It does not search your issue tracker, so a naming collision that was argued out and deliberately settled in a closed issue months ago gets surfaced as if it were new. There is [an open request](https://github.com/mattpocock/skills/issues/717) to fix this; until then, the workaround is to put the instruction in your own `docs/agents/domain.md`, which the skills already read.
+The limit is worth knowing. It cross-references **code** and the committed `GLOSSARY.md`/ADRs, and nothing else. It does not search your issue tracker, so a naming collision that was argued out and deliberately settled in a closed issue months ago gets surfaced as if it were new. There is [an open request](https://github.com/mattpocock/skills/issues/717) to fix this; until then, the workaround is to put the instruction in your own `docs/agents/domain.md`, which the skills already read.
 
 ## Common questions
 
-**My `CONTEXT.md` is 500 lines. 1,000. 3,000. What do I do?**
-The size is a symptom, not the disease — the file has absorbed implementation detail and decisions that were never glossary material. The fix is a direct instruction: `/grill-with-docs make my CONTEXT.md more concise and remove any implementation details from it`. Run it against a bloated file and most of it goes. Only reach for a `CONTEXT-MAP.md` split once the file is genuinely lean and still covers two domains that a reader would not want to hold at once; splitting a bloated file just gives you several bloated files. The skill's guidance here is not yet strong enough to prevent the growth in the first place, and the issue tracking that is still open.
+**My `GLOSSARY.md` is 500 lines. 1,000. 3,000. What do I do?**
+The size is a symptom, not the disease — the file has absorbed implementation detail and decisions that were never glossary material. The fix is a direct instruction: `/grill-with-docs make my GLOSSARY.md more concise and remove any implementation details from it`. Run it against a bloated file and most of it goes. Only reach for a `GLOSSARY-MAP.md` split once the file is genuinely lean and still covers two domains that a reader would not want to hold at once; splitting a bloated file just gives you several bloated files. The skill's guidance here is not yet strong enough to prevent the growth in the first place, and the issue tracking that is still open.
 
-**Why is it `CONTEXT.md` and not `GLOSSARY.md`?**
-This is the most-argued naming question in the whole skill set and it has no settled answer. The case against the current name is good: if it is "a glossary and nothing else", `GLOSSARY.md` says so, and — as one reader put it — "with ai agents everything is [context](https://www.aihero.dev/ai-coding-dictionary/context)". The case for it is the map: `CONTEXT-MAP.md` pointing at several `CONTEXT.md` files reads naturally in a way `GLOSSARY-MAP.md` does not, and `context` is the standing DDD word for a bounded area of the model. At least one person maintains a local fork purely to rename the file. You can do the same, but every other skill in the set looks for `CONTEXT.md`, so a rename means patching all of them.
+**Why is it `GLOSSARY.md` and not `CONTEXT.md`?**
+It used to be `CONTEXT.md`, and this was the most-argued naming question in the whole skill set. The case against the old name was good: if it is "a glossary and nothing else", `GLOSSARY.md` says so, and — as one reader put it — "with ai agents everything is [context](https://www.aihero.dev/ai-coding-dictionary/context)". The case for `CONTEXT.md` was the map: `CONTEXT-MAP.md` pointing at several `CONTEXT.md` files read naturally in a way `GLOSSARY-MAP.md`/`GLOSSARY.md` doesn't quite, and `context` is the standing DDD word for a bounded area of the model. The naming case eventually won out over the map's cadence, and every skill in the set that reads or writes the file was repointed to `GLOSSARY.md`/`GLOSSARY-MAP.md` in the same change. If you have an older repo with a `CONTEXT.md` from before the rename, `git mv` it to `GLOSSARY.md` (and `CONTEXT-MAP.md` to `GLOSSARY-MAP.md`, if present) — the skills only look for the new names.
 
 **Where did `/ubiquitous-language` go?**
 It was removed, and it was not deprecated. Its job moved into `domain-modeling`, which maintains the whole model continuously rather than dumping a glossary out of one conversation. Vocabulary enforcement got more load-bearing, not less — it now runs underneath grilling, triage and mapping rather than as a separate pass you remember to do.
 
 **How do I get a glossary for a codebase that has none?**
-Ask for it explicitly rather than waiting for it to accumulate. `/grill-with-docs help me scaffold my existing repo with a CONTEXT.md` is the documented route; expect a long interrogation — one user reported 50+ questions before the file was in shape. Incidental use builds the glossary far too slowly on a brownfield repo.
+Ask for it explicitly rather than waiting for it to accumulate. `/grill-with-docs help me scaffold my existing repo with a GLOSSARY.md` is the documented route; expect a long interrogation — one user reported 50+ questions before the file was in shape. Incidental use builds the glossary far too slowly on a brownfield repo.
 
 **Can I keep the domain model and use my own ADR format?**
 Not cleanly today. The glossary half and the ADR half ship in one skill, so a team with an established ADR convention — different template, different location, different naming — gets instructions that conflict with its house style. The current options are to copy the skill locally and edit it, or to override the ADR conventions in your repo's own agent docs. Splitting the two apart is [an open request](https://github.com/mattpocock/skills/issues/557).
@@ -75,11 +75,11 @@ No, and there is no plan for a skill that does. A domain language you do not und
 ## It's working if
 
 - It stops you mid-sentence to ask which of two things you meant, instead of picking one and moving on.
-- `CONTEXT.md` changes **during** the conversation, not in a burst at the end.
+- `GLOSSARY.md` changes **during** the conversation, not in a burst at the end.
 - It refuses to write an ADR for something you could undo tomorrow — and says which of the three tests failed.
 - New entries define what a thing *is* in one or two sentences and name the words you are giving up under `_Avoid_`.
 - It quotes your code back at you when your code and your sentence disagree.
-- `CONTEXT.md` gets shorter as often as it gets longer.
+- `GLOSSARY.md` gets shorter as often as it gets longer.
 
 ## Where it fits
 
