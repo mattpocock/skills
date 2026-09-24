@@ -18,7 +18,8 @@ Reach for it on the hard ones: a bug that resists a first look, an intermittent 
 | A raw bug report from someone else, not yet confirmed or written up | [triage](https://aihero.dev/skills-triage) first |
 | Throwaway code to answer a design question, not chase a defect | [prototype](https://aihero.dev/skills-prototype) |
 | Building a planned behaviour test-first | [tdd](https://aihero.dev/skills-tdd) |
-| No good seam exists to lock the bug down | [improve-codebase-architecture](https://aihero.dev/skills-improve-codebase-architecture): this skill hands off there itself |
+| Asking what would have prevented the bug, once it is fixed | [retro](https://aihero.dev/skills-retro), run in the same session |
+| No good seam exists to lock the bug down | [improve-codebase-architecture](https://aihero.dev/skills-improve-codebase-architecture), which you start yourself |
 
 ## The tight loop is the skill
 
@@ -51,7 +52,7 @@ The phases are gates, not a checklist. Each one refuses to open until something 
 | Into Phase 5 | Probes map to a specific prediction, one variable at a time, every debug log tagged `[DEBUG-a4f2]`-style so cleanup is one grep |
 | Done | Original repro no longer reproduces, instrumentation gone, and the hypothesis that turned out correct is written into the commit message |
 
-Phase 5 has an escape hatch worth knowing about. The regression test is written before the fix, but only if a **correct seam** exists for it: one where the test exercises the real bug pattern as it occurs at the call site. Where the only available seam is too shallow, the skill is told to say so rather than write a test that gives false confidence. That absence is itself the finding, and it is what routes the post-mortem to `improve-codebase-architecture`.
+Phase 5 has an escape hatch worth knowing about. The regression test is written before the fix, but only if a **correct seam** exists for it: one where the test exercises the real bug pattern as it occurs at the call site. Where the only available seam is too shallow, the skill is told to say so rather than write a test that gives false confidence. That absence is itself the finding, and the skill records it rather than papering over it.
 
 ## Common questions
 
@@ -90,4 +91,4 @@ Renamed to `/diagnosing-bugs` in v1.0.0. The old name no longer exists. Anything
 
 `diagnosing-bugs` is a reach-for-it-anytime standalone. You drop into it when something is broken and drop out when the fix and its regression test are in; it holds no state and needs no prior setup. [ask-matt](https://aihero.dev/skills-ask-matt) routes "Something's broken" here.
 
-Two neighbours matter. [improve-codebase-architecture](https://aihero.dev/skills-improve-codebase-architecture) takes the [handoff](https://www.aihero.dev/ai-coding-dictionary/handoff) when the real finding is that the code has no seam to lock the bug down; the recommendation is made after the fix is in, when there is more information. [triage](https://aihero.dev/skills-triage) sits upstream of it for bugs that arrive as raw reports from other people, and does a shallower version of the same first two phases.
+Two neighbours matter. [retro](https://aihero.dev/skills-retro) comes after it: once the fix is in, run it in the same session to ask what would have prevented the bug, when there is more information than at the start. The skill never makes that call itself, because `retro` is user-invoked. [triage](https://aihero.dev/skills-triage) sits upstream of it for bugs that arrive as raw reports from other people, and does a shallower version of the same first two phases.
