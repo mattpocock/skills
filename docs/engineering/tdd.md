@@ -88,7 +88,7 @@ No. Run against one ticket, it will happily propose work that belongs to a sibli
 `tdd` is the engine inside the build step of the main chain, rather than a step of its own:
 
 ```txt
-grill-with-docs → to-spec → to-tickets → implement → code-review
+grill-with-docs → to-spec → to-tickets → implement → code-review → retro
 ```
 
 [to-spec](https://aihero.dev/skills-to-spec) agrees the test seams up front, [implement](https://aihero.dev/skills-implement) drives `tdd` per ticket, and [code-review](https://aihero.dev/skills-code-review) checks afterwards that only the agreed seams were used, and owns the refactoring `tdd` no longer does. Its other neighbour is [codebase-design](https://aihero.dev/skills-codebase-design), the shared source of the seam and deep-module vocabulary `tdd` speaks. You can also reach for it on its own, whenever there is a concrete behaviour to build and no full spec in play. When you are unsure which skill fits your situation, [ask-matt](https://aihero.dev/skills-ask-matt) routes you.

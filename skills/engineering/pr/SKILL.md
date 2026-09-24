@@ -34,7 +34,7 @@ Use this template for writing the PR body:
 
 ## Sections
 
-Skip all preambles and keep prose brief. Use the user's domain language from `CONTEXT.md`.
+Skip all preambles and keep prose brief. Use the user's domain language from `GLOSSARY.md`.
 
 ### Summary
 
@@ -62,9 +62,11 @@ submitForm
 
 - Show UI structure as a component tree, including state and module boundaries that matter:
 
-```tsx
-<SessionPage>(apps / example / src / routes / session.tsx);
-useSessionEvents() < SessionToolbar > <RunSkillButton>(packages / ui);
+```text
+<SessionPage> (apps/example/src/routes/session.tsx)
+  useSessionEvents()
+  <SessionToolbar>
+    <RunSkillButton> (packages/ui)
 ```
 
 - Show file responsibility or a broad refactor as a shallow file tree:

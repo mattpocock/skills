@@ -85,9 +85,11 @@ No. It diffs `<fixed-point>...HEAD`, three-dot, which is measured from the merge
 
 ## Where it fits
 
-`code-review` is the review step at the tail of the build chain: `grill-with-docs → to-spec → to-tickets → implement → code-review`. It also stands alone on any branch or PR you point it at.
+`code-review` is the review step near the tail of the build chain: `grill-with-docs → to-spec → to-tickets → implement → code-review → retro`. It also stands alone on any branch or PR you point it at.
 
-- [implement](https://aihero.dev/skills-implement) is the closest neighbour: it drives the build and calls this skill as its own closing review before committing.
+- [implement](https://aihero.dev/skills-implement) is the closest neighbour: it drives the build and calls this skill as its own closing review before committing. [implement-spec](https://aihero.dev/skills-implement-spec) does the same once, over the whole integration branch.
+- [retro](https://aihero.dev/skills-retro) comes after it and tunes it: when a session shows the review missing a class of mistake, `retro` proposes the check or the `CODING_STANDARDS.md` rule the Standards axis then reads.
+- [pr](https://aihero.dev/skills-pr) writes the pull request body once the reviewed work goes up.
 - [to-spec](https://aihero.dev/skills-to-spec) and [to-tickets](https://aihero.dev/skills-to-tickets) produce the document the Spec axis checks against; a vague spec makes that axis vague.
 - [improve-codebase-architecture](https://aihero.dev/skills-improve-codebase-architecture) is the whole-codebase counterpart: this skill only ever looks at one diff.
 

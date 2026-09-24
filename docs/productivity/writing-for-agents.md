@@ -67,4 +67,4 @@ No. Finding the word that packs the most behaviour into the fewest [tokens](http
 
 ## Where it fits
 
-This is a reach-for-it-anytime standalone reference. It has no neighbour in the chain because it sits underneath the whole set rather than beside any one skill: every skill here was written against it, and the documents the other skills leave behind (a `CONTEXT.md` and its ADRs, a spec, a ticket) are exactly the text it governs once an agent has to read them. When you're unsure which skill or flow fits a task, [ask-matt](https://aihero.dev/skills-ask-matt) routes you over the whole set.
+This is a reach-for-it-anytime standalone reference. It sits underneath the whole set rather than beside any one skill: every skill here was written against it, and the documents the other skills leave behind (a `GLOSSARY.md` and its ADRs, a spec, a ticket) are exactly the text it governs once an agent has to read them. Its one direct caller is [retro](https://aihero.dev/skills-retro), which loads it before proposing any steering file or skill. When you're unsure which skill or flow fits a task, [ask-matt](https://aihero.dev/skills-ask-matt) routes you over the whole set.

@@ -1,3 +1,5 @@
+> **Archived.** This skill was removed from the plugin in v1.3.0 and is no longer maintained. Nothing replaces it: the agent works through a merge or rebase conflict without a dedicated skill. The page stays up for reference.
+
 ## What it does
 
 `resolving-merge-conflicts` works through an in-progress git merge or rebase, hunk by hunk, then runs the project's own checks and finishes the operation with a commit.

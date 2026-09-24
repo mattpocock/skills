@@ -24,11 +24,12 @@ The tracker-dependent routes (triage, `to-spec`, `to-tickets`, `implement`) assu
 
 ## Flows, not skills
 
-The word the skill gives you to think with is **flow**: a path *through* the skills, not a single one. Naming your situation places you on a flow at a step, which is a different answer from "here is the skill that matches your keywords". Four kinds of route exist, and the skill itself carries them in full:
+The word the skill gives you to think with is **flow**: a path *through* the skills, not a single one. Naming your situation places you on a flow at a step, which is a different answer from "here is the skill that matches your keywords". Five kinds of route exist, and the skill itself carries them in full:
 
-- **The main flow**, idea to ship. Grill, spec, tickets, implement, review, with two branches inside it: a prototype detour when a question needs runnable code to settle, and the spec-and-tickets split, which only earns its cost when the build spans more than one session.
+- **The main flow**, idea to ship. Grill, spec, tickets, implement (one ticket at a time, or the whole task graph in parallel with [implement-spec](https://aihero.dev/skills-implement-spec)), review, then [retro](https://aihero.dev/skills-retro), which feeds what the build taught back into the agent's environment. Two branches sit inside it: a prototype detour when a question needs runnable code to settle, and the spec-and-tickets split, which only earns its cost when the build spans more than one session.
 - **On-ramps**, for a situation that generates work and then merges onto the main flow: incoming bug reports, something broken, or an effort too foggy and too large to hold in one session.
-- **Standalones**, off every flow, reached for on their own terms: the prototype, the questionnaire, the merge conflict you are already sitting in.
+- **Codebase health**, upkeep rather than feature work: [improve-codebase-architecture](https://aihero.dev/skills-improve-codebase-architecture) surveys the code for deepening opportunities, and each one it finds re-enters the main flow as an idea.
+- **Standalones**, off every flow, reached for on their own terms: the prototype, the questionnaire, the research run.
 - **A vocabulary layer underneath**, the two references the other skills pull in when the words rather than the process are the problem.
 
 ## The phase boundary
@@ -49,11 +50,11 @@ Two of those are routinely got wrong, which is why the router carries the order 
 
 **Isn't there just a list of the skills in the right order?**
 
-People keep asking for one in the README. This skill is that list: it is what it exists for. A static table would say `wayfinder → to-spec → to-tickets → implement → code-review` and be wrong for most situations, because the interesting parts are the branches: is there a codebase, does the build span sessions, can this question be settled by talking. The honest cost is that the router is hand-maintained and lags the repo. `/grilling` and `/resolving-merge-conflicts` both shipped long before the router named them.
+People keep asking for one in the README. This skill is that list: it is what it exists for. A static table would say `wayfinder → to-spec → to-tickets → implement → code-review → retro` and be wrong for most situations, because the interesting parts are the branches: is there a codebase, does the build span sessions, can this question be settled by talking. The honest cost is that the router is hand-maintained and lags the repo. `/grilling` shipped long before the router named it.
 
 **It told me half the skills aren't installed.**
 
-A known bug, unfixed. Most of the skills the router routes you through set `disable-model-invocation: true`, which means the harness leaves them out of the skill list it injects into the agent's context. The agent reads that list as exhaustive and reports them missing. One reported session had it declare the whole spec-and-tickets flow absent and reroute to bare `/grilling` and `/tdd`. Thirteen of the plugin's twenty-two skills carry the flag, so this is the common case rather than an edge. They are installed. Type the slash command anyway, or check `.claude-plugin/plugin.json`, which is the authority on what is present.
+A known bug, unfixed. Most of the skills the router routes you through set `disable-model-invocation: true`, which means the harness leaves them out of the skill list it injects into the agent's context. The agent reads that list as exhaustive and reports them missing. One reported session had it declare the whole spec-and-tickets flow absent and reroute to bare `/grilling` and `/tdd`. Sixteen of the plugin's twenty-seven skills carry the flag, so this is the common case rather than an edge. They are installed. Type the slash command anyway, or check `.claude-plugin/plugin.json`, which is the authority on what is present.
 
 **It described a skill's behaviour, and the skill doesn't do that.**
 
