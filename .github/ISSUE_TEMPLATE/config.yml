@@ -1,0 +1,14 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Question or "how do I...?"
+    url: https://github.com/mattpocock/skills/discussions/categories/q-a
+    about: Ask in Q&A. Issues are for bugs and changes to existing skills only.
+  - name: New skill idea, or a skill you want to donate
+    url: https://github.com/mattpocock/skills/discussions/categories/ideas
+    about: Post it in Ideas. New skills do not start as issues.
+  - name: Support for another harness or issue tracker
+    url: https://github.com/mattpocock/skills/discussions/categories/ideas
+    about: Post it in Ideas. Read the out-of-scope notes first, most trackers are already ruled out.
+  - name: Is my request out of scope?
+    url: https://github.com/mattpocock/skills/tree/main/.out-of-scope
+    about: Requests this repo has already decided not to take, and why.

@@ -1,0 +1,40 @@
+name: Change to an existing skill
+description: Change how an existing skill behaves. One change per issue.
+labels: [enhancement, needs-triage]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        New skills, questions, and other harnesses or issue trackers go to [Discussions](https://github.com/mattpocock/skills/discussions), not here. See [CONTRIBUTING.md](https://github.com/mattpocock/skills/blob/main/CONTRIBUTING.md).
+  - type: input
+    id: skill
+    attributes:
+      label: Skill
+      description: The skill name, e.g. `grill-me`.
+    validations:
+      required: true
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What went wrong in a real session, in a few sentences. Not a spec.
+    validations:
+      required: true
+  - type: textarea
+    id: change
+    attributes:
+      label: Proposed change
+      description: The smallest change that fixes it.
+    validations:
+      required: true
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Checks
+      options:
+        - label: This issue is about one problem.
+          required: true
+        - label: I searched open and closed issues for a duplicate.
+          required: true
+        - label: I read the [out-of-scope notes](https://github.com/mattpocock/skills/tree/main/.out-of-scope) and this is not one of them.
+          required: true

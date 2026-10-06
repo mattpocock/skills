@@ -1,0 +1,59 @@
+name: Bug
+description: A skill does the wrong thing. One bug per issue.
+labels: [bug, needs-triage]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Keep it short and put the repro first. If an agent wrote this for you, cut it down to the repro before you post. See [CONTRIBUTING.md](https://github.com/mattpocock/skills/blob/main/CONTRIBUTING.md).
+  - type: input
+    id: skill
+    attributes:
+      label: Skill
+      description: The skill name, e.g. `to-tickets`.
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Version or commit
+      description: The plugin version, or the commit SHA you installed from. Many bugs are already fixed on `main`.
+      placeholder: 1.3.1, or 4588b32
+    validations:
+      required: true
+  - type: input
+    id: harness
+    attributes:
+      label: Harness and model
+      placeholder: Claude Code 2.x, Opus
+  - type: textarea
+    id: repro
+    attributes:
+      label: Steps to reproduce
+      description: The smallest steps that show the bug.
+      placeholder: |
+        1. Run `/to-tickets` on ...
+        2. ...
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual
+    validations:
+      required: true
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Checks
+      options:
+        - label: This issue is about one problem.
+          required: true
+        - label: I searched open and closed issues for a duplicate.
+          required: true
