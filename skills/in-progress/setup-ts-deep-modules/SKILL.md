@@ -38,7 +38,7 @@ Layering (which packages may depend on which) is a *different* concern and is le
 
 ### 1. Detect the environment
 
-- **Package manager**: `pnpm-lock.yaml` → pnpm, `yarn.lock` → yarn, `bun.lockb` → bun, else npm. Use it for every command below (`pnpm`/`yarn`/`npm run`/`bunx`).
+- **Package manager**: `pnpm-lock.yaml` → pnpm, `yarn.lock` → yarn, `bun.lock` or `bun.lockb` → bun, else npm. Use it for every command below (`pnpm`/`yarn`/`npm run`/`bunx`).
 - **Packages root**: if `src/` exists use `src/packages`, else `packages`. Confirm the choice with the user if the repo already has a different obvious convention.
 - **Existing config**: check for a `.dependency-cruiser.*` file. If one exists, do **not** overwrite it: merge the four rules and the options in, and tell the user what you added.
 
@@ -58,7 +58,7 @@ Copy [`dependency-cruiser.config.cjs`](./dependency-cruiser.config.cjs) to the r
 
 ### 4. Wire it into the checks
 
-- Add a `lint:boundaries` script: `depcruise <packages-root>` (or `depcruise src`).
+- Add a `lint:boundaries` script that scans the packages **and** the app code importing them: `depcruise src`, or every such source root if code lives outside `src/`. A scan of `<packages-root>` alone never sees app imports.
 - Fold it into the repo's umbrella check command, the one that already runs typecheck (e.g. a `check` / `ci` / `validate` script). Do **not** touch `tsconfig` or add path aliases.
 - If there is no umbrella script, add `lint:boundaries` and tell the user to include it in CI.
 
@@ -83,8 +83,10 @@ This is the completion criterion for the whole skill: a config that doesn't fail
 1. Run `lint:boundaries`. It must **pass** on the clean example.
 2. Temporarily add a deep import to `tests/example.test.ts` (e.g. `import { thing } from "../lib/impl"`). Run `lint:boundaries` again; it must **fail** with `tests-through-entrypoints`.
 3. Revert the deep import. Run once more, and it must **pass**.
+4. Temporarily add an app file outside `<packages-root>` (e.g. `src/boundary-probe.ts`) that imports `<packages-root>/example/lib/impl`. Run `lint:boundaries`; it must **fail** with `entrypoint-boundary-from-app`.
+5. Delete the probe file. Run once more, and it must **pass**.
 
-**Done when:** you have observed a pass, then a fail on the deep import, then a pass again. If step 2 does not fail, the rules are not wired correctly, so fix before finishing.
+**Done when:** you have observed a pass, a fail on each deep import, and a pass after each revert. If either deep import does not fail, the rules are not wired correctly, so fix before finishing.
 
 ### 7. Document the convention
 
