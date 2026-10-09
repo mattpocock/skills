@@ -88,6 +88,7 @@ There is no canonical answer, and the reported differences are large. Users repo
 - Opening a fresh session in the folder and saying "next lesson" continues the course instead of restarting it.
 - `learning-records/` grows, and lessons stop re-teaching what you have already demonstrated.
 - The lessons look like one course: they link the stylesheet in `assets/` rather than each carrying its own.
+- Quizzes respond when you click: each lesson loads the scripts it uses from `assets/` with a `<script src>` tag.
 - A question that needs judgement gets you pointed at a forum, subreddit or class, not just an answer.
 
 ## Where it fits
