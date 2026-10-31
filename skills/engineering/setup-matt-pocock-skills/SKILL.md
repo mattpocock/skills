@@ -105,7 +105,7 @@ Include the `### Triage labels` sub-block, and write `docs/agents/triage-labels.
 
 When Section B ran on GitHub or GitLab, create each configured label the tracker lacks (`gh label create` / `glab label create`).
 
-Then write the docs files using the seed templates in this skill folder as a starting point:
+Then write the docs files by copying the seed templates in this skill folder word for word, changing only what the user's answers fill in:
 
 - [issue-tracker-github.md](./issue-tracker-github.md): GitHub issue tracker
 - [issue-tracker-gitlab.md](./issue-tracker-gitlab.md): GitLab issue tracker
