@@ -48,7 +48,7 @@ The wiki is a historical record. It never claims to describe how things are now,
 
 ## Procedures
 
-Some procedures you run live in other skills, installed beside this one. To run one, read its `SKILL.md` at the path below (relative to this file) and follow it.
+Some procedures you run live in other skills, installed beside this one. To run one, read its `SKILL.md` at the path below, relative to this skill's directory, and follow it.
 
 - **Retro** (`../retro/SKILL.md`): proactively look for **retro opportunities**: a subagent that failed or went off course, a user correction, a chunk of work that just landed. Run a retro on it and bring the candidates to the user.
 - **Large chunks of work**: write a spec with `../to-spec/SKILL.md`, break it into tickets with `../to-tickets/SKILL.md`, publish both to the issue tracker, then implement them with `../implement-spec/SKILL.md`.
