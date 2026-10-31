@@ -66,6 +66,8 @@ Lessons are built from reusable **components**, stored in `./assets/`: styleshee
 
 Reuse is the default, not the exception. Before authoring a lesson, read `./assets/` and build from the components already there. When a lesson needs something new and reusable, write it as a component in `./assets/` and link to it; never inline code a future lesson would duplicate.
 
+Every lesson that uses a component includes its tag: `<link>` for a stylesheet, `<script src>` for a script (a quiz widget's JS, say).
+
 A shared stylesheet is the first component every workspace earns: every lesson links it, so the lessons look like one consistent course rather than a pile of one-offs. As the workspace grows, so should the component library.
 
 ## The Mission
