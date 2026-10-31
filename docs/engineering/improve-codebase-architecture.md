@@ -23,7 +23,7 @@ Where it is confusable with siblings:
 
 - To design one module you have already chosen, use [codebase-design](https://aihero.dev/skills-codebase-design). This skill finds the module to work on, and `codebase-design` is where you design it.
 - For a whole effort too big to hold in one session, use [wayfinder](https://aihero.dev/skills-wayfinder).
-- For "this specific thing is broken," use [diagnosing-bugs](https://aihero.dev/skills-diagnosing-bugs). It sends you back here when the real finding is that there is no good seam to lock the bug down.
+- For "this specific thing is broken," use [diagnosing-bugs](https://aihero.dev/skills-diagnosing-bugs).
 
 ## Prerequisites
 

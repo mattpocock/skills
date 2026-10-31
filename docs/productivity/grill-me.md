@@ -36,13 +36,6 @@ Some questions can be answered by talking. Others can't, and no amount of grilli
 
 Sessions grow too long when you try to talk through an ungrillable question. The agent keeps rephrasing, you keep guessing, and the scope grows with the uncertainty.
 
-## It's working if
-
-- You disagree with something. A session with no pushback from you is a session you didn't need.
-- Questions arrive in a few rounds, not one at a time for a long time, and later rounds clearly build on what you said earlier.
-- You end up somewhere you didn't expect, because a question showed you a decision you had been making without noticing.
-- At the end you could defend each choice to someone who wasn't there.
-
 ## Common questions
 
 **How many questions should I expect, and how do I know when it ends?**
@@ -66,6 +59,13 @@ No. The value of the session is the [context](https://www.aihero.dev/ai-coding-d
 
 **Does the model matter?**
 More than for most skills. Grilling depends on the [model](https://www.aihero.dev/ai-coding-dictionary/model)'s own knowledge of how systems break, so use your best one. Implementation mostly follows context, so a cheaper model is fine there.
+
+## It's working if
+
+- You disagree with something. A session with no pushback from you is a session you didn't need.
+- Questions arrive in a few rounds, not one at a time for a long time, and later rounds clearly build on what you said earlier.
+- You end up somewhere you didn't expect, because a question showed you a decision you had been making without noticing.
+- At the end you could defend each choice to someone who wasn't there.
 
 ## Where it fits
 
