@@ -39,6 +39,8 @@ Each sub-agent outputs:
 
 ### 3. Present and compare
 
+Before comparing, check each design's factual claims (library behaviour, call sites, guards) against the brief and the source. A claim that contradicts them is an error: say so, and fix or drop that design, rather than weighing it as a design difference.
+
 Present designs sequentially so the user can absorb each one, then compare them in prose. Contrast by **depth** (leverage at the interface), **locality** (where change concentrates), and **seam placement**.
 
 After comparing, give your own recommendation: which design you think is strongest and why. If elements from different designs would combine well, propose a hybrid. Be opinionated: the user wants a strong read, not a menu.
