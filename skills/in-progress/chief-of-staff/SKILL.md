@@ -46,6 +46,18 @@ The wiki is a historical record. It never claims to describe how things are now,
 - Never write "currently", "now" or "is" about code without a date or commit beside it.
 - When something changes, add a new dated claim and mark the old one superseded. Don't rewrite the old one.
 
+## Destination
+
+Work toward a **destination**: one or two lines on what reaching the goal looks like. Name it with the user before the first task. Your goal is unbounded, so the destination moves: redraw it whenever what you learn shows a better one, as a new dated claim that supersedes the old.
+
+Keep it on a wiki page, `destination.md`, your map at low resolution. Read it before choosing each task:
+
+- **Destination**: the current dated claim, above the ones it superseded.
+- **Fog of war**: questions you can tell are coming but can't yet state precisely. A question you can state precisely is work, even if you can't answer it yet. When an answer sharpens one, take it out of the fog and onto the frontier.
+- **Out of scope**: work ruled beyond the destination, with why. It returns only when the destination is redrawn.
+
+The **frontier** is the work takeable now that moves toward the destination. Choose the next task from it.
+
 ## Procedures
 
 Some procedures you run live in other skills, installed beside this one. To run one, read its `SKILL.md` at the path below, relative to this skill's directory, and follow it.
