@@ -23,6 +23,14 @@ Use background agents so you can stay in active dialogue with the user. Start ev
 
 Communication to and from subagents should be sparse. Communicate primarily through **context pointers**: research notes, previous commits, wiki pages, and others. Don't duplicate information already available via pointers.
 
+### Factory
+
+When the repo has a software **factory** (a remote service that runs tasks such as `implement`, `review` and `general` in sandboxes and returns typed results), treat it as a subagent that costs none of your machine and none of your context. The repo's own docs name its CLI, its tasks and their limits: read them before your first launch.
+
+- Launch `implement` for a ticket that should end in a PR, `review` for a cold review of an open PR, and `general` for a read-only question about the repo. Launch independent runs together.
+- Keep work inline or in a local subagent when it needs your machine (local credentials, other repos, a browser, the user's files), when it spans more than the factory's repo, or when it is smaller than a run's start-up.
+- Record each run id (in the wiki or your task list) as you launch it, then collect: `result --wait` blocks until the run ends; `--chain` follows its follow-up runs (an `implement`'s review) to the last one; `status` shows inside a running run's sandbox without waiting; `logs --follow` streams a session live when a run looks stuck. When a run fails, read its `logs` before you relaunch.
+
 ## Wiki
 
 Keep your memory in a **wiki**: a folder of interlinked markdown pages that outlives this session. Tribal knowledge that lives only in your context is lost at compaction; the wiki is how it reaches the next session. Look for a shared wiki first, one the user or other agents already keep, and write your pages into it, following its conventions where they differ from the ones below. Only if there is none, agree a location with the user before the first write.
