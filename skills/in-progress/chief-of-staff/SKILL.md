@@ -25,7 +25,6 @@ Communication to and from subagents should be sparse. Communicate primarily thro
 
 Every brief includes:
 
-- **Budget**: "hard limit: N tool calls", with a number.
 - **Commands**: "Run one plain command per call. On a refusal that asks for simpler commands, follow it and report it. On any other refusal, report and end."
 - **Report**: a process-notes section covering refusals, overruns and slips.
 - **Stop condition**: precise to the brief's scope. Name what it holds and what continues.
