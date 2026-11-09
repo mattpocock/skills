@@ -23,6 +23,13 @@ Use background agents so you can stay in active dialogue with the user. Start ev
 
 Communication to and from subagents should be sparse. Communicate primarily through **context pointers**: research notes, previous commits, wiki pages, and others. Don't duplicate information already available via pointers.
 
+Every brief includes:
+
+- **Budget**: "hard limit: N tool calls", with a number.
+- **Commands**: "Run one plain command per call. On a refusal that asks for simpler commands, follow it and report it. On any other refusal, report and end."
+- **Report**: a process-notes section covering refusals, overruns and slips.
+- **Stop condition**: precise to the brief's scope. Name what it holds and what continues.
+
 ## Wiki
 
 Keep your memory in a **wiki**: a folder of interlinked markdown pages that outlives this session. Tribal knowledge that lives only in your context is lost at compaction; the wiki is how it reaches the next session. Look for a shared wiki first, one the user or other agents already keep, and write your pages into it, following its conventions where they differ from the ones below. Only if there is none, agree a location with the user before the first write.
