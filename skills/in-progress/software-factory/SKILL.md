@@ -10,7 +10,7 @@ A **software factory** is a system of agents that turns tickets, PRs and schedul
 
 **Task**:
 A kind of work the factory performs, defined once and run many times: review, explore, implement, ratchet. A task may work on a ticket, a PR, or the codebase as a whole.
-_Avoid_: job, workflow, action
+_Avoid_: job, workflow, action, as names for the task. A CI vendor's workflow file and its jobs are where a task is wired up, not the task.
 
 **Trigger**:
 The event that starts a run: a change in the ticket tracker or git host, a clock in the orchestrator, or another run.
