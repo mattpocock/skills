@@ -9,11 +9,13 @@ concurrency: ${{ github.workflow }}-${{ github.ref }}
 
 jobs:
   release:
-    name: Version
+    name: Version and publish
     runs-on: ubuntu-latest
     permissions:
       contents: write
       pull-requests: write
+      # npm trusted publishing (OIDC): no NPM_TOKEN secret, provenance included.
+      id-token: write
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -21,16 +23,20 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: 24
+
+      # Trusted publishing needs npm >= 11.5.1.
+      - name: Upgrade npm
+        run: npm install -g npm@^11.5.1
 
       - name: Install dependencies
         run: npm ci
 
-      - name: Create Version Pull Request
+      - name: Create Version Pull Request or publish to npm
         uses: changesets/action@v1
         with:
           version: npm run version
-          publish: npx changeset tag
+          publish: npx changeset publish
           commit: "chore: version skills"
           title: "chore: version skills"
         env:
