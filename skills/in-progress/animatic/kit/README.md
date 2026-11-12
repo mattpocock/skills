@@ -1,0 +1,89 @@
+# The frame kit
+
+```
+house.css         the contract: fonts, colours, sizes, every class below
+editor.html       a code editor: file tree, tabs, a diff, a squiggle, an error
+terminal.html     a shell: a test run that fails
+claude-code.html  a Claude Code session: prompt, reply, tool calls, input box
+browser.html      dark chrome, a light docs page
+title-card.html   a title card: kicker, headline, one supporting line
+diagram.html      boxes, arrows, one lit box, a hand-written aside
+```
+
+**The stylesheet is the contract. The markup is not.** The `.html` files are examples, not templates. Copy the one nearest your moment, throw away the half you do not need, and add what the moment really shows: a real screen has a sidebar open, a diff, two panes or an error.
+
+## Class index
+
+Read this for a name. Open `house.css` only for a value.
+
+```
+FRAME     .frame            outermost element: exactly 1920x1080, overflow CUT
+          .frame--center    one centred thing (title card, diagram), 96px gutter
+          .frame--full      one window filling the frame, no padding
+          .frame--inset     one window floating on the ground, 64px padding
+WINDOW    .window           a window (border + shadow inside .frame--inset)
+          .titlebar .title  its top bar and title text
+          .lights           the three window buttons: <div class="lights"><i></i><i></i><i></i></div>
+          .panes            sidebar + main side by side
+          .sidebar          left panel; .sidebar-heading its caps label
+          .tree             a file tree <ul>; <li> takes .dir .indent .indent-2
+                            .active .added .modified
+          .main             the main pane beside a sidebar
+          .tabs .tab        editor tabs; .tab.active, .tab .dot (unsaved)
+          .statusbar        bottom bar; .spacer pushes right, .bad .good colour
+CODE      .code             code block (a <div>, never <pre>), 30px, numbered
+          .code--lg         code at 34px
+          .l.fold           skipped lines (⋯, no number); give the next line
+                            style="counter-set: line N-1" to number it N
+          .l                one code line (numbered); .l.here the line to look at
+          .code--spotlight  on the BLOCK: dims every .l except .l.here
+          .l.add .l.del     diff lines, green / red
+          .l.bare           a line with no number (wrap, inline error)
+          .squiggle         red wavy underline on the wrong thing
+          .diagnostic       inline editor error text
+TOKENS    .t-com .t-punc .t-key .t-storage .t-op .t-str .t-num .t-fn .t-type
+          .t-class .t-prop .t-var .t-const .t-tag .t-attr   (vitesse-dark)
+TERMINAL  .terminal         terminal body (never <pre>), 30px
+          .cmd              a command line; "$ " is generated
+          .out              an output line
+          .blank            an empty line
+          .ok .bad .warn .info .cyan .yellow .magenta .faint   word colours
+          .caret            the block cursor (usable anywhere)
+CLAUDE    .terminal.cc      a Claude Code session; each line one element:
+ CODE     .you              a prompt the user typed ("> ", raised plate)
+          .say              the agent's reply ("● ")
+          .tool             a collapsed tool call ("● " green); name in <b>
+          .result           its one-line result ("└ ")
+          .spin             the working line ("✻ …"), amber
+          .input .hint      the input box ("> ") and the line under it
+          code              inline code in a reply, blue
+BROWSER   .browserbar       the bar above a page; .nav-buttons, .urlbar
+                            (.lock .host inside it)
+          .page             the LIGHT page inside; styles h1 h2 p code,
+                            .lede (bigger first paragraph), .signature (code box)
+CARD      .card             title plate, amber bar on the left
+          .kicker           small amber caps above the headline
+          .headline         104px title; .rule the amber bar under it
+          .subhead          the supporting line
+DIAGRAM   .diagram          a centred row of nodes and arrows
+          .node             a box; .node-title .node-sub inside;
+                            .node.lit the one box, .node.muted pulled back
+          .arrow            an arrow glyph; .label a hand-written word on it
+          .annotation       a hand-written amber aside, tilted
+SHARED    .caption          a strip along the bottom (a label, never the line)
+          .spot             prose words to look at (the inline twin of .here)
+          .overline         a small caps heading above a diagram or panes
+          .split            two panes side by side, 2px rule between
+```
+
+## Writing a frame
+
+1. Copy `house.css` into the frames folder once, and each example you start from beside it. Pages link `./house.css` relative to themselves.
+2. Keep `class="frame"` as the outermost element. It pins the page to 1920x1080 and CUTS whatever does not fit, so overflow shows in the PNG instead of hiding. `render` warns on every cut box.
+3. Put **real** content on it: the real code, the real output, the real names. A frame of placeholder boxes cannot be judged for density.
+4. **One line of code or output is one element on one source line.** `.l`, `.cmd` and `.out` keep their whitespace, so a line break inside one is a line break in the frame.
+5. **Highlighting is hand-written**: wrap each token in a `t-` span. Nothing runs at capture time.
+
+## Sizes
+
+28px is the smallest type that carries meaning; code is 30px. Chrome (title bars, tabs, the file tree) is smaller on purpose, because nobody reads it. If a frame will not fit at those sizes, it holds too much: split the moment in two rather than shrinking the type.
