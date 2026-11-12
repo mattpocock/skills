@@ -7,7 +7,7 @@ terminal.html     a shell: a test run that fails
 claude-code.html  a Claude Code session: prompt, reply, tool calls, input box
 browser.html      dark chrome, a light docs page
 title-card.html   a title card: kicker, headline, one supporting line
-diagram.html      boxes, arrows, one lit box, a hand-written aside
+diagram.html      boxes, arrows, one lit box, an aside
 ```
 
 **The stylesheet is the contract. The markup is not.** The `.html` files are examples, not templates. Copy the one nearest your moment, throw away the half you do not need, and add what the moment really shows: a real screen has a sidebar open, a diff, two panes or an error.
@@ -54,22 +54,22 @@ CLAUDE    .terminal.cc      a Claude Code session; each line one element:
           .say              the agent's reply ("● ")
           .tool             a collapsed tool call ("● " green); name in <b>
           .result           its one-line result ("└ ")
-          .spin             the working line ("✻ …"), amber
+          .spin             the working line ("✻ …"), orange
           .input .hint      the input box ("> ") and the line under it
           code              inline code in a reply, blue
 BROWSER   .browserbar       the bar above a page; .nav-buttons, .urlbar
                             (.lock .host inside it)
           .page             the LIGHT page inside; styles h1 h2 p code,
                             .lede (bigger first paragraph), .signature (code box)
-CARD      .card             title plate, amber bar on the left
-          .kicker           small amber caps above the headline
-          .headline         104px title; .rule the amber bar under it
+CARD      .card             a plain title plate
+          .kicker           small grey caps above the headline
+          .headline         104px title; .rule the short accent bar under it
           .subhead          the supporting line
 DIAGRAM   .diagram          a centred row of nodes and arrows
           .node             a box; .node-title .node-sub inside;
                             .node.lit the one box, .node.muted pulled back
-          .arrow            an arrow glyph; .label a hand-written word on it
-          .annotation       a hand-written amber aside, tilted
+          .arrow            an arrow glyph; .label an italic word on it
+          .annotation       an italic aside in the soft accent
 SHARED    .caption          a strip along the bottom (a label, never the line)
           .spot             prose words to look at (the inline twin of .here)
           .overline         a small caps heading above a diagram or panes

@@ -7,13 +7,13 @@
  * named here, so a frame that only uses these reads as one consistent screen
  * without anyone deciding anything.
  *
- * THE PALETTE.
- *   - A near-black ground #101011, white headings, #D6D3D1 (stone-300) body
- *     copy, and one accent: amber #FBBF24 / #FDE68A.
- *   - DM Sans for prose, Fira Code for code, Shantell Sans for anything
- *     hand-written (a label on an arrow, an aside).
+ * THE PALETTE. Plain and neutral, so it suits anyone's project.
+ *   - A near-black ground, white headings, neutral grey body copy, and one
+ *     accent, a quiet blue, kept for the one thing a frame lights.
+ *   - The system's own sans-serif and monospace faces. Nothing is fetched,
+ *     so a frame renders the same offline and never waits on a webfont.
  *   - Every editor, terminal and code-token colour is Shiki's vitesse-dark.
- *     Its editor background #121212 sits one step off the ground #101011 on
+ *     Its editor background #121212 sits one step off the ground #0f0f0f on
  *     purpose, so a window reads as a window against the ground.
  *
  * SIZE. A frame is exactly 1920x1080 at DPR 1 and is watched on a laptop, or
@@ -23,26 +23,24 @@
  * moment in two rather than shrinking it.
  */
 
-@import url("https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&family=Fira+Code:wght@300..700&family=Shantell+Sans:ital,wght@0,300..800;1,300..800&display=swap");
-
 :root {
   /* Ground and panels */
-  --ground: #101011;
+  --ground: #0f0f0f;
   --window: #121212;
-  --window-raised: #181818;
-  --line: #191919;
-  --plate: #1c1917;
+  --window-raised: #1a1a1a;
+  --line: #222222;
+  --plate: #1a1a1a;
 
   /* Text */
   --text: #ffffff;
-  --body: #d6d3d1;
+  --body: #d4d4d4;
   --code-text: #dbd7ca;
-  --dim: #959da5;
-  --faint: #6b6b6b;
+  --dim: #9ca3af;
+  --faint: #6b7280;
 
-  /* Brand accent */
-  --accent: #fbbf24;
-  --accent-soft: #fde68a;
+  /* The one accent: what a frame lights */
+  --accent: #60a5fa;
+  --accent-soft: #bfdbfe;
 
   /* States, from vitesse-dark's gutter + ansi set */
   --ok: #4d9375;
@@ -54,9 +52,8 @@
   --magenta: #d9739f;
 
   /* Type */
-  --sans: "DM Sans", ui-sans-serif, system-ui, sans-serif;
-  --mono: "Fira Code", ui-monospace, "SF Mono", Menlo, monospace;
-  --hand: "Shantell Sans", ui-sans-serif, system-ui, sans-serif;
+  --sans: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --mono: ui-monospace, "SF Mono", Menlo, Consolas, "DejaVu Sans Mono", "Liberation Mono", monospace;
 
   /* Spacing. The 96px gutter frames a centred card or diagram. */
   --gutter: 96px;
@@ -549,8 +546,8 @@ body {
  *   .say     the agent's reply text ("● ")
  *   .tool    a collapsed tool call ("● ", green); wrap the name in <b>
  *   .result  a tool call's one-line result ("└ ", under the call; Claude
- *            Code draws "⎿", which Fira Code does not have)
- *   .spin    the working line ("✻ Thinking…"), amber
+ *            Code draws "⎿", which many monospace faces lack)
+ *   .spin    the working line ("✻ Thinking…"), orange
  *   .input   the input box at the bottom; .hint the line under it
  */
 .cc .you,
@@ -602,7 +599,7 @@ body {
   color: var(--faint);
 }
 .cc .spin {
-  color: var(--accent);
+  color: var(--warn);
 }
 .cc code {
   font-family: inherit;
@@ -736,26 +733,24 @@ body {
 /* --------------------------------------------------------------------- */
 
 /*
- * A title card, scaled up to fill a frame: the amber bar down
- * the left edge, barely-rounded left corners so the bar reads as a straight
- * line, white title, stone-300 supporting line.
+ * A title card, scaled up to fill a frame: a plain plate, a small grey
+ * kicker, a white title, a short accent rule and one supporting line.
  */
 .card {
   min-width: 1200px;
   max-width: 1500px;
   padding: 72px 88px;
-  border-radius: 8px 28px 28px 8px;
-  border-left: 14px solid var(--accent-soft);
+  border-radius: 20px;
+  border: 1px solid var(--line);
   background: var(--plate);
-  box-shadow: 0 20px 48px rgba(28, 25, 23, 0.45);
 }
 
 .kicker {
   font-size: 28px;
   font-weight: 600;
-  letter-spacing: 0.16em;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: var(--accent);
+  color: var(--dim);
   margin-bottom: 28px;
 }
 
@@ -840,17 +835,16 @@ body {
   line-height: 1;
 }
 .arrow .label {
-  font-family: var(--hand);
-  font-size: 32px;
+  font-size: 30px;
+  font-style: italic;
   color: var(--dim);
 }
 
-/* A hand-written aside, in the hand face. */
+/* An aside on a diagram: italic, in the soft accent. */
 .annotation {
-  font-family: var(--hand);
-  font-size: 42px;
+  font-size: 40px;
+  font-style: italic;
   color: var(--accent-soft);
-  transform: rotate(-2deg);
 }
 
 /* --------------------------------------------------------------------- */

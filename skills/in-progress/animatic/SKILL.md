@@ -7,7 +7,8 @@ An **animatic** is a run of **moments**, each one still frame and one spoken lin
 
 ```
 frame   HTML page -> PNG     Playwright (Chromium)
-voice   line -> speech       Kokoro, a local model: free, no API key
+voice   line -> speech       the machine's built-in voice (macOS say, Windows SAPI,
+                             espeak-ng); Kokoro, a local model, where there is none
 stitch  PNG + speech -> MP4  ffmpeg
 ```
 
@@ -17,11 +18,11 @@ stitch  PNG + speech -> MP4  ffmpeg
 
 **The user's tools win.** If the user names a tool for any stage, that tool is the stage, even when the default is installed and would work. If it fails, show the error and ask; switching to the default is the user's call.
 
-- A text-to-speech engine or voice of their own, or Kokoro will not install: read [`TTS.md`](TTS.md).
+- A text-to-speech engine or voice of their own, or a different voice from the one setup picked: read [`TTS.md`](TTS.md).
 - Images they already have, another renderer, or a visual style of their own: read [`IMAGES.md`](IMAGES.md).
 - Their own stitcher or editor: run `build` with the defaults for a draft, then hand them `build/timeline.json` (each moment's start, length, line and frame) with the PNGs and the voice files in `build/`.
 
-Run setup once per machine, even when the user brings every tool: the contact sheet in step 5 is drawn with Playwright. It needs Node 18+ and ffmpeg on `PATH`, and installs Playwright and Kokoro into `~/.cache/animatic`:
+Run setup once per machine, even when the user brings every tool: the contact sheet in step 5 is drawn with Playwright. It needs Node 18+ and ffmpeg on `PATH`, installs Playwright into `~/.cache/animatic`, and prints the voice it will use: the machine's own, or Kokoro (installed then) where it has none.
 
 ```
 node <skill>/scripts/animatic.mjs setup
@@ -84,7 +85,7 @@ First read every `"say"` the way the voice will: literally. Spell out each ident
 node <skill>/scripts/animatic.mjs build storyboard.json -o animatic.mp4 --sheet sheet.png
 ```
 
-`build` renders, redraws the sheet so it matches the video, voices and stitches in one go, and prints the timeline: each moment's length and line, then the total. It warns on any moment over 15 seconds: split that line in two, on one held or revealed frame. Speech is cached per line, so after a revision only the changed lines are voiced again. Give it a ten-minute timeout: the first run downloads the voice model.
+`build` renders, redraws the sheet so it matches the video, voices and stitches in one go, and prints the timeline: each moment's length and line, then the total. It warns on any moment over 15 seconds: split that line in two, on one held or revealed frame. Speech is cached per line, so after a revision only the changed lines are voiced again. Give it a ten-minute timeout: a long storyboard takes a while to voice.
 
 ## 7. Verify the video
 

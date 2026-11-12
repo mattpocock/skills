@@ -1,11 +1,11 @@
 #!/usr/bin/env node
 // The default animatic pipeline: HTML frames -> PNG (Playwright), lines ->
-// speech (Kokoro, local), PNG + speech -> MP4 (ffmpeg).
+// speech (the machine's built-in voice, else Kokoro), PNG + speech -> MP4 (ffmpeg).
 //
-//   node animatic.mjs setup
+//   node animatic.mjs setup [--engine kokoro]
 //   node animatic.mjs estimate <storyboard.json> [--target 150]
 //   node animatic.mjs render <storyboard.json> [--sheet <sheet.png>] [--only 3,4]
-//   node animatic.mjs speak  <storyboard.json> [--voice af_heart] [--tts-command "<cmd>"]
+//   node animatic.mjs speak  <storyboard.json> [--engine say|sapi|espeak-ng|espeak|kokoro] [--voice <name>] [--tts-command "<cmd>"]
 //   node animatic.mjs stitch <storyboard.json> [-o animatic.mp4] [--gap 0.3]
 //   node animatic.mjs build  <storyboard.json> [all of the above]
 //
@@ -33,7 +33,7 @@ const HOME = process.env.ANIMATIC_HOME ?? path.join(os.homedir(), ".cache", "ani
 const WIDTH = 1920;
 const HEIGHT = 1080;
 const FPS = 30;
-const DEFAULT_VOICE = "af_heart";
+const KOKORO_VOICE = "af_heart";
 const KOKORO_MODEL = "onnx-community/Kokoro-82M-v1.0-ONNX";
 
 const die = (message) => {
@@ -43,9 +43,14 @@ const die = (message) => {
 
 // ---------------------------------------------------------------- arguments
 
-const [verb, storyboardArg, ...rest] = process.argv.slice(2);
+const [verb, ...rest] = process.argv.slice(2);
 const flags = {};
+let storyboardArg;
 for (let i = 0; i < rest.length; i++) {
+  if (!rest[i].startsWith("-")) {
+    storyboardArg ??= rest[i];
+    continue;
+  }
   const key = rest[i].replace(/^-+/, "");
   const next = rest[i + 1];
   if (next === undefined || next.startsWith("-")) flags[key] = true;
@@ -79,9 +84,12 @@ const setup = () => {
     const r = spawnSync(cmd, args, { cwd: HOME, stdio: "inherit", shell: process.platform === "win32" });
     if (r.status !== 0) die(`${cmd} failed`);
   };
-  run("npm", ["install", "--no-fund", "--no-audit", "playwright", "kokoro-js"]);
+  // Kokoro is installed only where the machine has no voice of its own.
+  const engine = engineName();
+  run("npm", ["install", "--no-fund", "--no-audit", "playwright", ...(engine === "kokoro" ? ["kokoro-js"] : [])]);
   run("npx", ["playwright", "install", "chromium"]);
-  console.log(`\nReady. Dependencies are in ${HOME}.`);
+  console.log(`\nvoice: ${ENGINES[engine]}`);
+  console.log(`Ready. Dependencies are in ${HOME}.`);
 };
 
 // ---------------------------------------------------------------- storyboard
@@ -194,16 +202,83 @@ const sheet = async (browser, moments, out) => {
 // the lines it changed.
 const voiceFile = (build, m, key) => path.join(build, "voice", createHash("sha1").update(`${key}\n${m.say}`).digest("hex").slice(0, 16) + ".wav");
 
+// The machine's own voice first; Kokoro only where there is none.
+const isWSL = () => process.platform === "linux" && /microsoft/i.test(fs.readFileSync("/proc/version", "utf8"));
+const onPath = (bin) =>
+  process.platform === "win32"
+    ? spawnSync("where", [bin], { stdio: "ignore" }).status === 0
+    : spawnSync("sh", ["-c", `command -v ${bin}`], { stdio: "ignore" }).status === 0;
+
+const detectEngine = () => {
+  if (process.platform === "darwin" && onPath("say")) return "say";
+  if (process.platform === "win32") return "sapi";
+  if (isWSL() && onPath("powershell.exe")) return "sapi";
+  if (onPath("espeak-ng")) return "espeak-ng";
+  if (onPath("espeak")) return "espeak";
+  return "kokoro";
+};
+
+const ENGINES = {
+  say: "macOS built-in voice (say)",
+  sapi: "Windows built-in voice (SAPI, via PowerShell)",
+  "espeak-ng": "espeak-ng",
+  espeak: "espeak",
+  kokoro: "Kokoro, a local model (no built-in voice found)",
+};
+
+const engineName = () => {
+  const e = String(flags.engine ?? detectEngine());
+  if (!ENGINES[e]) die(`unknown --engine ${e}; use one of ${Object.keys(ENGINES).join(", ")}, or --tts-command`);
+  return e;
+};
+
+const ttsKey = () => (flags["tts-command"] ? `cmd:${flags["tts-command"]}` : `${engineName()}:${flags.voice ?? ""}`);
+
+// One line through a built-in engine: text in a file, audio out at base.<ext>.
+const speakBuiltIn = (engine, text, base) => {
+  const voice = flags.voice === undefined ? undefined : String(flags.voice);
+  const txt = `${base}.txt`;
+  fs.writeFileSync(txt, text);
+  let out;
+  if (engine === "say") {
+    out = `${base}.aiff`;
+    execFileSync("say", [...(voice ? ["-v", voice] : []), "-o", out, "-f", txt]);
+  } else if (engine === "espeak-ng" || engine === "espeak") {
+    out = `${base}.wav`;
+    execFileSync(engine, [...(voice ? ["-v", voice] : []), "-w", out, "-f", txt]);
+  } else if (engine === "sapi") {
+    out = `${base}.wav`;
+    const win = (p) => (isWSL() ? execFileSync("wslpath", ["-w", p]).toString().trim() : p);
+    const q = (s) => `'${s.replace(/'/g, "''")}'`;
+    const script = [
+      "Add-Type -AssemblyName System.Speech",
+      "$s = New-Object System.Speech.Synthesis.SpeechSynthesizer",
+      voice ? `$s.SelectVoice(${q(voice)})` : "",
+      `$s.SetOutputToWaveFile(${q(win(out))})`,
+      `$s.Speak([IO.File]::ReadAllText(${q(win(txt))}))`,
+      "$s.Dispose()",
+    ].filter(Boolean).join("; ");
+    execFileSync(process.platform === "win32" ? "powershell" : "powershell.exe", ["-NoProfile", "-NonInteractive", "-Command", script]);
+  }
+  fs.rmSync(txt);
+  return out;
+};
+
 const speak = async ({ build, moments }) => {
   const todo = moments.filter((m) => m.say !== undefined && !m.audio);
   const command = flags["tts-command"];
-  const voice = String(flags.voice ?? DEFAULT_VOICE);
-  const key = command ? `cmd:${command}` : `kokoro:${voice}`;
+  const engine = command ? null : engineName();
+  const key = ttsKey();
+  if (todo.length) console.log(`voice: ${command ? `your command (${command})` : ENGINES[engine]}`);
   let tts;
   for (const m of todo) {
     m.audio = voiceFile(build, m, key);
     if (fs.existsSync(m.audio)) continue;
-    if (command) {
+    if (engine && engine !== "kokoro") {
+      const raw = speakBuiltIn(engine, m.say, m.audio.replace(/\.wav$/, ".src"));
+      execFileSync("ffmpeg", ["-y", "-v", "error", "-i", raw, "-ar", "48000", "-ac", "1", m.audio]);
+      fs.rmSync(raw);
+    } else if (command) {
       // Any engine: the line arrives on stdin and as {text}. {out} is a path
       // with no extension: the command writes {out}.wav, {out}.mp3, {out}.aiff,
       // whatever its tool produces, and it is converted to WAV here.
@@ -224,7 +299,7 @@ const speak = async ({ build, moments }) => {
         console.log("loading Kokoro (the first run downloads ~90MB)...");
         tts = await KokoroTTS.from_pretrained(KOKORO_MODEL, { dtype: "q8", device: "cpu" });
       }
-      const audio = await tts.generate(m.say, { voice });
+      const audio = await tts.generate(m.say, { voice: String(flags.voice ?? KOKORO_VOICE) });
       await audio.save(m.audio);
     }
     console.log(`voiced ${m.n} (${duration(m.audio).toFixed(2)}s)`);
@@ -240,8 +315,7 @@ const stitch = ({ dir, build, moments }) => {
   const gap = Number(flags.gap ?? 0.3);
   const out = path.resolve(String(flags.o ?? flags.out ?? path.join(dir, "animatic.mp4")));
   // speak() fills m.audio for spoken lines; when stitching alone, find the cache.
-  const command = flags["tts-command"];
-  const key = command ? `cmd:${command}` : `kokoro:${String(flags.voice ?? DEFAULT_VOICE)}`;
+  const key = ttsKey();
   const inputs = [];
   const filters = [];
   const timeline = [];

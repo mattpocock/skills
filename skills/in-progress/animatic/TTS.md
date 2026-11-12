@@ -1,16 +1,30 @@
 # Another voice
 
-The default is Kokoro-82M, run locally on the CPU through `kokoro-js`: free, no key, no network after its first download, faster than real time. Change its voice with `--voice` on `speak` or `build`. American: `af_heart` (the default), `af_bella`, `af_nicole`, `am_michael`, `am_fenrir`, `am_puck`. British: `bf_emma`, `bf_isabella`, `bm_george`, `bm_fable`.
+## The default: the machine's own voice
+
+`speak` and `build` pick the first engine the machine already has, and `setup` prints which:
+
+```
+say        macOS built-in            --voice Samantha, Daniel ... (say -v '?' lists them)
+sapi       Windows built-in, also    --voice "Microsoft Zira Desktop" ... (the name, in full)
+           from WSL via powershell.exe
+espeak-ng  Linux, if installed       --voice en-gb, en-us ...
+espeak     Linux, if installed
+kokoro     none of the above         --voice af_heart (default), af_bella, am_michael,
+                                      bf_emma, bm_george ...
+```
+
+Kokoro-82M is a local model run on the CPU: free, no key, faster than real time, and the best-sounding of the five. Setup installs it (about 90MB on first use) only on a machine with no voice of its own. To use it anyway, pass `--engine kokoro` to `setup` once, then to `speak` or `build`. `--engine` picks any engine in the table by name; `spd-say` cannot write a file, so it is not one.
+
+Pass the same `--engine` and `--voice` to `stitch` if you run it on its own, so it finds the cached speech.
 
 ## The engine the user names is the engine you use
 
-Plug it in with `--tts-command`, on `speak` or `build`. The script runs the command once per line through the shell:
+An engine not in the table plugs in with `--tts-command`, on `speak` or `build`. The script runs the command once per line through the shell:
 
 - The line arrives on **stdin**, and as `{text}`, already shell-quoted. A command uses one or the other.
 - `{out}` is a path **with no extension**. The command writes `{out}.wav`, `{out}.mp3`, `{out}.aiff` or whatever its tool produces; the script converts it.
 - Speech is cached per line and per command string, so changing the command re-voices everything.
-
-Pass the same `--tts-command` to `stitch` if you run it on its own, so it finds the cached speech.
 
 Test the command on one line by hand before the whole run. If it fails, show the user the error and ask: the default is a fallback only when they say so.
 
@@ -19,14 +33,8 @@ Test the command on one line by hand before the whole run. If it fails, show the
 Swap in the voice the user names. Free and local:
 
 ```
-# macOS built-in
---tts-command 'say -v Samantha -o {out}.aiff {text}'
-
 # Piper (pip install piper-tts; download a voice .onnx first)
 --tts-command 'piper --model ~/voices/en_US-lessac-medium.onnx --output_file {out}.wav'
-
-# espeak-ng (apt install espeak-ng): robotic, but it runs anywhere
---tts-command 'espeak-ng -w {out}.wav {text}'
 ```
 
 Free and online (Microsoft's Edge read-aloud service, no key):
