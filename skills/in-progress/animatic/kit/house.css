@@ -366,10 +366,14 @@ body {
 .code .l.add::before {
   color: var(--ok);
 }
+/* A removed line is not in the new file, so it takes no number: the lines
+ * around it keep the new file's real numbering. Its gutter shows a minus. */
 .code .l.del {
   background: rgba(203, 118, 118, 0.16);
+  counter-increment: none;
 }
 .code .l.del::before {
+  content: "\2212";
   color: var(--error);
 }
 /* A line with no number: a wrapped continuation, or an inline error. */
@@ -737,7 +741,8 @@ body {
  * line, white title, stone-300 supporting line.
  */
 .card {
-  max-width: 1400px;
+  min-width: 1200px;
+  max-width: 1500px;
   padding: 72px 88px;
   border-radius: 8px 28px 28px 8px;
   border-left: 14px solid var(--accent-soft);

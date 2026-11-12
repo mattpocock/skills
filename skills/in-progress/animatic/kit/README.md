@@ -37,7 +37,7 @@ CODE      .code             code block (a <div>, never <pre>), 30px, numbered
                             style="counter-set: line N-1" to number it N
           .l                one code line (numbered); .l.here the line to look at
           .code--spotlight  on the BLOCK: dims every .l except .l.here
-          .l.add .l.del     diff lines, green / red
+          .l.add .l.del     diff lines, green / red; .l.del takes no number (−)
           .l.bare           a line with no number (wrap, inline error)
           .squiggle         red wavy underline on the wrong thing
           .diagnostic       inline editor error text

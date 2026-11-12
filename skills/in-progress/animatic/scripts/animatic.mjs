@@ -3,6 +3,7 @@
 // speech (Kokoro, local), PNG + speech -> MP4 (ffmpeg).
 //
 //   node animatic.mjs setup
+//   node animatic.mjs estimate <storyboard.json> [--target 150]
 //   node animatic.mjs render <storyboard.json> [--sheet <sheet.png>] [--only 3,4]
 //   node animatic.mjs speak  <storyboard.json> [--voice af_heart] [--tts-command "<cmd>"]
 //   node animatic.mjs stitch <storyboard.json> [-o animatic.mp4] [--gap 0.3]
@@ -276,6 +277,33 @@ const stitch = ({ dir, build, moments }) => {
   if (mb > 10) console.warn("WARN over 10MB: GitHub's free-plan upload limit for videos in comments and PR bodies");
 };
 
+// ---------------------------------------------------------------- estimate
+
+// The run time a storyboard's lines will take, before any frame or voice
+// exists: words / 2.5 per second, plus the gap per moment. Frame paths are
+// not checked, so a plan can be estimated before its frames are written.
+function estimate() {
+  if (!storyboardArg) die("usage: animatic.mjs estimate <storyboard.json> [--target <seconds>]");
+  let entries;
+  try {
+    entries = JSON.parse(fs.readFileSync(path.resolve(storyboardArg), "utf8"));
+  } catch (e) {
+    die(`cannot read ${storyboardArg}: ${e.message}`);
+  }
+  const gap = Number(flags.gap ?? 0.3);
+  let total = 0;
+  entries.forEach((e, i) => {
+    const words = (e.say ?? e.note ?? "").split(/\s+/).filter(Boolean).length;
+    const seconds = e.seconds ?? words / 2.5 + gap;
+    total += seconds;
+    console.log(`${String(i + 1).padStart(3)}  ~${seconds.toFixed(1).padStart(4)}s  ${(e.say ?? e.note ?? "(silent)").slice(0, 80)}`);
+    if (seconds > 15.5) console.warn(`WARN ${i + 1}: ~${seconds.toFixed(1)}s on one frame; split it`);
+  });
+  console.log(`\n${entries.length} moments, about ${Math.round(total)}s`);
+  const target = flags.target === undefined ? undefined : Number(flags.target);
+  if (target !== undefined && total > target) console.warn(`WARN over the ${target}s target by about ${Math.round(total - target)}s: cut moments before you write frames`);
+}
+
 // ---------------------------------------------------------------- main
 
 const verbs = {
@@ -283,6 +311,7 @@ const verbs = {
   render: async () => render(readStoryboard()),
   speak: async () => speak(readStoryboard()),
   stitch: async () => stitch(readStoryboard()),
+  estimate,
   build: async () => {
     const sb = readStoryboard();
     await render(sb);
@@ -292,7 +321,7 @@ const verbs = {
 };
 
 if (!verbs[verb]) {
-  console.log(fs.readFileSync(new URL(import.meta.url)).toString().split("\n").slice(1, 21).map((l) => l.replace(/^\/\/ ?/, "")).join("\n"));
+  console.log(fs.readFileSync(new URL(import.meta.url)).toString().split("\n").slice(1, 22).map((l) => l.replace(/^\/\/ ?/, "")).join("\n"));
   process.exit(verb ? 1 : 0);
 }
 await verbs[verb]();

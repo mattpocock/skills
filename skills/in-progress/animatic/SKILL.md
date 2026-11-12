@@ -40,7 +40,13 @@ Done when you can say in one sentence why a viewer should care, and list the ide
 
 **Read [`STYLE.md`](STYLE.md) before you plan.** Every rule in it bears on the plan. This step holds on every branch, the user's own images included.
 
-Write the plan out in your reply before you create any file, as a numbered list: each idea, the screen it is shown on, the Reveals that develop it, and each moment's line. Name a target run time (the user's, PR.md's for a PR, or 60 to 90 seconds when they say "short" or nothing), and estimate the plan's: the words across every line divided by 2.3, plus a third of a second per moment, gives seconds. Done when every moment has a screen and a line, the plan has about one Cut per idea, and the estimate is within the target. Cutting at the plan costs a sentence; cutting after `build` costs a rebuild.
+The plan is the storyboard (step 4) with its lines written and no frames yet: every moment's `"say"`, and the frame file it will use, Reveals named `03b`, `03c`. Write it first, then check it against a target run time: the user's, PR.md's for a PR, or 90 seconds when they say "short" or nothing.
+
+```
+node <skill>/scripts/animatic.mjs estimate storyboard.json --target 90
+```
+
+Done when `estimate` prints no `WARN` and the plan has about one Cut per idea. Over the target, cut moments now: a cut here costs a sentence, and a cut after `build` costs a rebuild.
 
 ## 4. Write the frames and the storyboard
 
@@ -75,10 +81,10 @@ Done when no `WARN` remains and the sheet passes the checklist.
 First read every `"say"` the way the voice will: literally. Spell out each identifier, path, number, abbreviation and typo as a person says it ("req dot ip", "four twenty-nine", "spelt L I M T").
 
 ```
-node <skill>/scripts/animatic.mjs build storyboard.json -o animatic.mp4
+node <skill>/scripts/animatic.mjs build storyboard.json -o animatic.mp4 --sheet sheet.png
 ```
 
-`build` renders, voices and stitches in one go and prints the timeline: each moment's length and line, then the total. It warns on any moment over 15 seconds: split that line in two, on one held or revealed frame. Speech is cached per line, so after a revision only the changed lines are voiced again. Give it a ten-minute timeout: the first run downloads the voice model.
+`build` renders, redraws the sheet so it matches the video, voices and stitches in one go, and prints the timeline: each moment's length and line, then the total. It warns on any moment over 15 seconds: split that line in two, on one held or revealed frame. Speech is cached per line, so after a revision only the changed lines are voiced again. Give it a ten-minute timeout: the first run downloads the voice model.
 
 ## 7. Verify the video
 
