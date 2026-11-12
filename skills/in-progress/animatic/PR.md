@@ -12,7 +12,7 @@ gh pr diff <n> --repo <owner/repo>
 - **The why comes from the primary source**: the linked issue, the spec, or the PR body's own summary, in that order. The diff says what changed, never why.
 - **The PR body is the voice.** Match how its author writes, and reuse their terms.
 - **Read the diff for the files the story needs**, not all of it. A PR touching thirty files usually turns on two or three of them.
-- **Evidence comes from the PR as written**: the test run, the command output, the before-and-after the body already shows. Never invent output. If the PR shows none, say so in the animatic rather than mocking a green test run.
+- **Evidence comes from the PR as written**: the test run, the command output, the before-and-after the body already shows. Where the PR shows none, the animatic says so.
 
 ## The arc
 
@@ -26,7 +26,7 @@ Five chapters, in this order. Each is one idea, so each is about one Cut, with R
 
 Those five are the whole arc. Anything else the PR body covers (what was left out, follow-up steps, a setup script, open questions) stays in the PR body, or takes one of chapter 5's four moments.
 
-**Size.** 60 to 150 seconds: 8 to 20 moments, 4 to 6 Cuts. A reviewer gives a PR video two minutes. Hold the plan to it before you write a frame: a plan over 20 moments is over time, so cut Reveals from chapter 4 first, then merge moments in chapter 5. Never speed up the lines to fit.
+**Size.** 60 to 150 seconds: 8 to 20 moments, 4 to 6 Cuts. A reviewer gives a PR video two minutes. A plan over 20 moments is over time: cut Reveals from chapter 4 first, then merge moments in chapter 5, and keep the voice at its own pace.
 
 ## Several PRs: a review
 
@@ -49,4 +49,4 @@ The user asks for a tour of several PRs ("the recent large PRs", "what landed th
 
 ## Hand it over
 
-GitHub plays an MP4 inline in a PR description or comment, but the `gh` CLI cannot upload one. Give the user the path, and tell them to drag the file into the PR description in the browser, where GitHub uploads it and leaves a link that renders as a player. The limit is 10MB on a free plan and 100MB on a paid one; `stitch` warns past 10MB. Never commit the MP4 to the PR's branch.
+GitHub plays an MP4 inline in a PR description or comment, but the `gh` CLI cannot upload one. Give the user the path, and tell them to drag the file into the PR description in the browser, where GitHub uploads it and leaves a link that renders as a player. The limit is 10MB on a free plan and 100MB on a paid one; `stitch` warns past 10MB. The upload is how the MP4 reaches the PR; never commit it to the PR's branch.

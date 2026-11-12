@@ -1,11 +1,9 @@
 /*
  * The house stylesheet for animatic frames.
  *
- * THIS FILE IS THE CONTRACT. The example pages beside it are not: copy one,
- * throw half of it away, add the sidebar / diff / second pane / error your
- * moment actually needs. Every colour, face and size a frame should use is
- * named here, so a frame that only uses these reads as one consistent screen
- * without anyone deciding anything.
+ * THIS FILE IS THE CONTRACT (README.md). Every colour, face and size a frame
+ * should use is named here, so a frame that only uses these reads as one
+ * consistent screen without anyone deciding anything.
  *
  * THE PALETTE. Plain and neutral, so it suits anyone's project.
  *   - A near-black ground, white headings, neutral grey body copy, and one
@@ -17,10 +15,8 @@
  *     purpose, so a window reads as a window against the ground.
  *
  * SIZE. A frame is exactly 1920x1080 at DPR 1 and is watched on a laptop, or
- * in a PR description at half that, so everything is authored large. 28px is
- * the SMALLEST type that should carry meaning on a frame; code is 30px. If a
- * frame does not fit at those sizes, the frame is holding too much: split the
- * moment in two rather than shrinking it.
+ * in a PR description at half that, so everything is authored large, to the
+ * type floor in STYLE.md.
  */
 
 :root {
@@ -293,8 +289,8 @@ body {
 /* --------------------------------------------------------------------- */
 
 /*
- * A code block. 30px / 1.6 is the floor for readability on a laptop; do not
- * reduce it to fit more lines in. Highlighting is hand-authored <span>s using
+ * A code block. 30px / 1.6 is the floor for readability on a laptop; a frame
+ * that needs more lines needs a second moment. Highlighting is hand-authored <span>s using
  * the .t-* classes below: no highlighter runs, so there is no build step and
  * nothing is fetched while the frame is captured.
  *
@@ -356,7 +352,7 @@ body {
 .code--spotlight .l.here {
   opacity: 1;
 }
-/* A diff, the commonest thing a slot-filling template would have refused. */
+/* A diff. */
 .code .l.add {
   background: rgba(77, 147, 117, 0.16);
 }

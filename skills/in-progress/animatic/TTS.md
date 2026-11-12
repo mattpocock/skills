@@ -16,19 +16,17 @@ kokoro     none of the above         --voice af_heart (default), af_bella, am_mi
 
 Kokoro-82M is a local model run on the CPU: free, no key, faster than real time, and the best-sounding of the five. Setup installs it (about 90MB on first use) only on a machine with no voice of its own. To use it anyway, pass `--engine kokoro` to `setup` once, then to `speak` or `build`. `--engine` picks any engine in the table by name; `spd-say` cannot write a file, so it is not one.
 
-Pass the same `--engine` and `--voice` to `stitch` if you run it on its own, so it finds the cached speech.
+Pass the same voice flags (`--engine`, `--voice` or `--tts-command`) to `stitch` if you run it on its own, so it finds the cached speech.
 
 Voices speak at different rates, so `setup` times a sample line in the voice in force and prints its name and words per second; `estimate` uses that rate, and every `stitch` refines it from the real run. After you switch voice or engine, run `setup` again with the same flags so the next estimate holds.
 
-## The engine the user names is the engine you use
+## Any other engine: `--tts-command`
 
-An engine not in the table plugs in with `--tts-command`, on `speak` or `build`. The script runs the command once per line through the shell:
+An engine not in the table plugs in with `--tts-command`, on `setup`, `speak` or `build`. The script runs the command once per line through the shell:
 
 - The line arrives on **stdin**, and as `{text}`, already shell-quoted. A command uses one or the other.
 - `{out}` is a path **with no extension**. The command writes `{out}.wav`, `{out}.mp3`, `{out}.aiff` or whatever its tool produces; the script converts it.
 - Speech is cached per line and per command string, so changing the command re-voices everything.
-
-Test the command on one line by hand before the whole run. If it fails, show the user the error and ask: the default is a fallback only when they say so.
 
 ## Recipes
 

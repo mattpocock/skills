@@ -10,7 +10,7 @@ title-card.html   a title card: kicker, headline, one supporting line
 diagram.html      boxes, arrows, one lit box, an aside
 ```
 
-**The stylesheet is the contract. The markup is not.** The `.html` files are examples, not templates. Copy the one nearest your moment, throw away the half you do not need, and add what the moment really shows: a real screen has a sidebar open, a diff, two panes or an error.
+**The stylesheet is the contract. The markup is free.** The `.html` files are examples to start from: copy the one nearest your moment, throw away the half it does not need, and add what the moment really shows: a real screen has a sidebar open, a diff, two panes or an error.
 
 ## Class index
 
@@ -81,10 +81,10 @@ SHARED    .caption          a strip along the bottom (a label, never the line)
 
 1. Copy `house.css` into the frames folder once, and each example you start from beside it. Pages link `./house.css` relative to themselves.
 2. Keep `class="frame"` as the outermost element. It pins the page to 1920x1080 and CUTS whatever does not fit, so overflow shows in the PNG instead of hiding. `render` warns on every cut box.
-3. Put **real** content on it: the real code, the real output, the real names. A frame of placeholder boxes cannot be judged for density.
+3. Fill it with real content (STYLE.md, "The frames").
 4. **One line of code or output is one element on one source line.** `.l`, `.cmd` and `.out` keep their whitespace, so a line break inside one is a line break in the frame.
 5. **Highlighting is hand-written**: wrap each token in a `t-` span. Nothing runs at capture time.
 
 ## Sizes
 
-28px is the smallest type that carries meaning; code is 30px. Chrome (title bars, tabs, the file tree) is smaller on purpose, because nobody reads it. If a frame will not fit at those sizes, it holds too much: split the moment in two rather than shrinking the type.
+The type floor is STYLE.md's (28px, code 30px). Chrome (title bars, tabs, the file tree) sits below it on purpose, because nobody reads it.
