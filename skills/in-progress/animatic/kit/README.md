@@ -31,10 +31,11 @@ WINDOW    .window           a window (border + shadow inside .frame--inset)
           .main             the main pane beside a sidebar
           .tabs .tab        editor tabs; .tab.active, .tab .dot (unsaved)
           .statusbar        bottom bar; .spacer pushes right, .bad .good colour
-CODE      .code             code block (a <div>, never <pre>), 30px, numbered
-          .code--lg         code at 34px
+CODE      .code             code block (a <div>, never <pre>), 30px, numbered;
+                            fits about 16 lines in a full-window editor
+          .code--lg         code at 34px; fits about 12 lines
           .l.fold           skipped lines (⋯, no number); give the next line
-                            style="counter-set: line N-1" to number it N
+                            style="counter-set: line N" to number it N
           .l                one code line (numbered); .l.here the line to look at
           .code--spotlight  on the BLOCK: dims every .l except .l.here
           .l.add .l.del     diff lines, green / red; .l.del takes no number (−)

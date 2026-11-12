@@ -71,7 +71,7 @@ const load = (name) => {
 
 const have = (bin) => spawnSync(bin, ["-version"], { stdio: "ignore" }).status === 0;
 
-const setup = () => {
+const setup = async () => {
   for (const bin of ["ffmpeg", "ffprobe"]) {
     if (!have(bin)) die(`${bin} is not on PATH. Install ffmpeg (brew install ffmpeg / apt install ffmpeg / winget install ffmpeg) and run setup again.`);
   }
@@ -88,7 +88,8 @@ const setup = () => {
   const engine = engineName();
   run("npm", ["install", "--no-fund", "--no-audit", "playwright", ...(engine === "kokoro" ? ["kokoro-js"] : [])]);
   run("npx", ["playwright", "install", "chromium"]);
-  console.log(`\nvoice: ${ENGINES[engine]}`);
+  const rate = await calibrate();
+  console.log(`\nvoice: ${voiceLabel()}, measured at ${rate.toFixed(2)} words/s`);
   console.log(`Ready. Dependencies are in ${HOME}.`);
 };
 
@@ -264,44 +265,96 @@ const speakBuiltIn = (engine, text, base) => {
   return out;
 };
 
-const speak = async ({ build, moments }) => {
-  const todo = moments.filter((m) => m.say !== undefined && !m.audio);
+let kokoro;
+
+// One line to one WAV, through whichever voice is in force.
+const synth = async (text, wav, where = "line") => {
   const command = flags["tts-command"];
   const engine = command ? null : engineName();
+  if (engine && engine !== "kokoro") {
+    const raw = speakBuiltIn(engine, text, wav.replace(/\.wav$/, ".src"));
+    execFileSync("ffmpeg", ["-y", "-v", "error", "-i", raw, "-ar", "48000", "-ac", "1", wav]);
+    fs.rmSync(raw);
+  } else if (command) {
+    // Any engine: the line arrives on stdin and as {text}. {out} is a path
+    // with no extension: the command writes {out}.wav, {out}.mp3, {out}.aiff,
+    // whatever its tool produces, and it is converted to WAV here.
+    const base = wav.replace(/\.wav$/, ".src");
+    const quoted = (s) => `'${s.replace(/'/g, `'\\''`)}'`;
+    const cmd = command.replaceAll("{out}", quoted(base)).replaceAll("{text}", quoted(text));
+    const r = spawnSync(cmd, { input: text, shell: true, stdio: ["pipe", "inherit", "inherit"] });
+    const written = fs.readdirSync(path.dirname(base)).filter((f) => f.startsWith(path.basename(base)));
+    if (r.status !== 0 || written.length === 0) die(`${where}: tts command wrote nothing at ${base}.*: ${cmd}`);
+    const raw = path.join(path.dirname(base), written[0]);
+    execFileSync("ffmpeg", ["-y", "-v", "error", "-i", raw, "-ar", "48000", "-ac", "1", wav]);
+    fs.rmSync(raw);
+  } else {
+    if (!kokoro) {
+      const kokoroDeps = createRequire(deps.resolve("kokoro-js"));
+      kokoroDeps("@huggingface/transformers").env.cacheDir = path.join(HOME, "models");
+      const { KokoroTTS } = load("kokoro-js");
+      console.log("loading Kokoro (the first run downloads ~90MB)...");
+      kokoro = await KokoroTTS.from_pretrained(KOKORO_MODEL, { dtype: "q8", device: "cpu" });
+    }
+    const audio = await kokoro.generate(text, { voice: String(flags.voice ?? KOKORO_VOICE) });
+    await audio.save(wav);
+  }
+};
+
+// The voice by name, as the user would recognise it.
+const voiceLabel = () => {
+  if (flags["tts-command"]) return `your command (${flags["tts-command"]})`;
+  const engine = engineName();
+  let name = flags.voice === undefined ? undefined : String(flags.voice);
+  if (!name && engine === "sapi") {
+    try {
+      name = execFileSync(process.platform === "win32" ? "powershell" : "powershell.exe", ["-NoProfile", "-NonInteractive", "-Command",
+        "Add-Type -AssemblyName System.Speech; (New-Object System.Speech.Synthesis.SpeechSynthesizer).Voice.Name"]).toString().trim();
+    } catch {}
+  }
+  if (!name && engine === "kokoro") name = KOKORO_VOICE;
+  return `${ENGINES[engine]}, ${name ? `voice "${name}"` : "its default voice"}`;
+};
+
+// Speaking rate per voice, in words per second, so `estimate` predicts the
+// voice actually in use. setup measures it once; every stitch refines it.
+const RATES = path.join(HOME, "rates.json");
+const DEFAULT_RATE = 2.3;
+const readRates = () => {
+  try {
+    return JSON.parse(fs.readFileSync(RATES, "utf8"));
+  } catch {
+    return {};
+  }
+};
+const saveRate = (key, rate) => {
+  fs.mkdirSync(HOME, { recursive: true });
+  fs.writeFileSync(RATES, JSON.stringify({ ...readRates(), [key]: Number(rate.toFixed(3)) }, null, 2));
+};
+const wordCount = (s) => (s ?? "").split(/\s+/).filter(Boolean).length;
+
+// Short sentences, a number and a spelled-out identifier: the shape of real
+// narration, pauses included, so the rate it gives holds for real lines.
+const SAMPLE =
+  "Here's the problem: the limiter counted requests per IP address, not per customer. Behind the load balancer every customer shared one address, so one busy client could block everyone else. The fix is in rate limit dot ts, where line four now keys on the API key instead. Two lines added, one removed, and the test called counts each key separately now passes.";
+
+const calibrate = async () => {
+  const wav = path.join(os.tmpdir(), `animatic-calibrate-${process.pid}.wav`);
+  await synth(SAMPLE, wav, "calibration");
+  const rate = wordCount(SAMPLE) / duration(wav);
+  fs.rmSync(wav);
+  saveRate(ttsKey(), rate);
+  return rate;
+};
+
+const speak = async ({ build, moments }) => {
+  const todo = moments.filter((m) => m.say !== undefined && !m.audio);
   const key = ttsKey();
-  if (todo.length) console.log(`voice: ${command ? `your command (${command})` : ENGINES[engine]}`);
-  let tts;
+  if (todo.length) console.log(`voice: ${voiceLabel()}`);
   for (const m of todo) {
     m.audio = voiceFile(build, m, key);
     if (fs.existsSync(m.audio)) continue;
-    if (engine && engine !== "kokoro") {
-      const raw = speakBuiltIn(engine, m.say, m.audio.replace(/\.wav$/, ".src"));
-      execFileSync("ffmpeg", ["-y", "-v", "error", "-i", raw, "-ar", "48000", "-ac", "1", m.audio]);
-      fs.rmSync(raw);
-    } else if (command) {
-      // Any engine: the line arrives on stdin and as {text}. {out} is a path
-      // with no extension: the command writes {out}.wav, {out}.mp3, {out}.aiff,
-      // whatever its tool produces, and it is converted to WAV here.
-      const base = m.audio.replace(/\.wav$/, ".src");
-      const quoted = (s) => `'${s.replace(/'/g, `'\\''`)}'`;
-      const cmd = command.replaceAll("{out}", quoted(base)).replaceAll("{text}", quoted(m.say));
-      const r = spawnSync(cmd, { input: m.say, shell: true, stdio: ["pipe", "inherit", "inherit"] });
-      const written = fs.readdirSync(path.dirname(base)).filter((f) => f.startsWith(path.basename(base)));
-      if (r.status !== 0 || written.length === 0) die(`entry ${m.n}: tts command wrote nothing at ${base}.*: ${cmd}`);
-      const raw = path.join(path.dirname(base), written[0]);
-      execFileSync("ffmpeg", ["-y", "-v", "error", "-i", raw, "-ar", "48000", "-ac", "1", m.audio]);
-      fs.rmSync(raw);
-    } else {
-      if (!tts) {
-        const kokoroDeps = createRequire(deps.resolve("kokoro-js"));
-        kokoroDeps("@huggingface/transformers").env.cacheDir = path.join(HOME, "models");
-        const { KokoroTTS } = load("kokoro-js");
-        console.log("loading Kokoro (the first run downloads ~90MB)...");
-        tts = await KokoroTTS.from_pretrained(KOKORO_MODEL, { dtype: "q8", device: "cpu" });
-      }
-      const audio = await tts.generate(m.say, { voice: String(flags.voice ?? KOKORO_VOICE) });
-      await audio.save(m.audio);
-    }
+    await synth(m.say, m.audio, `entry ${m.n}`);
     console.log(`voiced ${m.n} (${duration(m.audio).toFixed(2)}s)`);
   }
 };
@@ -344,6 +397,12 @@ const stitch = ({ dir, build, moments }) => {
   const r = spawnSync("ffmpeg", args, { stdio: "inherit" });
   if (r.status !== 0) die("ffmpeg failed");
   fs.writeFileSync(path.join(build, "timeline.json"), JSON.stringify(timeline, null, 2));
+  // The real speaking rate of this run sharpens the next estimate.
+  const spoken = timeline.filter((s) => s.say);
+  const speechSeconds = spoken.reduce((sum, s) => sum + s.seconds - gap, 0);
+  if (speechSeconds > 20 && !moments.some((m) => m.audio && !m.audio.startsWith(path.join(build, "voice")))) {
+    saveRate(key, spoken.reduce((sum, s) => sum + wordCount(s.say), 0) / speechSeconds);
+  }
   for (const s of timeline) console.log(`${String(s.n).padStart(3)}  ${s.seconds.toFixed(1).padStart(5)}s  ${(s.say ?? "(silent)").slice(0, 80)}`);
   const mb = fs.statSync(out).size / 1e6;
   console.log(`\n${moments.length} moments, ${t.toFixed(1)}s, ${mb.toFixed(1)}MB -> ${out}`);
@@ -354,28 +413,36 @@ const stitch = ({ dir, build, moments }) => {
 // ---------------------------------------------------------------- estimate
 
 // The run time a storyboard's lines will take, before any frame or voice
-// exists: words / 2.5 per second, plus the gap per moment. Frame paths are
-// not checked, so a plan can be estimated before its frames are written.
+// exists: words at the voice's measured rate, plus the gap per moment. Frame
+// paths are not checked, so a plan is estimated before its frames exist.
 function estimate() {
   if (!storyboardArg) die("usage: animatic.mjs estimate <storyboard.json> [--target <seconds>]");
+  const file = path.resolve(storyboardArg);
   let entries;
   try {
-    entries = JSON.parse(fs.readFileSync(path.resolve(storyboardArg), "utf8"));
+    entries = JSON.parse(fs.readFileSync(file, "utf8"));
   } catch (e) {
     die(`cannot read ${storyboardArg}: ${e.message}`);
   }
+  const measured = readRates()[ttsKey()];
+  const rate = measured ?? DEFAULT_RATE;
   const gap = Number(flags.gap ?? 0.3);
   let total = 0;
   entries.forEach((e, i) => {
-    const words = (e.say ?? e.note ?? "").split(/\s+/).filter(Boolean).length;
-    const seconds = e.seconds ?? words / 2.5 + gap;
+    const words = wordCount(e.say ?? e.note);
+    const seconds = e.seconds ?? words / rate + gap;
     total += seconds;
     console.log(`${String(i + 1).padStart(3)}  ~${seconds.toFixed(1).padStart(4)}s  ${(e.say ?? e.note ?? "(silent)").slice(0, 80)}`);
     if (seconds > 15.5) console.warn(`WARN ${i + 1}: ~${seconds.toFixed(1)}s on one frame; split it`);
   });
-  console.log(`\n${entries.length} moments, about ${Math.round(total)}s`);
+  console.log(`\n${entries.length} moments, about ${Math.round(total)}s at ${rate.toFixed(2)} words/s (${measured ? "measured for this voice" : "not measured yet: run setup"})`);
   const target = flags.target === undefined ? undefined : Number(flags.target);
-  if (target !== undefined && total > target) console.warn(`WARN over the ${target}s target by about ${Math.round(total - target)}s: cut moments before you write frames`);
+  // Within 10% of the target is a fair plan; past it, the overrun is real.
+  if (target !== undefined && total > target * 1.1) console.warn(`WARN over the ${target}s target by about ${Math.round(total - target)}s: cut moments before you write frames`);
+  else if (target !== undefined) console.log(`within the ${target}s target (10% tolerance)`);
+  const dir = path.dirname(file);
+  const early = entries.some((e) => e.html && fs.existsSync(path.resolve(dir, e.html))) || fs.existsSync(path.join(dir, "frames"));
+  if (early) console.warn("WARN frames already exist: the plan comes first. Settle the lines against the target, then write frames.");
 }
 
 // ---------------------------------------------------------------- main

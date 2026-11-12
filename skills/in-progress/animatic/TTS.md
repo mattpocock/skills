@@ -18,6 +18,8 @@ Kokoro-82M is a local model run on the CPU: free, no key, faster than real time,
 
 Pass the same `--engine` and `--voice` to `stitch` if you run it on its own, so it finds the cached speech.
 
+Voices speak at different rates, so `setup` times a sample line in the voice in force and prints its name and words per second; `estimate` uses that rate, and every `stitch` refines it from the real run. After you switch voice or engine, run `setup` again with the same flags so the next estimate holds.
+
 ## The engine the user names is the engine you use
 
 An engine not in the table plugs in with `--tts-command`, on `speak` or `build`. The script runs the command once per line through the shell:

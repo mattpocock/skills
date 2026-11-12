@@ -28,6 +28,25 @@ Those five are the whole arc. Anything else the PR body covers (what was left ou
 
 **Size.** 60 to 150 seconds: 8 to 20 moments, 4 to 6 Cuts. A reviewer gives a PR video two minutes. Hold the plan to it before you write a frame: a plan over 20 moments is over time, so cut Reveals from chapter 4 first, then merge moments in chapter 5. Never speed up the lines to fit.
 
+## Several PRs: a review
+
+The user asks for a tour of several PRs ("the recent large PRs", "what landed this week"). The viewer wants the codebase's new shape, not each PR's review.
+
+**Pick the PRs.** `gh pr list --repo <owner/repo> --state merged --limit 30 --json number,title,mergedAt,additions,deletions` and take the most recent ones whose size fits the ask. Say which you took, and why, at hand-over.
+
+**The arc**:
+
+1. **Overview**: one screen naming every PR in the tour, one line each. It Reveals one PR at a time, then lights them all as the map of the video.
+2. **One chapter per PR**, in an order that builds (a PR another depends on goes first). Each chapter has three parts, each lit on its own frame:
+   - the why
+   - the key hunk, with real line numbers
+   - the risk or the open edge
+   
+   Cut once into each chapter, and Reveal inside it.
+3. **Reading order**: a closing screen that names the files to open first, across all the PRs, lit one at a time.
+
+**Size.** Budget about 45 to 75 seconds per PR, plus about 30 for the overview and the close. With a target set, divide the time left after those 30 seconds by the PR count to get each chapter's budget. With too many PRs for the target, drop the smallest rather than thinning every chapter.
+
 ## Hand it over
 
 GitHub plays an MP4 inline in a PR description or comment, but the `gh` CLI cannot upload one. Give the user the path, and tell them to drag the file into the PR description in the browser, where GitHub uploads it and leaves a link that renders as a player. The limit is 10MB on a free plan and 100MB on a paid one; `stitch` warns past 10MB. Never commit the MP4 to the PR's branch.

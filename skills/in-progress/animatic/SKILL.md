@@ -32,7 +32,7 @@ Done when setup prints `Ready`, and each tool the user named has turned one test
 
 ## 2. Gather the source
 
-- A pull request: read [`PR.md`](PR.md) now.
+- A pull request, or a review of several: read [`PR.md`](PR.md) now.
 - Anything else: the topic, and the code, docs or notes the user points at.
 
 Done when you can say in one sentence why a viewer should care, and list the ideas in the order the viewer needs them.
@@ -47,7 +47,9 @@ The plan is the storyboard (step 4) with its lines written and no frames yet: ev
 node <skill>/scripts/animatic.mjs estimate storyboard.json --target 90
 ```
 
-Done when `estimate` prints no `WARN` and the plan has about one Cut per idea. Over the target, cut moments now: a cut here costs a sentence, and a cut after `build` costs a rebuild.
+`estimate` uses the speaking rate setup measured for this voice, and allows 10% over the target. Over that, cut moments now: a cut here costs a sentence, and a cut after `build` costs a rebuild.
+
+**This step is a gate.** Until `estimate` prints no `WARN`, write no frame: no HTML, no `frames/` folder, and no script that generates either. Done when `estimate` passes and the plan has about one Cut per idea.
 
 ## 4. Write the frames and the storyboard
 

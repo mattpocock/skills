@@ -383,7 +383,7 @@ body {
 
 /*
  * A fold: lines skipped in an excerpt. It takes no number. Put the real line
- * number back on the line after it with style="counter-set: line N-1" (that
+ * number back on the line after it with style="counter-set: line N" (that
  * line then shows N), so an excerpt keeps the file's real numbering.
  */
 .code .l.fold {

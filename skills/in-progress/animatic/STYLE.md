@@ -61,9 +61,11 @@ Read the contact sheet for these, in order:
 
 1. **Cuts.** Count the places where the next frame shares nothing with the one before. More than one per idea: fold the extra Cuts into Reveals.
 2. **Density.** A frame with more than one thing to read, or text past 50 characters: split it or cut words.
-3. **The lit thing.** Each frame lights exactly the words its line quotes.
+3. **The lit thing.** Each frame lights exactly one thing, the words its line quotes, or is an overview whose line talks about the whole frame. A line naming two things on a frame lighting one is two moments.
 4. **Line against frame.** Read each line under its tile: does the frame show what the line says, at that moment?
-5. **Cut-off edges.** Code or text clipped at the bottom or right of a tile.
+5. **Invented detail.** Every ID, argument, path, flag and number in a terminal or code frame comes from the source. A plausible-looking session ID or command argument you made up is a false claim on screen.
+6. **Fill.** Title cards and diagrams span at least half the tile's width.
+7. **Cut-off edges.** Code or text clipped at the bottom or right of a tile.
 
 ## Feedback
 
