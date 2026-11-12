@@ -6,7 +6,7 @@ Tasks grouped by the problem they solve. Each names the trigger that starts its 
 
 **Explore task**
 - Trigger: a ticket is created, or a human labels it.
-- Does: checks the ticket against the codebase and sorts it into a category (easy call, needs a human, not a bug).
+- Does: checks the ticket's claims against the codebase, reproducing them where it can, sorts it into a category (easy call, needs a human, not a bug), and leaves its findings on the ticket for the implementer. It never pushes.
 - Triggers: an implementer run for easy calls. Anything else ends with the ticket labelled as waiting for a human.
 
 ## Ready tickets wait for someone to build them
