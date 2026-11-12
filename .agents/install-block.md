@@ -105,7 +105,7 @@ Use the single-skill form wherever one skill is named on its own. `docs/` pages 
 <canonical-block name="skills-sh-one-skill">
 
 ```bash
-npx skills@latest add mattpocock/skills --skill=<name>
+npx skills@latest add mattpocock/skills --skill <name>
 ```
 
 ```bash
