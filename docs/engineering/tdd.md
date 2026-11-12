@@ -78,6 +78,7 @@ No. Run against one ticket, it can propose work that belongs to a sibling ticket
 
 - It stops and names the seams it intends to test at, and waits, before any test file exists.
 - One test appears, goes red, gets just enough code to pass, and only then does the next test appear, not a batch of tests followed by a batch of code.
+- On a bug fix, the first red runs against the existing code and fails on the bug's wrong behaviour, not on a compile error for a method that doesn't exist yet.
 - Test names read as capabilities ("user can checkout with valid cart"), not as internals ("checkout calls paymentService.process").
 - Expected values in assertions are literals you can trace to the spec, not values recomputed the way the code computes them.
 - Renaming an internal function breaks nothing in the suite.
