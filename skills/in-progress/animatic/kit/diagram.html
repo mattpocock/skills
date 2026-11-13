@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Frame example: diagram</title>
+    <!--
+      THE STYLESHEET IS THE CONTRACT; THIS MARKUP IS NOT. Copy this file, keep
+      the <link>, rebuild the shape.
+
+      A diagram frame is boxes, arrows and ONE lit box. `.node.lit` is the step
+      the moment is about; `.node.muted` is the context the viewer should not
+      look at yet. Stack `.diagram` vertically, nest it, or drop an SVG in: it
+      is only a flex row, and there is nothing to slot into.
+
+      `.annotation` is italic in the soft accent, so an aside reads as an
+      aside rather than as a second heading.
+    -->
+    <link rel="stylesheet" href="./house.css" />
+  </head>
+  <body>
+    <div class="frame frame--center">
+      <div class="overline">A request's path</div>
+
+      <div class="diagram" style="margin-top: 56px">
+        <div class="node muted">
+          <div class="node-title">Client</div>
+          <div class="node-sub">X-API-Key</div>
+        </div>
+        <div class="arrow"><span>&rarr;</span><span class="label">request</span></div>
+        <div class="node muted">
+          <div class="node-title">Load balancer</div>
+          <div class="node-sub">one IP out</div>
+        </div>
+        <div class="arrow"><span>&rarr;</span><span class="label">forward</span></div>
+        <div class="node lit">
+          <div class="node-title">Rate limiter</div>
+          <div class="node-sub">counts per key</div>
+        </div>
+      </div>
+
+      <div class="annotation" style="margin-top: 72px">every IP looks the same here</div>
+    </div>
+  </body>
+</html>
