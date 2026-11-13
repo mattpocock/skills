@@ -4,29 +4,33 @@ The viewer is a reviewer who will read the diff after watching. The animatic is 
 
 ## Gather
 
+In the work folder (SKILL.md step 3), in one command:
+
 ```
 gh pr view <n> --repo <owner/repo> --json title,body,author,files,additions,deletions,closingIssuesReferences
-gh pr diff <n> --repo <owner/repo>
+gh pr diff <n> --repo <owner/repo> > pr.diff
 ```
+
+Code frames read `pr.diff` directly (`"diff": "pr.diff"`), so the hunks, the colours and the real line numbers come from the diff itself.
 
 - **The why comes from the primary source**: the linked issue, the spec, or the PR body's own summary, in that order. The diff says what changed, never why.
 - **The PR body is the voice.** Match how its author writes, and reuse their terms.
-- **Read the diff for the files the story needs**, not all of it. A PR touching thirty files usually turns on two or three of them.
+- **Read the diff for the files the story needs**, not all of it. A PR touching thirty files usually turns on two or three of them; `grep -n '^diff --git\|^@@' pr.diff` maps it.
 - **Evidence comes from the PR as written**: the test run, the command output, the before-and-after the body already shows. Where the PR shows none, the animatic says so.
 
 ## The arc
 
 Five chapters, in this order. Each is one idea, so each is about one Cut, with Reveals inside it.
 
-1. **Title**: one title card, the PR's number and a headline in plain words. It is also the poster: GitHub shows the first frame before anyone presses play.
+1. **Title**: one `title` frame, the PR's number and a headline in plain words. It is also the poster: GitHub shows the first frame before anyone presses play.
 2. **The problem**: what was wrong or missing before, shown on the screen where it hurt (the failing output, the config that could not express it, the diagram of the old flow).
-3. **The shape**: one diagram or file tree that gains a piece per moment until it shows the whole change. Close it on the reading order ("start with the workflow file, then the package json"), as a last Reveal of this screen that lights the files it names.
-4. **The key change**: the one or two hunks the PR turns on, in an editor frame with the diff colours (`.l.add`, `.l.del`), each lit line read out.
+3. **The shape**: one `diagram` or `list` of files that gains a piece per moment (`show`) until it shows the whole change. Close it on the reading order ("start with the workflow file, then the package json"), as a last Reveal of this screen that lights the files it names.
+4. **The key change**: the one or two hunks the PR turns on, as `code` frames from `pr.diff`, each lit line read out.
 5. **The proof, and the risk**: the evidence from the PR, then whether the change is easy to roll back. One screen, four moments at most: the risk is a Reveal on the proof screen, never a "merge danger" chapter of its own.
 
 Those five are the whole arc. Anything else the PR body covers (what was left out, follow-up steps, a setup script, open questions) stays in the PR body, or takes one of chapter 5's four moments.
 
-**Size.** 60 to 150 seconds: 8 to 20 moments, 4 to 6 Cuts. A reviewer gives a PR video two minutes. A plan over 20 moments is over time: cut Reveals from chapter 4 first, then merge moments in chapter 5, and keep the voice at its own pace.
+**Size.** Target 90 seconds unless the user names one: 8 to 14 moments, 4 to 5 Cuts. An animatic goes on every major PR, so it is short: the reviewer gets the map and reads the rest in the diff. A plan over 14 moments is over time: cut Reveals from chapter 4 first, then merge moments in chapter 5, and keep the voice at its own pace.
 
 ## Several PRs: a review
 
@@ -37,6 +41,8 @@ The user asks for a tour of several PRs ("the recent large PRs", "what landed th
 **The arc**:
 
 1. **Overview**: one screen naming every PR in the tour, one line each. It Reveals one PR at a time, then lights them all as the map of the video.
+Save each PR's diff as `pr-<n>.diff`.
+
 2. **One chapter per PR**, in an order that builds (a PR another depends on goes first). Each chapter has three parts, each lit on its own frame:
    - the why
    - the key hunk, with real line numbers
@@ -49,4 +55,4 @@ The user asks for a tour of several PRs ("the recent large PRs", "what landed th
 
 ## Hand it over
 
-GitHub plays an MP4 inline in a PR description or comment, but the `gh` CLI cannot upload one. Give the user the path, and tell them to drag the file into the PR description in the browser, where GitHub uploads it and leaves a link that renders as a player. The limit is 10MB on a free plan and 100MB on a paid one; `stitch` warns past 10MB. The upload is how the MP4 reaches the PR; never commit it to the PR's branch.
+GitHub plays an MP4 inline in a PR description or comment, but the `gh` CLI cannot upload one. Give the user the path, and tell them to drag the file into the PR description in the browser, where GitHub uploads it and leaves a link that renders as a player. The limit is 10MB on a free plan and 100MB on a paid one; `build` warns past 10MB. The upload is how the MP4 reaches the PR; never commit it to the PR's branch.

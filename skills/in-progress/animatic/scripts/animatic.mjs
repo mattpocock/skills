@@ -1,44 +1,56 @@
 #!/usr/bin/env node
-// The default animatic pipeline: HTML frames -> PNG (Playwright), lines ->
-// speech (the machine's built-in voice, else Kokoro), PNG + speech -> MP4 (ffmpeg).
+// The default animatic pipeline: frames -> PNG (Playwright), lines -> speech
+// (the machine's built-in voice, else Kokoro), PNG + speech -> MP4 (ffmpeg).
 //
 //   node animatic.mjs setup [--engine kokoro]
-//   node animatic.mjs estimate <storyboard.json> [--target 150]
-//   node animatic.mjs render <storyboard.json> [--sheet <sheet.png>] [--only 3,4]
-//   node animatic.mjs speak  <storyboard.json> [--engine say|sapi|espeak-ng|espeak|kokoro] [--voice <name>] [--tts-command "<cmd>"]
+//   node animatic.mjs build <storyboard.json> [-o animatic.mp4] [--target 90] [--sheet sheet.png]
+//   node animatic.mjs estimate <storyboard.json> [--target 90]
+//   node animatic.mjs render <storyboard.json> [--sheet sheet.png]
+//   node animatic.mjs speak  <storyboard.json>
 //   node animatic.mjs stitch <storyboard.json> [-o animatic.mp4] [--gap 0.3]
-//   node animatic.mjs build  <storyboard.json> [all of the above]
+//
+// Voice flags, on any verb: --engine say|sapi|espeak-ng|espeak|kokoro,
+// --voice <name>, --tts-command "<cmd>".
+//
+// `build` is the one to run. It checks the plan against --target (default
+// 90s; --target 0 skips it), renders and voices at once, stitches, verifies
+// the MP4 and prints one report. The other verbs are its stages.
 //
 // A storyboard is a JSON array, one entry per moment, in playback order.
 // Paths are relative to the storyboard file:
 //
-//   { "say": "spoken line", "html": "frames/01.html" }   render + voice
-//   { "say": "spoken line", "image": "shots/02.png" }    your own frame
-//   { "audio": "takes/03.wav", "html": "frames/03.html" } your own speech
-//   { "seconds": 2, "image": "end.png" }                  a silent hold
+//   { "say": "spoken line", "frame": { "type": "code", ... } }   a generated frame (FRAMES.md)
+//   { "say": "spoken line", "lit": 42 }                         a Reveal of the frame before
+//   { "say": "spoken line", "html": "frames/01.html" }          your own page (kit/README.md)
+//   { "say": "spoken line", "image": "shots/02.png" }           your own frame
+//   { "audio": "takes/03.wav", "html": "frames/03.html" }        your own speech
+//   { "seconds": 2, "image": "end.png" }                         a silent hold
 //
 // Everything generated lands in a `build/` folder beside the storyboard.
 // Dependencies live in one shared folder, $ANIMATIC_HOME (default
 // ~/.cache/animatic), so every project reuses one install and one model.
 
-import { execFileSync, spawnSync } from "node:child_process";
+import { execFileSync, spawn, spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import fs from "node:fs";
 import { createRequire } from "node:module";
 import os from "node:os";
 import path from "node:path";
-import { pathToFileURL } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
+import { fitInPage, frameHtml } from "./frames.mjs";
 
 const HOME = process.env.ANIMATIC_HOME ?? path.join(os.homedir(), ".cache", "animatic");
+const SKILL = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const WIDTH = 1920;
 const HEIGHT = 1080;
-const FPS = 30;
+const SR = 48000;
 const KOKORO_VOICE = "af_heart";
 const KOKORO_MODEL = "onnx-community/Kokoro-82M-v1.0-ONNX";
+const PAGES = 4;
 
-const die = (message) => {
+const die = (message, code = 1) => {
   console.error(`animatic: ${message}`);
-  process.exit(1);
+  process.exit(code);
 };
 
 // ---------------------------------------------------------------- arguments
@@ -53,7 +65,7 @@ for (let i = 0; i < rest.length; i++) {
   }
   const key = rest[i].replace(/^-+/, "");
   const next = rest[i + 1];
-  if (next === undefined || next.startsWith("-")) flags[key] = true;
+  if (next === undefined || (next.startsWith("-") && !/^-\d/.test(next))) flags[key] = true;
   else flags[key] = rest[++i];
 }
 
@@ -68,6 +80,14 @@ const load = (name) => {
     die(`cannot find "${name}" in ${HOME}. Run: node ${process.argv[1]} setup`);
   }
 };
+const installed = (name) => {
+  try {
+    deps.resolve(name);
+    return true;
+  } catch {
+    return false;
+  }
+};
 
 const have = (bin) => spawnSync(bin, ["-version"], { stdio: "ignore" }).status === 0;
 
@@ -79,22 +99,35 @@ const setup = async () => {
   if (!fs.existsSync(path.join(HOME, "package.json"))) {
     fs.writeFileSync(path.join(HOME, "package.json"), JSON.stringify({ name: "animatic-deps", private: true }, null, 2));
   }
-  const run = (cmd, args) => {
+  const sh = (cmd, args) => {
     console.log(`$ ${cmd} ${args.join(" ")}`);
     const r = spawnSync(cmd, args, { cwd: HOME, stdio: "inherit", shell: process.platform === "win32" });
     if (r.status !== 0) die(`${cmd} failed`);
   };
   // Kokoro is installed only where the machine has no voice of its own.
   const engine = engineName();
-  run("npm", ["install", "--no-fund", "--no-audit", "playwright", ...(engine === "kokoro" ? ["kokoro-js"] : [])]);
-  run("npx", ["playwright", "install", "chromium"]);
-  const rate = await calibrate();
-  console.log(`\nvoice: ${voiceLabel()}, measured at ${rate.toFixed(2)} words/s`);
+  const want = ["playwright", "shiki", ...(engine === "kokoro" ? ["kokoro-js"] : [])];
+  const chromium = () => {
+    try {
+      return fs.existsSync(deps("playwright").chromium.executablePath());
+    } catch {
+      return false;
+    }
+  };
+  if (!want.every(installed) || flags.force) sh("npm", ["install", "--no-fund", "--no-audit", ...want]);
+  if (!chromium() || flags.force) sh("npx", ["playwright", "install", "chromium"]);
+  const known = readRates()[ttsKey()];
+  const rate = known && !flags.force ? known : await calibrate();
+  console.log(`voice: ${voiceLabel()}, ${known && !flags.force ? "" : "measured "}at ${rate.toFixed(2)} words/s`);
   console.log(`Ready. Dependencies are in ${HOME}.`);
 };
 
 // ---------------------------------------------------------------- storyboard
 
+const FRAME_KEYS = ["lit", "show"];
+
+// An entry with no frame of its own is a Reveal: it holds the frame before,
+// with its own "lit" and "show". An entry with a frame is a Cut.
 const readStoryboard = () => {
   if (!storyboardArg) die(`usage: animatic.mjs ${verb} <storyboard.json>`);
   const file = path.resolve(storyboardArg);
@@ -109,82 +142,147 @@ const readStoryboard = () => {
   const build = path.join(dir, "build");
   fs.mkdirSync(path.join(build, "voice"), { recursive: true });
   const at = (p) => (p === undefined ? undefined : path.resolve(dir, p));
+  let prev;
   const moments = entries.map((e, i) => {
     const n = i + 1;
     const where = `entry ${n}`;
-    if (!!e.html === !!e.image) die(`${where}: give exactly one of "html" or "image"`);
+    const own = [e.frame, e.html, e.image].filter((x) => x !== undefined).length;
+    if (own > 1) die(`${where}: give one of "frame", "html" or "image"`);
+    if (!own && !prev) die(`${where}: the first entry needs a "frame", "html" or "image"`);
     if (e.say === undefined && e.audio === undefined && e.seconds === undefined) die(`${where}: give "say", "audio" or "seconds"`);
+    const base = own ? { spec: e.frame, html: at(e.html), image: at(e.image) } : { spec: prev.spec, html: prev.html, image: prev.image };
+    let spec = base.spec;
+    const overrides = Object.fromEntries(FRAME_KEYS.filter((k) => k in e).map((k) => [k, e[k]]));
+    if (Object.keys(overrides).length) {
+      if (!spec) die(`${where}: "lit" and "show" work on a generated "frame" only`);
+      spec = { ...spec, ...overrides };
+    }
     const m = {
       n,
+      cut: !!own,
       say: e.say,
-      html: at(e.html),
-      image: at(e.image),
+      spec,
+      html: base.html,
+      image: base.image,
       audio: at(e.audio),
       seconds: e.seconds,
-      png: e.image ? at(e.image) : path.join(build, `${String(n).padStart(2, "0")}.png`),
+      png: base.image ?? path.join(build, `${String(n).padStart(2, "0")}.png`),
     };
     for (const p of [m.html, m.image, m.audio]) if (p && !fs.existsSync(p)) die(`${where}: no such file ${p}`);
+    prev = m;
     return m;
   });
   return { dir, build, moments };
 };
 
-const only = () => (flags.only ? new Set(String(flags.only).split(",").map(Number)) : null);
+// ---------------------------------------------------------------- lines
+
+// What the voice would read literally: code punctuation, paths, markdown.
+const lintSay = (say) => {
+  if (!say) return null;
+  const hit = say.match(/[`*_\\/{}[\]<>#=|~^]|[A-Za-z]\.[A-Za-z]|--\w|https?:/);
+  return hit ? hit[0] : null;
+};
 
 // ---------------------------------------------------------------- render
 
-const render = async ({ build, moments }) => {
+const CSS = () => fs.readFileSync(path.join(SKILL, "kit", "house.css"), "utf8");
+const sha = (s) => createHash("sha1").update(s).digest("hex").slice(0, 16);
+
+// Every page in one browser, a few at a time. A frame whose page has not
+// changed since the last render keeps its PNG.
+const render = async ({ dir, build, moments }) => {
+  const css = CSS();
+  const warnings = [];
+  const notes = [];
+  const cacheFile = path.join(build, "frames.json");
+  let cache = {};
+  try {
+    cache = JSON.parse(fs.readFileSync(cacheFile, "utf8"));
+  } catch {}
+  const todo = [];
+  for (const m of moments) {
+    if (m.image) continue;
+    if (m.spec) {
+      try {
+        const { html, warns } = await frameHtml(m.spec, { dir, home: HOME, css });
+        m.page = html;
+        for (const w of warns) warnings.push(`${m.n}: ${w}`);
+      } catch (e) {
+        die(`entry ${m.n}: ${e.message}`);
+      }
+    }
+    const key = m.page ? sha(m.page) : sha(fs.readFileSync(m.html, "utf8") + css + m.html);
+    if (cache[m.png]?.key === key && fs.existsSync(m.png)) {
+      for (const w of cache[m.png].warnings) warnings.push(`${m.n}: ${w}`);
+      for (const f of cache[m.png].fixes) notes.push(`${m.n}: ${f}`);
+      continue;
+    }
+    todo.push({ m, key });
+  }
   const { chromium } = load("playwright");
   const browser = await chromium.launch();
-  const pick = only();
-  const todo = moments.filter((m) => m.html && (!pick || pick.has(m.n)));
-  const warnings = [];
   try {
-    for (const m of todo) {
+    const shoot = async ({ m, key }) => {
       const page = await browser.newPage({ viewport: { width: WIDTH, height: HEIGHT } });
       const errors = [];
       page.on("pageerror", (e) => errors.push(e.message));
-      await page.goto(pathToFileURL(m.html).href, { waitUntil: "networkidle", timeout: 30000 });
+      if (m.page) await page.setContent(m.page, { waitUntil: "load" });
+      else await page.goto(pathToFileURL(m.html).href, { waitUntil: "load", timeout: 30000 });
       await page.evaluate(() => document.fonts.ready);
-      // Content cut off by an overflow:hidden box is the commonest broken frame.
-      const cut = await page.evaluate(() => {
-        const out = [];
+      const fixes = await page.evaluate(fitInPage);
+      // Content cut off by an overflow:hidden box is the commonest broken frame;
+      // two lit things on one frame is the commonest unclear one.
+      const { cut, lit } = await page.evaluate(() => {
+        const cut = [];
         for (const el of document.querySelectorAll("body *")) {
           const s = getComputedStyle(el);
           if (s.overflowX !== "hidden" && s.overflowY !== "hidden") continue;
           const name = `${el.tagName.toLowerCase()}${el.className ? "." + String(el.className).trim().split(/\s+/).join(".") : ""}`;
-          if (el.scrollHeight > el.clientHeight + 4) out.push(`${name} (${el.scrollHeight - el.clientHeight}px cut at the bottom)`);
+          if (el.scrollHeight > el.clientHeight + 4) cut.push(`${name} (${el.scrollHeight - el.clientHeight}px cut at the bottom)`);
           // An ellipsis box (a file tree entry, a URL bar) clips on purpose.
-          if (s.textOverflow !== "ellipsis" && el.scrollWidth > el.clientWidth + 4) out.push(`${name} (${el.scrollWidth - el.clientWidth}px cut at the right)`);
+          if (s.textOverflow !== "ellipsis" && el.scrollWidth > el.clientWidth + 4) cut.push(`${name} (${el.scrollWidth - el.clientWidth}px cut at the right)`);
         }
-        return out;
+        // Adjacent lit lines (one statement over three lines) are one thing.
+        const shown = [...document.querySelectorAll(".here, .spot, .node.lit, li.lit")].filter((el) => getComputedStyle(el).visibility !== "hidden");
+        const lit = shown.filter((el) => !shown.includes(el.previousElementSibling)).length;
+        return { cut, lit };
       });
       await page.screenshot({ path: m.png });
       await page.close();
-      if (errors.length) warnings.push(`${m.n}: page error: ${errors[0]}`);
-      for (const c of cut) warnings.push(`${m.n}: overflow, content cut in ${c}`);
-      console.log(`rendered ${m.n} -> ${path.relative(process.cwd(), m.png)}`);
-    }
+      const warns = [];
+      if (errors.length) warns.push(`page error: ${errors[0]}`);
+      for (const c of cut) warns.push(`overflow, content cut in ${c}`);
+      if (lit > 1) warns.push(`${lit} things lit; light one, or split the moment`);
+      cache[m.png] = { key, warnings: warns, fixes };
+      for (const w of warns) warnings.push(`${m.n}: ${w}`);
+      for (const f of fixes) notes.push(`${m.n}: ${f}`);
+    };
+    await pool(todo, PAGES, shoot);
+    fs.writeFileSync(cacheFile, JSON.stringify(cache, null, 2));
     if (flags.sheet) await sheet(browser, moments, path.resolve(String(flags.sheet)));
   } finally {
     await browser.close();
   }
-  for (const w of warnings) console.warn(`WARN ${w}`);
+  console.log(`rendered ${todo.length} frame${todo.length === 1 ? "" : "s"} (${moments.filter((m) => !m.image).length - todo.length} unchanged)`);
+  return { warnings, notes };
 };
 
-// A contact sheet: every frame, numbered, in order. One image to judge a run.
+// A contact sheet: every frame, numbered, in order, Cuts marked. One image
+// to judge a run.
 const sheet = async (browser, moments, out) => {
   const tiles = moments
     .map((m) => {
       const src = fs.existsSync(m.png) ? pathToFileURL(m.png).href : "";
       const line = (m.say ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;");
-      return `<figure><img src="${src}"><figcaption><b>${m.n}</b> ${line}</figcaption></figure>`;
+      return `<figure${m.cut ? ' class="cut"' : ""}><img src="${src}"><figcaption><b>${m.n}${m.cut ? " CUT" : ""}</b> ${line}</figcaption></figure>`;
     })
     .join("");
   const html = `<!doctype html><style>
     body{margin:0;background:#222;font:16px/1.3 system-ui,sans-serif;color:#ddd}
     main{display:grid;grid-template-columns:repeat(4,480px);gap:16px;padding:16px}
-    figure{margin:0} img{width:480px;height:270px;display:block;background:#000;object-fit:contain}
+    figure{margin:0;border-top:4px solid transparent} figure.cut{border-top-color:#fbbf24}
+    img{width:480px;height:270px;display:block;background:#000;object-fit:contain}
     figcaption{padding:6px 2px;height:3.9em;overflow:hidden} b{color:#fbbf24;margin-right:6px}
   </style><main>${tiles}</main>`;
   const tmp = path.join(path.dirname(out), ".sheet.html");
@@ -194,14 +292,13 @@ const sheet = async (browser, moments, out) => {
   await page.screenshot({ path: out, fullPage: true });
   await page.close();
   fs.rmSync(tmp);
-  console.log(`sheet -> ${path.relative(process.cwd(), out)}`);
 };
 
 // ---------------------------------------------------------------- speak
 
 // Speech is cached by line + voice (or command), so a revision re-voices only
 // the lines it changed.
-const voiceFile = (build, m, key) => path.join(build, "voice", createHash("sha1").update(`${key}\n${m.say}`).digest("hex").slice(0, 16) + ".wav");
+const voiceFile = (build, m, key) => path.join(build, "voice", sha(`${key}\n${m.say}`) + ".wav");
 
 // The machine's own voice first; Kokoro only where there is none.
 const isWSL = () => process.platform === "linux" && /microsoft/i.test(fs.readFileSync("/proc/version", "utf8"));
@@ -235,70 +332,105 @@ const engineName = () => {
 
 const ttsKey = () => (flags["tts-command"] ? `cmd:${flags["tts-command"]}` : `${engineName()}:${flags.voice ?? ""}`);
 
-// One line through a built-in engine: text in a file, audio out at base.<ext>.
-const speakBuiltIn = (engine, text, base) => {
-  const voice = flags.voice === undefined ? undefined : String(flags.voice);
+const run = (cmd, args, { input, shell = false, inherit = false } = {}) =>
+  new Promise((resolve, reject) => {
+    const p = spawn(cmd, args, { shell, stdio: ["pipe", "ignore", inherit ? "inherit" : "pipe"] });
+    let err = "";
+    p.stderr?.on("data", (d) => (err += d));
+    p.stdin.end(input ?? "");
+    p.on("error", reject);
+    p.on("close", (code) => (code === 0 ? resolve() : reject(new Error(`${cmd} exited ${code}: ${err.slice(0, 400)}`))));
+  });
+
+const pool = async (items, size, fn) => {
+  const queue = [...items];
+  await Promise.all(Array.from({ length: Math.min(size, queue.length) }, async () => {
+    while (queue.length) await fn(queue.shift());
+  }));
+};
+
+const toWav = (raw, wav) => run("ffmpeg", ["-y", "-v", "error", "-i", raw, "-ar", String(SR), "-ac", "1", "-c:a", "pcm_s16le", wav]);
+
+// Windows' voice: every line in one PowerShell, straight to 48kHz mono WAV.
+// Starting PowerShell costs more than speaking a line, so it starts once.
+const speakSapi = async (jobs) => {
+  const win = (p) => (isWSL() ? execFileSync("wslpath", ["-w", p]).toString().trim() : p);
+  const list = path.join(path.dirname(jobs[0].wav), `.sapi-${process.pid}.json`);
+  fs.writeFileSync(list, JSON.stringify(jobs.map((j) => ({ text: j.text, out: win(j.wav) }))));
+  const q = (s) => `'${s.replace(/'/g, "''")}'`;
+  const script = [
+    "Add-Type -AssemblyName System.Speech",
+    "$s = New-Object System.Speech.Synthesis.SpeechSynthesizer",
+    flags.voice ? `$s.SelectVoice(${q(String(flags.voice))})` : "",
+    `$f = New-Object System.Speech.AudioFormat.SpeechAudioFormatInfo(${SR}, [System.Speech.AudioFormat.AudioBitsPerSample]::Sixteen, [System.Speech.AudioFormat.AudioChannel]::Mono)`,
+    `foreach ($j in ([IO.File]::ReadAllText(${q(win(list))}, [Text.Encoding]::UTF8) | ConvertFrom-Json)) { $s.SetOutputToWaveFile($j.out, $f); $s.Speak($j.text) }`,
+    "$s.Dispose()",
+  ].filter(Boolean).join("; ");
+  try {
+    await run(process.platform === "win32" ? "powershell" : "powershell.exe", ["-NoProfile", "-NonInteractive", "-Command", script]);
+  } finally {
+    fs.rmSync(list, { force: true });
+  }
+};
+
+// One line through say or espeak: text in a file, audio out, then WAV.
+const speakOne = async (engine, text, wav) => {
+  const voice = flags.voice === undefined ? [] : ["-v", String(flags.voice)];
+  const base = wav.replace(/\.wav$/, ".src");
   const txt = `${base}.txt`;
   fs.writeFileSync(txt, text);
-  let out;
-  if (engine === "say") {
-    out = `${base}.aiff`;
-    execFileSync("say", [...(voice ? ["-v", voice] : []), "-o", out, "-f", txt]);
-  } else if (engine === "espeak-ng" || engine === "espeak") {
-    out = `${base}.wav`;
-    execFileSync(engine, [...(voice ? ["-v", voice] : []), "-w", out, "-f", txt]);
-  } else if (engine === "sapi") {
-    out = `${base}.wav`;
-    const win = (p) => (isWSL() ? execFileSync("wslpath", ["-w", p]).toString().trim() : p);
-    const q = (s) => `'${s.replace(/'/g, "''")}'`;
-    const script = [
-      "Add-Type -AssemblyName System.Speech",
-      "$s = New-Object System.Speech.Synthesis.SpeechSynthesizer",
-      voice ? `$s.SelectVoice(${q(voice)})` : "",
-      `$s.SetOutputToWaveFile(${q(win(out))})`,
-      `$s.Speak([IO.File]::ReadAllText(${q(win(txt))}))`,
-      "$s.Dispose()",
-    ].filter(Boolean).join("; ");
-    execFileSync(process.platform === "win32" ? "powershell" : "powershell.exe", ["-NoProfile", "-NonInteractive", "-Command", script]);
-  }
+  const raw = engine === "say" ? `${base}.aiff` : `${base}.wav`;
+  if (engine === "say") await run("say", [...voice, "-o", raw, "-f", txt]);
+  else await run(engine, [...voice, "-w", raw, "-f", txt]);
+  await toWav(raw, wav);
   fs.rmSync(txt);
-  return out;
+  fs.rmSync(raw);
+};
+
+// Any engine: the line arrives on stdin and as {text}. {out} is a path with
+// no extension: the command writes {out}.wav, {out}.mp3, whatever its tool
+// produces, and it is converted to WAV here.
+const speakCommand = async (command, text, wav, where) => {
+  const base = wav.replace(/\.wav$/, ".src");
+  const quoted = (s) => `'${s.replace(/'/g, `'\\''`)}'`;
+  const cmd = command.replaceAll("{out}", quoted(base)).replaceAll("{text}", quoted(text));
+  try {
+    await run(cmd, [], { shell: true, input: text, inherit: true });
+  } catch {}
+  const written = fs.readdirSync(path.dirname(base)).filter((f) => f.startsWith(path.basename(base)));
+  if (written.length === 0) die(`${where}: tts command wrote nothing at ${base}.*: ${cmd}`);
+  const raw = path.join(path.dirname(base), written[0]);
+  await toWav(raw, wav);
+  fs.rmSync(raw);
 };
 
 let kokoro;
+const speakKokoro = async (text, wav) => {
+  if (!kokoro) {
+    const kokoroDeps = createRequire(deps.resolve("kokoro-js"));
+    kokoroDeps("@huggingface/transformers").env.cacheDir = path.join(HOME, "models");
+    const { KokoroTTS } = load("kokoro-js");
+    console.log("loading Kokoro (the first run downloads ~90MB)...");
+    kokoro = await KokoroTTS.from_pretrained(KOKORO_MODEL, { dtype: "q8", device: "cpu" });
+  }
+  const audio = await kokoro.generate(text, { voice: String(flags.voice ?? KOKORO_VOICE) });
+  const tmp = wav.replace(/\.wav$/, ".src.wav");
+  await audio.save(tmp);
+  await toWav(tmp, wav);
+  fs.rmSync(tmp);
+};
 
-// One line to one WAV, through whichever voice is in force.
-const synth = async (text, wav, where = "line") => {
+// Lines -> WAVs, through whichever voice is in force: built-in voices in
+// parallel (SAPI in one batch), Kokoro in turn.
+const synthAll = async (jobs) => {
+  if (!jobs.length) return;
   const command = flags["tts-command"];
   const engine = command ? null : engineName();
-  if (engine && engine !== "kokoro") {
-    const raw = speakBuiltIn(engine, text, wav.replace(/\.wav$/, ".src"));
-    execFileSync("ffmpeg", ["-y", "-v", "error", "-i", raw, "-ar", "48000", "-ac", "1", wav]);
-    fs.rmSync(raw);
-  } else if (command) {
-    // Any engine: the line arrives on stdin and as {text}. {out} is a path
-    // with no extension: the command writes {out}.wav, {out}.mp3, {out}.aiff,
-    // whatever its tool produces, and it is converted to WAV here.
-    const base = wav.replace(/\.wav$/, ".src");
-    const quoted = (s) => `'${s.replace(/'/g, `'\\''`)}'`;
-    const cmd = command.replaceAll("{out}", quoted(base)).replaceAll("{text}", quoted(text));
-    const r = spawnSync(cmd, { input: text, shell: true, stdio: ["pipe", "inherit", "inherit"] });
-    const written = fs.readdirSync(path.dirname(base)).filter((f) => f.startsWith(path.basename(base)));
-    if (r.status !== 0 || written.length === 0) die(`${where}: tts command wrote nothing at ${base}.*: ${cmd}`);
-    const raw = path.join(path.dirname(base), written[0]);
-    execFileSync("ffmpeg", ["-y", "-v", "error", "-i", raw, "-ar", "48000", "-ac", "1", wav]);
-    fs.rmSync(raw);
-  } else {
-    if (!kokoro) {
-      const kokoroDeps = createRequire(deps.resolve("kokoro-js"));
-      kokoroDeps("@huggingface/transformers").env.cacheDir = path.join(HOME, "models");
-      const { KokoroTTS } = load("kokoro-js");
-      console.log("loading Kokoro (the first run downloads ~90MB)...");
-      kokoro = await KokoroTTS.from_pretrained(KOKORO_MODEL, { dtype: "q8", device: "cpu" });
-    }
-    const audio = await kokoro.generate(text, { voice: String(flags.voice ?? KOKORO_VOICE) });
-    await audio.save(wav);
-  }
+  if (command) await pool(jobs, 4, (j) => speakCommand(command, j.text, j.wav, j.where));
+  else if (engine === "sapi") await speakSapi(jobs);
+  else if (engine === "kokoro") for (const j of jobs) await speakKokoro(j.text, j.wav);
+  else await pool(jobs, 4, (j) => speakOne(engine, j.text, j.wav));
+  for (const j of jobs) if (!fs.existsSync(j.wav)) die(`${j.where}: the voice wrote nothing`);
 };
 
 // The voice by name, as the user would recognise it.
@@ -340,7 +472,7 @@ const SAMPLE =
 
 const calibrate = async () => {
   const wav = path.join(os.tmpdir(), `animatic-calibrate-${process.pid}.wav`);
-  await synth(SAMPLE, wav, "calibration");
+  await synthAll([{ text: SAMPLE, wav, where: "calibration" }]);
   const rate = wordCount(SAMPLE) / duration(wav);
   fs.rmSync(wav);
   saveRate(ttsKey(), rate);
@@ -348,54 +480,113 @@ const calibrate = async () => {
 };
 
 const speak = async ({ build, moments }) => {
-  const todo = moments.filter((m) => m.say !== undefined && !m.audio);
   const key = ttsKey();
-  if (todo.length) console.log(`voice: ${voiceLabel()}`);
-  for (const m of todo) {
+  const jobs = [];
+  for (const m of moments) {
+    if (m.say === undefined || m.audio) continue;
     m.audio = voiceFile(build, m, key);
-    if (fs.existsSync(m.audio)) continue;
-    await synth(m.say, m.audio, `entry ${m.n}`);
-    console.log(`voiced ${m.n} (${duration(m.audio).toFixed(2)}s)`);
+    if (!fs.existsSync(m.audio)) jobs.push({ text: m.say, wav: m.audio, where: `entry ${m.n}` });
   }
+  await synthAll(jobs);
+  console.log(`voiced ${jobs.length} line${jobs.length === 1 ? "" : "s"} (${moments.filter((m) => m.say !== undefined).length - jobs.length} cached)`);
 };
 
 // ---------------------------------------------------------------- stitch
 
-const duration = (file) =>
-  Number(execFileSync("ffprobe", ["-v", "error", "-show_entries", "format=duration", "-of", "csv=p=0", file]).toString().trim());
+// A 48kHz mono 16-bit WAV's samples, or null for anything else.
+const pcm = (file) => {
+  const b = fs.readFileSync(file);
+  if (b.toString("ascii", 0, 4) !== "RIFF" || b.toString("ascii", 8, 12) !== "WAVE") return null;
+  let fmt;
+  for (let off = 12; off + 8 <= b.length; ) {
+    const id = b.toString("ascii", off, off + 4);
+    const size = b.readUInt32LE(off + 4);
+    if (id === "fmt ") fmt = { tag: b.readUInt16LE(off + 8), ch: b.readUInt16LE(off + 10), rate: b.readUInt32LE(off + 12), bits: b.readUInt16LE(off + 22) };
+    if (id === "data") {
+      if (!fmt || fmt.tag !== 1 || fmt.ch !== 1 || fmt.rate !== SR || fmt.bits !== 16) return null;
+      return b.subarray(off + 8, Math.min(b.length, off + 8 + size));
+    }
+    off += 8 + size + (size % 2);
+  }
+  return null;
+};
 
-const stitch = ({ dir, build, moments }) => {
+const duration = (file) => {
+  const p = pcm(file);
+  if (p) return p.length / 2 / SR;
+  return Number(execFileSync("ffprobe", ["-v", "error", "-show_entries", "format=duration", "-of", "csv=p=0", file]).toString().trim());
+};
+
+const wavHeader = (bytes) => {
+  const h = Buffer.alloc(44);
+  h.write("RIFF", 0);
+  h.writeUInt32LE(36 + bytes, 4);
+  h.write("WAVE", 8);
+  h.write("fmt ", 12);
+  h.writeUInt32LE(16, 16);
+  h.writeUInt16LE(1, 20);
+  h.writeUInt16LE(1, 22);
+  h.writeUInt32LE(SR, 24);
+  h.writeUInt32LE(SR * 2, 28);
+  h.writeUInt16LE(2, 32);
+  h.writeUInt16LE(16, 34);
+  h.write("data", 36);
+  h.writeUInt32LE(bytes, 40);
+  return h;
+};
+
+// One still per moment, held for its line: the audio is joined here into one
+// track, and the video carries one frame per moment (variable frame rate),
+// so the encoder does a few dozen frames, not thousands.
+const stitch = async ({ dir, build, moments }) => {
   const gap = Number(flags.gap ?? 0.3);
   const out = path.resolve(String(flags.o ?? flags.out ?? path.join(dir, "animatic.mp4")));
-  // speak() fills m.audio for spoken lines; when stitching alone, find the cache.
   const key = ttsKey();
-  const inputs = [];
-  const filters = [];
+  const chunks = [];
   const timeline = [];
   let t = 0;
-  moments.forEach((m, i) => {
+  for (const m of moments) {
     if (!fs.existsSync(m.png)) die(`entry ${m.n}: no frame at ${m.png}. Run render first.`);
     if (m.say !== undefined && !m.audio) m.audio = voiceFile(build, m, key);
     if (m.audio && !fs.existsSync(m.audio)) die(`entry ${m.n}: no speech yet. Run speak first.`);
-    const speech = m.audio ? duration(m.audio) : 0;
-    const seconds = Number((m.seconds ?? speech + gap).toFixed(3));
-    const frames = Math.max(1, Math.round(seconds * FPS));
-    inputs.push("-framerate", String(FPS), "-i", m.png);
-    if (m.audio) inputs.push("-i", m.audio);
-    else inputs.push("-f", "lavfi", "-t", String(seconds), "-i", "anullsrc=r=48000:cl=stereo");
-    filters.push(
-      `[${2 * i}:v]scale=${WIDTH}:${HEIGHT}:force_original_aspect_ratio=decrease,pad=${WIDTH}:${HEIGHT}:(ow-iw)/2:(oh-ih)/2:color=black,setsar=1,format=yuv420p,tpad=stop=${frames - 1}:stop_mode=clone,setpts=N/(${FPS}*TB)[v${i}]`,
-      `[${2 * i + 1}:a]aresample=48000,aformat=sample_fmts=fltp:channel_layouts=stereo,apad=whole_dur=${frames / FPS},atrim=end=${frames / FPS}[a${i}]`,
-    );
-    timeline.push({ n: m.n, start: Number(t.toFixed(2)), seconds: frames / FPS, say: m.say ?? null, frame: m.png });
-    t += frames / FPS;
-  });
-  filters.push(`${moments.map((_, i) => `[v${i}][a${i}]`).join("")}concat=n=${moments.length}:v=1:a=1[v][a]`);
-  const args = ["-y", "-hide_banner", "-v", "error", ...inputs, "-filter_complex", filters.join(";"), "-map", "[v]", "-map", "[a]",
-    "-c:v", "libx264", "-preset", "veryfast", "-tune", "stillimage", "-crf", "26", "-r", String(FPS), "-pix_fmt", "yuv420p",
-    "-c:a", "aac", "-b:a", "128k", "-movflags", "+faststart", out];
-  const r = spawnSync("ffmpeg", args, { stdio: "inherit" });
-  if (r.status !== 0) die("ffmpeg failed");
+    let samples = Buffer.alloc(0);
+    if (m.audio) {
+      samples = pcm(m.audio);
+      if (!samples) {
+        const conv = path.join(build, "voice", `in-${sha(m.audio + fs.statSync(m.audio).mtimeMs)}.wav`);
+        if (!fs.existsSync(conv)) await toWav(m.audio, conv);
+        samples = pcm(conv);
+      }
+    }
+    const speech = samples.length / 2 / SR;
+    let sum = 0;
+    for (let k = 0; k + 1 < samples.length; k += 2) sum += samples.readInt16LE(k) ** 2;
+    const db = samples.length ? 10 * Math.log10(sum / (samples.length / 2) / 32768 ** 2 + 1e-12) : null;
+    // Whole milliseconds, so the video's timestamps and the audio agree.
+    const seconds = Math.max(0.04, Math.round((m.seconds ?? speech + gap) * 1000) / 1000);
+    const buf = Buffer.alloc(Math.round(seconds * SR) * 2);
+    samples.copy(buf, 0, 0, Math.min(samples.length, buf.length));
+    chunks.push(buf);
+    timeline.push({ n: m.n, cut: m.cut, start: Number(t.toFixed(3)), seconds, say: m.say ?? null, frame: m.png, db: db === null ? null : Number(db.toFixed(1)) });
+    t += seconds;
+  }
+  const audio = Buffer.concat(chunks);
+  const track = path.join(build, "track.wav");
+  fs.writeFileSync(track, Buffer.concat([wavHeader(audio.length), audio]));
+  const list = path.join(build, "frames.ffconcat");
+  const q = (p) => `'${p.replace(/'/g, "'\\''")}'`;
+  // The last frame is repeated just before the end, so a player or a seek
+  // into the last moment finds a frame there.
+  const tail = Math.min(0.1, timeline.at(-1).seconds / 2);
+  fs.writeFileSync(list, `ffconcat version 1.0\n${timeline.map((s, i) => `file ${q(s.frame)}\nduration ${(i === timeline.length - 1 ? s.seconds - tail : s.seconds).toFixed(3)}\n`).join("")}file ${q(timeline.at(-1).frame)}\nduration ${tail.toFixed(3)}\n`);
+  const encode = (sync) => spawnSync("ffmpeg", ["-y", "-hide_banner", "-v", "error", "-f", "concat", "-safe", "0", "-i", list, "-i", track,
+    "-map", "0:v", "-map", "1:a", ...sync,
+    "-vf", `scale=${WIDTH}:${HEIGHT}:force_original_aspect_ratio=decrease,pad=${WIDTH}:${HEIGHT}:(ow-iw)/2:(oh-ih)/2:color=black,setsar=1,format=yuv420p`,
+    "-c:v", "libx264", "-preset", "veryfast", "-tune", "stillimage", "-crf", "26", "-g", "1",
+    "-c:a", "aac", "-b:a", "128k", "-ac", "1", "-t", t.toFixed(3), "-movflags", "+faststart", out], { encoding: "utf8" });
+  let r = encode(["-fps_mode", "vfr"]);
+  if (r.status !== 0 && /fps_mode/.test(r.stderr)) r = encode(["-vsync", "vfr"]); // ffmpeg before 5.1
+  if (r.status !== 0) die(`ffmpeg failed: ${r.stderr}`);
   fs.writeFileSync(path.join(build, "timeline.json"), JSON.stringify(timeline, null, 2));
   // The real speaking rate of this run sharpens the next estimate.
   const spoken = timeline.filter((s) => s.say);
@@ -403,66 +594,135 @@ const stitch = ({ dir, build, moments }) => {
   if (speechSeconds > 20 && !moments.some((m) => m.audio && !m.audio.startsWith(path.join(build, "voice")))) {
     saveRate(key, spoken.reduce((sum, s) => sum + wordCount(s.say), 0) / speechSeconds);
   }
-  for (const s of timeline) console.log(`${String(s.n).padStart(3)}  ${s.seconds.toFixed(1).padStart(5)}s  ${(s.say ?? "(silent)").slice(0, 80)}`);
-  const mb = fs.statSync(out).size / 1e6;
-  console.log(`\n${moments.length} moments, ${t.toFixed(1)}s, ${mb.toFixed(1)}MB -> ${out}`);
-  for (const s of timeline) if (s.say && s.seconds > 15.5) console.warn(`WARN ${s.n}: ${s.seconds.toFixed(1)}s of speech on one frame; split it into two moments`);
-  if (mb > 10) console.warn("WARN over 10MB: GitHub's free-plan upload limit for videos in comments and PR bodies");
+  return { out, timeline, total: t, list };
+};
+
+// ---------------------------------------------------------------- verify
+
+const ff = (args) =>
+  new Promise((resolve) => {
+    const p = spawn("ffmpeg", ["-hide_banner", "-nostats", ...args], { stdio: ["ignore", "pipe", "pipe"] });
+    let text = "";
+    p.stdout.on("data", (d) => (text += d));
+    p.stderr.on("data", (d) => (text += d));
+    p.on("close", () => resolve(text));
+  });
+
+// The checks a person would make on the MP4, made here on every moment: the
+// streams and length, each frame starting when its moment starts and matching
+// its PNG, and the voice audible.
+const verify = async ({ out, timeline, total, list }) => {
+  const problems = [];
+  const info = JSON.parse(execFileSync("ffprobe", ["-v", "error", "-show_entries", "format=duration:stream=codec_type", "-of", "json", out]).toString());
+  const types = info.streams.map((s) => s.codec_type).sort().join(",");
+  const len = Number(info.format.duration);
+  if (types !== "audio,video") problems.push(`streams are ${types}, not one video and one audio`);
+  if (Math.abs(len - total) > 1) problems.push(`runs ${len.toFixed(1)}s against a timeline of ${total.toFixed(1)}s`);
+  const fit = `scale=${WIDTH}:${HEIGHT}:force_original_aspect_ratio=decrease,pad=${WIDTH}:${HEIGHT}:(ow-iw)/2:(oh-ih)/2,setsar=1,format=yuv420p,settb=AVTB`;
+  // Two different dark frames still score 0.92-0.98, so a match is 0.99 up.
+  const [pts, ssimLog, vol] = await Promise.all([
+    ff(["-v", "info", "-i", out, "-map", "0:v", "-vf", "showinfo", "-f", "null", "-"]).then((s) => [...s.matchAll(/pts_time:([\d.]+)/g)].map((m) => Number(m[1]))),
+    ff(["-v", "error", "-i", out, "-f", "concat", "-safe", "0", "-i", list, "-filter_complex", `[0:v]format=yuv420p,settb=AVTB[a];[1:v]${fit}[b];[a][b]ssim=stats_file=-`, "-f", "null", "-"]),
+    ff(["-i", out, "-map", "0:a", "-af", "volumedetect", "-f", "null", "-"]),
+  ]);
+  const ssims = [...ssimLog.matchAll(/All:([\d.]+)/g)].map((m) => Number(m[1]));
+  timeline.forEach((s, i) => {
+    if (pts[i] === undefined || Math.abs(pts[i] - s.start) > 0.05) problems.push(`moment ${s.n}: its frame starts at ${pts[i]?.toFixed(2) ?? "never"}s, not ${s.start.toFixed(2)}s`);
+    if (!(ssims[i] >= 0.99)) problems.push(`moment ${s.n}: the video frame does not match its PNG (SSIM ${ssims[i]?.toFixed(3) ?? "none"})`);
+  });
+  for (const s of timeline) if (s.say && !(s.db > -40)) problems.push(`moment ${s.n}: its line is silent (${s.db} dB)`);
+  const mean = Number((vol.match(/mean_volume: (-?[\d.]+)/) ?? [])[1] ?? -91);
+  if (mean < -40) problems.push(`the voice is not audible (mean ${mean} dB)`);
+  const summary = `1 video + 1 audio stream, ${len.toFixed(1)}s; ${Math.min(ssims.length, timeline.length)} of ${timeline.length} frames on time and matching their PNGs (SSIM >= ${Math.min(...ssims.slice(0, timeline.length)).toFixed(3)}); voice at ${mean} dB mean`;
+  return { problems, summary };
 };
 
 // ---------------------------------------------------------------- estimate
 
-// The run time a storyboard's lines will take, before any frame or voice
-// exists: words at the voice's measured rate, plus the gap per moment. Frame
-// paths are not checked, so a plan is estimated before its frames exist.
-function estimate() {
-  if (!storyboardArg) die("usage: animatic.mjs estimate <storyboard.json> [--target <seconds>]");
-  const file = path.resolve(storyboardArg);
+// The run time a storyboard's lines will take, before anything is rendered
+// or voiced: words at the voice's measured rate, plus the gap per moment.
+const plan = () => {
+  if (!storyboardArg) die(`usage: animatic.mjs ${verb} <storyboard.json> [--target <seconds>]`);
   let entries;
   try {
-    entries = JSON.parse(fs.readFileSync(file, "utf8"));
+    entries = JSON.parse(fs.readFileSync(path.resolve(storyboardArg), "utf8"));
   } catch (e) {
     die(`cannot read ${storyboardArg}: ${e.message}`);
   }
   const measured = readRates()[ttsKey()];
   const rate = measured ?? DEFAULT_RATE;
   const gap = Number(flags.gap ?? 0.3);
-  let total = 0;
-  entries.forEach((e, i) => {
-    const words = wordCount(e.say ?? e.note);
-    const seconds = e.seconds ?? words / rate + gap;
-    total += seconds;
-    console.log(`${String(i + 1).padStart(3)}  ~${seconds.toFixed(1).padStart(4)}s  ${(e.say ?? e.note ?? "(silent)").slice(0, 80)}`);
-    if (seconds > 15.5) console.warn(`WARN ${i + 1}: ~${seconds.toFixed(1)}s on one frame; split it`);
-  });
-  console.log(`\n${entries.length} moments, about ${Math.round(total)}s at ${rate.toFixed(2)} words/s (${measured ? "measured for this voice" : "not measured yet: run setup"})`);
-  const target = flags.target === undefined ? undefined : Number(flags.target);
+  const target = flags.target === undefined ? 90 : Number(flags.target);
+  const rows = entries.map((e, i) => ({ n: i + 1, cut: !!(e.frame || e.html || e.image), say: e.say ?? e.note, seconds: e.seconds ?? wordCount(e.say ?? e.note) / rate + gap }));
+  const total = rows.reduce((s, r) => s + r.seconds, 0);
+  const warnings = [];
+  for (const r of rows) if (r.seconds > 15.5) warnings.push(`${r.n}: ~${r.seconds.toFixed(1)}s on one frame; split it`);
+  for (const r of rows) {
+    const hit = lintSay(entries[r.n - 1].say);
+    if (hit) warnings.push(`${r.n}: the voice will read "${hit}" literally; respell it as spoken`);
+  }
   // Within 10% of the target is a fair plan; past it, the overrun is real.
-  if (target !== undefined && total > target * 1.1) console.warn(`WARN over the ${target}s target by about ${Math.round(total - target)}s: cut moments before you write frames`);
-  else if (target !== undefined) console.log(`within the ${target}s target (10% tolerance)`);
-  const dir = path.dirname(file);
-  const early = entries.some((e) => e.html && fs.existsSync(path.resolve(dir, e.html))) || fs.existsSync(path.join(dir, "frames"));
-  if (early) console.warn("WARN frames already exist: the plan comes first. Settle the lines against the target, then write frames.");
-}
+  const over = target > 0 && total > target * 1.1;
+  if (over) warnings.push(`over the ${target}s target by about ${Math.round(total - target)}s: cut moments`);
+  return { rows, total, rate, measured, target, over, warnings };
+};
+
+const printPlan = (p) => {
+  for (const r of p.rows) console.log(`${String(r.n).padStart(3)} ${r.cut ? "C" : " "} ~${r.seconds.toFixed(1).padStart(4)}s  ${(r.say ?? "(silent)").slice(0, 80)}`);
+  console.log(`\n${p.rows.length} moments, ${p.rows.filter((r) => r.cut).length} Cuts, about ${Math.round(p.total)}s at ${p.rate.toFixed(2)} words/s (${p.measured ? "measured for this voice" : "not measured yet: run setup"})${p.target > 0 && !p.over ? `, within the ${p.target}s target` : ""}`);
+  for (const w of p.warnings) console.warn(`WARN ${w}`);
+};
+
+// ---------------------------------------------------------------- build
+
+const build = async () => {
+  const t0 = Date.now();
+  const p = plan();
+  // The gate: a plan over its target, or a line the voice will garble, stops
+  // here, before anything is rendered or voiced. --force runs it anyway.
+  if ((p.over || p.warnings.some((w) => /literally/.test(w))) && !flags.force) {
+    printPlan(p);
+    die("fix the plan first (the WARN lines above); nothing was rendered or voiced", 2);
+  }
+  const sb = readStoryboard();
+  flags.sheet ??= path.join(sb.dir, "sheet.png");
+  const [{ warnings, notes }] = await Promise.all([render(sb), speak(sb)]);
+  const st = await stitch(sb);
+  const v = await verify(st);
+  const mb = fs.statSync(st.out).size / 1e6;
+  for (const s of st.timeline) console.log(`${String(s.n).padStart(3)} ${s.cut ? "C" : " "} ${s.seconds.toFixed(1).padStart(5)}s  ${(s.say ?? "(silent)").slice(0, 90)}`);
+  const cuts = st.timeline.filter((s) => s.cut).length;
+  console.log(`\n${st.timeline.length} moments, ${cuts} Cuts, ${st.total.toFixed(1)}s, ${mb.toFixed(1)}MB -> ${st.out}`);
+  console.log(`sheet -> ${path.resolve(String(flags.sheet))}`);
+  console.log(`verified: ${v.summary}`);
+  for (const n of notes) console.log(`fit ${n}`);
+  const late = [...warnings, ...p.warnings, ...v.problems];
+  for (const s of st.timeline) if (s.say && s.seconds > 15.5) late.push(`${s.n}: ${s.seconds.toFixed(1)}s of speech on one frame; split it into two moments`);
+  if (mb > 10) late.push("over 10MB: GitHub's free-plan upload limit for videos in comments and PR bodies");
+  for (const w of [...new Set(late)]) console.warn(`WARN ${w}`);
+  console.log(`built in ${((Date.now() - t0) / 1000).toFixed(1)}s${late.length ? "" : ", no warnings"}`);
+};
 
 // ---------------------------------------------------------------- main
 
 const verbs = {
   setup,
-  render: async () => render(readStoryboard()),
+  build,
+  estimate: async () => printPlan(plan()),
+  render: async () => {
+    const { warnings, notes } = await render(readStoryboard());
+    for (const n of notes) console.log(`fit ${n}`);
+    for (const w of warnings) console.warn(`WARN ${w}`);
+  },
   speak: async () => speak(readStoryboard()),
-  stitch: async () => stitch(readStoryboard()),
-  estimate,
-  build: async () => {
-    const sb = readStoryboard();
-    await render(sb);
-    await speak(sb);
-    stitch(sb);
+  stitch: async () => {
+    const st = await stitch(readStoryboard());
+    console.log(`${st.timeline.length} moments, ${st.total.toFixed(1)}s -> ${st.out}`);
   },
 };
 
 if (!verbs[verb]) {
-  console.log(fs.readFileSync(new URL(import.meta.url)).toString().split("\n").slice(1, 22).map((l) => l.replace(/^\/\/ ?/, "")).join("\n"));
+  console.log(fs.readFileSync(new URL(import.meta.url)).toString().split("\n").slice(1, 32).map((l) => l.replace(/^\/\/ ?/, "")).join("\n"));
   process.exit(verb ? 1 : 0);
 }
 await verbs[verb]();

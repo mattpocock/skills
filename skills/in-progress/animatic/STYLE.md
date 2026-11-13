@@ -20,7 +20,7 @@ Each Reveal keeps enough of the frame before it for the viewer to see where they
 - **Browser**: the same page with one panel opened, one field filled, one line typed.
 - **Diagram**: one box, one arrow, one highlight at a time.
 
-**Write the page so it can be revealed in pieces**: elements separate and addressable, so the next Reveal is a copy of the page with one thing changed. Build a diagram's final frame first, then make the earlier ones by hiding the later boxes (`style="visibility:hidden"` keeps the layout still as they appear).
+**Build the final frame first, then reveal it in pieces.** On a generated frame, a Reveal is the next entry with a new `show` or `lit` (FRAMES.md). On a page of your own, the next Reveal is a copy of the page with one thing changed, the later boxes hidden with `style="visibility:hidden"` so the layout keeps still as they appear.
 
 ## It has to work on radio
 
@@ -30,7 +30,7 @@ A viewer looking away must still get it. **The line carries the meaning; the fra
 - **Name every member of a set.** A line that says "three files change" owes the viewer three moments, one per file, each named. Reveal them one at a time on one frame.
 - **Define a noun the first time it is spoken.** A term new to the viewer gets a moment of its own before it is used. A clause tucked inside another sentence is not a definition.
 - **Show the mechanism before the artifact.** The command, the rule or the function goes on screen first, and the file it produces after.
-- **Light exactly one thing: the words the line quotes.** Use `.l.here` (with `.code--spotlight` on the block) for a code line, `.spot` for words in prose, `.node.lit` for a box. Two lit things on one frame, or a line naming two things on a frame lighting one, is really two moments. A frame with nothing lit is an **overview**, and its line talks about the whole frame ("six files change; here's the order to read them").
+- **Light exactly one thing: the words the line quotes.** Set `lit` on a generated frame; on a page of your own, use `.l.here` (with `.code--spotlight` on the block) for a code line, `.spot` for words in prose, `.node.lit` for a box. Two lit things on one frame, or a line naming two things on a frame lighting one, is really two moments. A frame with nothing lit is an **overview**, and its line talks about the whole frame ("six files change; here's the order to read them").
 
 **A reaction is as long as the thing it reacts to.** Opening a file with six headings and spending one line on it is a mention. Budget one moment per heading, and a second wherever the file gives you a sentence worth quoting.
 
@@ -51,7 +51,7 @@ A viewer looking away must still get it. **The line carries the meaning; the fra
 - **Keep the words off the frame.** A frame carries two to four words of its own: a label on a box, a two-word title, often nothing. The sentence belongs in the line. Prefer fewer, larger elements.
 - **Text that is not code is 50 characters wide at most**, and as short as you can make it. Code and terminal output show the real thing at its real width.
 - **Real content only.** The real file, the real diff, the real output, copied from the source: every ID, argument, path, flag and number. Code that does not exist misleads the viewer, and placeholder boxes cannot be judged for density.
-- **Real line numbers.** An excerpt keeps the file's real line numbers and nesting: mark skipped lines with a fold (`.l.fold`) in place of renumbering or dropping a parent key. A line too long for the frame is cut at a comment or wrapped onto a `.l.bare` continuation, so it ends inside the frame.
+- **Real line numbers.** An excerpt keeps the file's real line numbers and nesting. A `code` frame from the saved diff or file does this for you, folding what it skips. On a page of your own, mark skipped lines with a fold (`.l.fold`) in place of renumbering or dropping a parent key, and wrap a line too long for the frame onto a `.l.bare` continuation.
 - **28px is the floor** for anything the viewer must read; code is 30px. A frame that does not fit at those sizes holds too much: split the moment.
 - **Fill the frame.** It is often watched at half size, inline in a PR or a doc. A diagram, a list or a card spans at least half the frame's width; a short list of four items is set large, filling the dark field around it.
 
@@ -61,11 +61,11 @@ Read the contact sheet for these, in order:
 
 1. **Cuts.** Count the places where the next frame shares nothing with the one before. More than one per idea: fold the extra Cuts into Reveals.
 2. **Density.** A frame with more than one thing to read, or text past 50 characters: split it or cut words.
-3. **The lit thing.** Each frame lights exactly one thing, the words its line quotes, or is an overview.
+3. **The lit thing.** Each frame lights exactly one thing, the words its line quotes, or is an overview. (`build` warns on two lit things, and on a `lit` that matches nothing.)
 4. **Line against frame.** Read each line under its tile: does the frame show what the line says, at that moment?
 5. **Invented detail.** Every ID, argument, path, flag and number on a terminal or code frame is in the source. A plausible session ID or command argument you made up is a false claim on screen.
 6. **Fill.** Title cards and diagrams span at least half the tile's width.
-7. **Cut-off edges.** Code or text clipped at the bottom or right of a tile.
+7. **Cut-off edges.** Code or text clipped at the bottom or right of a tile. (`build` warns on these.)
 
 ## Feedback
 

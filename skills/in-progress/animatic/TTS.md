@@ -16,9 +16,9 @@ kokoro     none of the above         --voice af_heart (default), af_bella, am_mi
 
 Kokoro-82M is a local model run on the CPU: free, no key, faster than real time, and the best-sounding of the five. Setup installs it (about 90MB on first use) only on a machine with no voice of its own. To use it anyway, pass `--engine kokoro` to `setup` once, then to `speak` or `build`. `--engine` picks any engine in the table by name; `spd-say` cannot write a file, so it is not one.
 
-Pass the same voice flags (`--engine`, `--voice` or `--tts-command`) to `stitch` if you run it on its own, so it finds the cached speech.
+Pass the same voice flags (`--engine`, `--voice` or `--tts-command`) to every `build`, so it finds the cached speech.
 
-Voices speak at different rates, so `setup` times a sample line in the voice in force and prints its name and words per second; `estimate` uses that rate, and every `stitch` refines it from the real run. After you switch voice or engine, run `setup` again with the same flags so the next estimate holds.
+Voices speak at different rates, so `setup` times a sample line in the voice in force and prints its name and words per second; `build` checks the plan at that rate, and every build refines it from the real run. After you switch voice or engine, run `setup` again with the same flags so the next estimate holds.
 
 ## Any other engine: `--tts-command`
 

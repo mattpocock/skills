@@ -1,4 +1,6 @@
-# The frame kit
+# The frame kit: your own pages
+
+A generated frame ([`FRAMES.md`](../FRAMES.md)) covers most moments. Write a page of your own only for a screen its types cannot show: a Claude Code session, two panes side by side, a squiggle under an error, the user's own style. Its storyboard entry takes `"html"`, and a Reveal of it is the next entry with no frame (the same page held) or a copy of the page with one thing changed.
 
 ```
 house.css         the contract: fonts, colours, sizes, every class below
@@ -80,7 +82,7 @@ SHARED    .caption          a strip along the bottom (a label, never the line)
 ## Writing a frame
 
 1. Copy `house.css` into the frames folder once, and each example you start from beside it. Pages link `./house.css` relative to themselves.
-2. Keep `class="frame"` as the outermost element. It pins the page to 1920x1080 and CUTS whatever does not fit, so overflow shows in the PNG instead of hiding. `render` warns on every cut box.
+2. Keep `class="frame"` as the outermost element. It pins the page to 1920x1080 and CUTS whatever does not fit, so overflow shows in the PNG instead of hiding. `build` warns on every cut box, and on a page that lights more than one thing.
 3. Fill it with real content (STYLE.md, "The frames").
 4. **One line of code or output is one element on one source line.** `.l`, `.cmd` and `.out` keep their whitespace, so a line break inside one is a line break in the frame.
 5. **Highlighting is hand-written**: wrap each token in a `t-` span. Nothing runs at capture time.

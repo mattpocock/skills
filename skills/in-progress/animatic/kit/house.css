@@ -896,3 +896,108 @@ body {
   min-width: 0;
 }
 
+/* --------------------------------------------------------------------- */
+/* Generated frames (a storyboard "frame" spec; see FRAMES.md)            */
+/* --------------------------------------------------------------------- */
+
+/* The line number is the source's own, carried on the line, so the fitter
+ * can drop lines without renumbering. A long line wraps under its text. */
+.code.gen .l::before {
+  content: attr(data-n);
+}
+.code.gen .l {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  padding-left: 110px;
+  text-indent: -110px;
+}
+.code.gen .l.fold::before {
+  content: "\22EF";
+}
+.terminal.gen .here {
+  background: var(--window-raised);
+  box-shadow: inset 4px 0 0 var(--accent);
+}
+.terminal.spotlight > * {
+  opacity: 0.32;
+}
+.terminal.spotlight > .here {
+  opacity: 1;
+}
+.terminal .fold {
+  display: block;
+  color: var(--faint);
+}
+.terminal .fold::before {
+  content: "\22EF";
+}
+.gen-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  max-width: 100%;
+}
+.diagram.gen {
+  row-gap: 56px;
+}
+.tight .diagram {
+  gap: 24px;
+}
+.tight .node {
+  min-width: 0;
+  padding: 40px 32px;
+}
+.wrap .diagram {
+  flex-wrap: wrap;
+}
+.biglist {
+  margin: 48px 0 0;
+  padding: 0;
+  list-style: none;
+  min-width: 1100px;
+  font-size: 52px;
+  line-height: 1.25;
+  color: var(--text);
+}
+.biglist li {
+  display: flex;
+  align-items: baseline;
+  gap: 28px;
+  padding: 20px 36px;
+  margin-bottom: 12px;
+  border-radius: var(--radius);
+  border-left: 6px solid transparent;
+}
+.biglist.mono li > .text {
+  font-family: var(--mono);
+}
+.biglist .sub {
+  font-size: 32px;
+  color: var(--dim);
+  margin-left: auto;
+  padding-left: 32px;
+}
+.biglist .tag {
+  font-family: var(--mono);
+  font-weight: 700;
+  width: 1ch;
+}
+.biglist .tag.add {
+  color: var(--ok);
+}
+.biglist .tag.mod {
+  color: var(--warn);
+}
+.biglist .tag.del {
+  color: var(--error);
+}
+.biglist.spotlight li {
+  opacity: 0.45;
+}
+.biglist li.lit {
+  opacity: 1;
+  background: var(--plate);
+  border-left-color: var(--accent);
+  color: var(--accent-soft);
+}
+
