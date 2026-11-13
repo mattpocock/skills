@@ -31,3 +31,9 @@ Every skill that dispatches a subagent says to start it with a fresh context win
 ### Triage labels
 
 Canonical names, unchanged. See `docs/agents/triage-labels.md`. Issues are judged against [`SCOPE.md`](./SCOPE.md).
+
+### Animatic
+
+The animatic skill's voice, renderer, style and stitcher. See `docs/agents/animatic.md`.
+
+Every PR carries an animatic. Once the PR is open, run the `animatic` skill on it and post the video as a PR comment with `gh pr comment <number> --attach <file>.mp4`.
