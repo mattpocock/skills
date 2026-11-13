@@ -80,6 +80,6 @@ Done when the sheet passes the checklist and `build` ends with `no warnings`.
 
 ## 6. Hand it over
 
-Give the user the MP4's path, its run time, the moment count and the Cut count. For a PR, tell them how to attach it (PR.md, "Hand it over").
+Give the user the MP4's path, its run time, the moment count and the Cut count. For a PR, post it or hand over the command that does (PR.md, "Hand it over").
 
 The user gives feedback by position: "4 is too dense, 9 and 10 say the same thing". Revise by STYLE.md's "Feedback", rebuild, and report the new run time.

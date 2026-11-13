@@ -55,4 +55,14 @@ Save each PR's diff as `pr-<n>.diff`.
 
 ## Hand it over
 
-GitHub plays an MP4 inline in a PR description or comment, but the `gh` CLI cannot upload one. Give the user the path, and tell them to drag the file into the PR description in the browser, where GitHub uploads it and leaves a link that renders as a player. The limit is 10MB on a free plan and 100MB on a paid one; `build` warns past 10MB. The upload is how the MP4 reaches the PR; never commit it to the PR's branch.
+GitHub plays an MP4 inline in a PR comment or description. `gh` uploads it as an attachment:
+
+```
+gh pr comment <n> --repo <owner/repo> --attach animatic.mp4 --body "A 90-second animatic of this PR: why, the shape, where to start reading."
+```
+
+- **When the user asks you to post it**, run that command and give them the comment's URL.
+- **Otherwise**, give them the MP4's path and that command, ready to run.
+- **On a `gh` without `--attach`** (`gh pr comment --help` lists it), the fallback is the browser: drag the file into the PR description or a comment, where GitHub uploads it and leaves a link that renders as a player.
+
+The limit is 10MB on a free plan and 100MB on a paid one; `build` warns past 10MB. The upload is how the MP4 reaches the PR; the PR's branch stays free of it.
