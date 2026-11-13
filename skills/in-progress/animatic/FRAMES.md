@@ -21,7 +21,7 @@ An entry with a `"frame"` is a **Cut**. An entry with no frame is a **Reveal**: 
 `{ "type": "title", "kicker": "PR #1368 · mattpocock/skills", "headline": "Publish the skills\nto npm", "sub": "one supporting line" }`
 
 **`code`**: an editor showing real code. `path` is the file's path in the repo; give one source:
-- `"diff": "pr.diff"`: a saved unified diff (`gh pr diff`, `git diff`). Shows that file's hunks, added and removed lines coloured, numbered by the new file.
+- `"diff": "pr.diff"`: a saved unified diff (`git diff`, or the tracker's diff command). Shows that file's hunks, added and removed lines coloured, numbered by the new file.
 - `"src": "src/limit.ts"`: a saved copy of the file, numbered from 1.
 
 Optional: `"lines": "40-58"` or `"12-20,44-50"` (real numbers; a gap becomes a fold), `"tree": [".github", "~package.json", "+scripts/setup.sh"]` (a sidebar; `+` added, `~` modified), `"lang"` where the extension misleads, `"title"`.

@@ -25,7 +25,7 @@ const hidden = (spec, i) => (spec.show !== undefined && i >= spec.show ? ` style
 
 // ---------------------------------------------------------------- code
 
-// A unified diff (`gh pr diff`, `git diff`) -> rows for one file, numbered by
+// A unified diff (`git diff`, or a host's PR diff) -> rows for one file, numbered by
 // the new file. A removed line sits at the number of the line after it.
 const parseDiff = (text, file) => {
   const rows = [];

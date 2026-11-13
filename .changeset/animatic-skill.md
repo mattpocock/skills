@@ -2,4 +2,8 @@
 "mattpocock-skills": patch
 ---
 
-Add `animatic`, an in-progress model-invoked skill that makes a narrated video of still frames, built by one command: frames generated from the storyboard (code straight from a diff, real line numbers, auto-fit) rendered to PNG with Playwright, each line voiced by the machine's built-in voice (macOS `say`, Windows SAPI, espeak-ng) or by Kokoro where there is none, stitched with ffmpeg. It ships a style guide for pacing (Reveals and Cuts, lines written for the ear), a plain frame kit, a recipe for pull request animatics, and recipes for bringing your own TTS engine, images or visual style.
+Add `animatic` and `setup-animatic`, two in-progress skills for narrated videos of still frames.
+
+`animatic` (model-invoked) builds one with a single command: frames generated from the storyboard (code straight from a diff, real line numbers, auto-fit) rendered to PNG with Playwright, each line voiced, stitched with ffmpeg and verified. It ships a style guide for pacing (Reveals and Cuts, lines written for the ear), a plain frame kit and a recipe for pull request animatics. It reads its tools from `docs/agents/animatic.md` and falls back to keyless defaults (the machine's built-in voice, else Kokoro). It reads PRs and posts the MP4 through the repo's issue-tracker doc, and calls no tracker CLI of its own.
+
+`setup-animatic` (user-invoked) interviews the user in rounds about the voice, renderer, style and stitcher, tests each choice on the machine (a voiced sample line, a one-moment build), and writes `docs/agents/animatic.md`. API keys stay in environment variables; the config names the variable only.

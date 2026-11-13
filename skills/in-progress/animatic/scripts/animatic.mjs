@@ -3,6 +3,7 @@
 // (the machine's built-in voice, else Kokoro), PNG + speech -> MP4 (ffmpeg).
 //
 //   node animatic.mjs setup [--engine kokoro]
+//   node animatic.mjs say "<one line>" [-o sample.wav]
 //   node animatic.mjs build <storyboard.json> [-o animatic.mp4] [--target 90] [--sheet sheet.png]
 //   node animatic.mjs estimate <storyboard.json> [--target 90]
 //   node animatic.mjs render <storyboard.json> [--sheet sheet.png]
@@ -10,7 +11,11 @@
 //   node animatic.mjs stitch <storyboard.json> [-o animatic.mp4] [--gap 0.3]
 //
 // Voice flags, on any verb: --engine say|sapi|espeak-ng|espeak|kokoro,
-// --voice <name>, --tts-command "<cmd>".
+// --voice <name>, --tts-command "<cmd>". Style flag, on build and render:
+// --css <file>, a stylesheet layered over kit/house.css for generated frames.
+//
+// `setup` installs the dependencies and measures the voice; `build` runs it
+// itself when either is missing. `say` voices one line, to test a voice.
 //
 // `build` is the one to run. It checks the plan against --target (default
 // 90s; --target 0 skips it), renders and voices at once, stitches, verifies
@@ -91,7 +96,17 @@ const installed = (name) => {
 
 const have = (bin) => spawnSync(bin, ["-version"], { stdio: "ignore" }).status === 0;
 
-const setup = async () => {
+const chromium = () => {
+  try {
+    return fs.existsSync(deps("playwright").chromium.executablePath());
+  } catch {
+    return false;
+  }
+};
+const wanted = () => ["playwright", "shiki", ...(flags["tts-command"] === undefined && engineName() === "kokoro" ? ["kokoro-js"] : [])];
+const ready = () => wanted().every(installed) && chromium() && readRates()[ttsKey()] !== undefined;
+
+const setup = async ({ force = !!flags.force } = {}) => {
   for (const bin of ["ffmpeg", "ffprobe"]) {
     if (!have(bin)) die(`${bin} is not on PATH. Install ffmpeg (brew install ffmpeg / apt install ffmpeg / winget install ffmpeg) and run setup again.`);
   }
@@ -104,21 +119,13 @@ const setup = async () => {
     const r = spawnSync(cmd, args, { cwd: HOME, stdio: "inherit", shell: process.platform === "win32" });
     if (r.status !== 0) die(`${cmd} failed`);
   };
-  // Kokoro is installed only where the machine has no voice of its own.
-  const engine = engineName();
-  const want = ["playwright", "shiki", ...(engine === "kokoro" ? ["kokoro-js"] : [])];
-  const chromium = () => {
-    try {
-      return fs.existsSync(deps("playwright").chromium.executablePath());
-    } catch {
-      return false;
-    }
-  };
-  if (!want.every(installed) || flags.force) sh("npm", ["install", "--no-fund", "--no-audit", ...want]);
-  if (!chromium() || flags.force) sh("npx", ["playwright", "install", "chromium"]);
+  // Kokoro is installed only where it is the voice in force.
+  const want = wanted();
+  if (!want.every(installed) || force) sh("npm", ["install", "--no-fund", "--no-audit", ...want]);
+  if (!chromium() || force) sh("npx", ["playwright", "install", "chromium"]);
   const known = readRates()[ttsKey()];
-  const rate = known && !flags.force ? known : await calibrate();
-  console.log(`voice: ${voiceLabel()}, ${known && !flags.force ? "" : "measured "}at ${rate.toFixed(2)} words/s`);
+  const rate = known && !force ? known : await calibrate();
+  console.log(`voice: ${voiceLabel()}, ${known && !force ? "" : "measured "}at ${rate.toFixed(2)} words/s`);
   console.log(`Ready. Dependencies are in ${HOME}.`);
 };
 
@@ -186,7 +193,14 @@ const lintSay = (say) => {
 
 // ---------------------------------------------------------------- render
 
-const CSS = () => fs.readFileSync(path.join(SKILL, "kit", "house.css"), "utf8");
+// house.css, then the user's own stylesheet (--css) over it.
+const CSS = () => {
+  const house = fs.readFileSync(path.join(SKILL, "kit", "house.css"), "utf8");
+  if (flags.css === undefined) return house;
+  const own = path.resolve(String(flags.css));
+  if (!fs.existsSync(own)) die(`--css: no such file ${own}`);
+  return `${house}\n${fs.readFileSync(own, "utf8")}`;
+};
 const sha = (s) => createHash("sha1").update(s).digest("hex").slice(0, 16);
 
 // Every page in one browser, a few at a time. A frame whose page has not
@@ -679,6 +693,7 @@ const printPlan = (p) => {
 
 const build = async () => {
   const t0 = Date.now();
+  if (!ready()) await setup({ force: false });
   const p = plan();
   // The gate: a plan over its target, or a line the voice will garble, stops
   // here, before anything is rendered or voiced. --force runs it anyway.
@@ -717,6 +732,14 @@ const verbs = {
     for (const w of warnings) console.warn(`WARN ${w}`);
   },
   speak: async () => speak(readStoryboard()),
+  say: async () => {
+    if (storyboardArg === undefined) die('usage: animatic.mjs say "<one line>" [-o sample.wav]');
+    const wav = path.resolve(String(flags.o ?? "sample.wav"));
+    await synthAll([{ text: storyboardArg, wav, where: "say" }]);
+    const seconds = duration(wav);
+    const words = wordCount(storyboardArg);
+    console.log(`voice: ${voiceLabel()}\n${words} words, ${seconds.toFixed(2)}s (${(words / seconds).toFixed(2)} words/s) -> ${wav}`);
+  },
   stitch: async () => {
     const st = await stitch(readStoryboard());
     console.log(`${st.timeline.length} moments, ${st.total.toFixed(1)}s -> ${st.out}`);
@@ -724,7 +747,7 @@ const verbs = {
 };
 
 if (!verbs[verb]) {
-  console.log(fs.readFileSync(new URL(import.meta.url)).toString().split("\n").slice(1, 32).map((l) => l.replace(/^\/\/ ?/, "")).join("\n"));
+  console.log(fs.readFileSync(new URL(import.meta.url)).toString().split("\n").slice(1, 38).map((l) => l.replace(/^\/\/ ?/, "")).join("\n"));
   process.exit(verb ? 1 : 0);
 }
 await verbs[verb]();

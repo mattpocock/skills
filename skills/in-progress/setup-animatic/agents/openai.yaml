@@ -1,0 +1,5 @@
+interface:
+  display_name: "Setup Animatic"
+  short_description: "Choose and test the animatic toolchain"
+policy:
+  allow_implicit_invocation: false

@@ -4,11 +4,13 @@ The viewer is a reviewer who will read the diff after watching. The animatic is 
 
 ## Gather
 
-In the work folder (SKILL.md step 3), in one command:
+Read the PR (its title, body, author, files, base and head branches, and the issue it closes) the way the repo's issue-tracker doc (`docs/agents/issue-tracker.md`, "Read a PR") says. With no tracker doc, the user gives you the PR's branches and its description.
+
+Save its diff as `pr.diff` in the work folder (SKILL.md step 3): with the tracker doc's diff command where it has one, or with plain git, which works on any host:
 
 ```
-gh pr view <n> --repo <owner/repo> --json title,body,author,files,additions,deletions,closingIssuesReferences
-gh pr diff <n> --repo <owner/repo> > pr.diff
+git fetch origin <base> <head>
+git diff origin/<base>...origin/<head> > <work folder>/pr.diff
 ```
 
 Code frames read `pr.diff` directly (`"diff": "pr.diff"`), so the hunks, the colours and the real line numbers come from the diff itself.
@@ -22,7 +24,7 @@ Code frames read `pr.diff` directly (`"diff": "pr.diff"`), so the hunks, the col
 
 Five chapters, in this order. Each is one idea, so each is about one Cut, with Reveals inside it.
 
-1. **Title**: one `title` frame, the PR's number and a headline in plain words. It is also the poster: GitHub shows the first frame before anyone presses play.
+1. **Title**: one `title` frame, the PR's number and a headline in plain words. It is also the poster: an inline player shows the first frame before anyone presses play.
 2. **The problem**: what was wrong or missing before, shown on the screen where it hurt (the failing output, the config that could not express it, the diagram of the old flow).
 3. **The shape**: one `diagram` or `list` of files that gains a piece per moment (`show`) until it shows the whole change. Close it on the reading order ("start with the workflow file, then the package json"), as a last Reveal of this screen that lights the files it names.
 4. **The key change**: the one or two hunks the PR turns on, as `code` frames from `pr.diff`, each lit line read out.
@@ -36,12 +38,12 @@ Those five are the whole arc. Anything else the PR body covers (what was left ou
 
 The user asks for a tour of several PRs ("the recent large PRs", "what landed this week"). The viewer wants the codebase's new shape, not each PR's review.
 
-**Pick the PRs.** `gh pr list --repo <owner/repo> --state merged --limit 30 --json number,title,mergedAt,additions,deletions` and take the most recent ones whose size fits the ask. Say which you took, and why, at hand-over.
+**Pick the PRs.** List the recently merged ones with plain git, where each merge or squash commit on the main branch is one PR: `git log --first-parent --shortstat --since='2 weeks ago' origin/<main>`. Take the most recent ones whose size fits the ask, and read each as in "Gather". Say which you took, and why, at hand-over.
 
 **The arc**:
 
 1. **Overview**: one screen naming every PR in the tour, one line each. It Reveals one PR at a time, then lights them all as the map of the video.
-Save each PR's diff as `pr-<n>.diff`.
+Save each PR's diff as `pr-<n>.diff` (for a merged one, `git diff <commit>^1 <commit>`).
 
 2. **One chapter per PR**, in an order that builds (a PR another depends on goes first). Each chapter has three parts, each lit on its own frame:
    - the why
@@ -55,14 +57,9 @@ Save each PR's diff as `pr-<n>.diff`.
 
 ## Hand it over
 
-GitHub plays an MP4 inline in a PR comment or description. `gh` uploads it as an attachment:
+The animatic goes on the PR as a comment with the MP4 attached, posted the way the tracker doc's "attach a file to a comment" says (SKILL.md step 6), with a one-line body: "A 90-second animatic of this PR: why, the shape, where to start reading."
 
-```
-gh pr comment <n> --repo <owner/repo> --attach animatic.mp4 --body "A 90-second animatic of this PR: why, the shape, where to start reading."
-```
+- **When the user asks you to post it**, post it and give them the comment's link.
+- **Otherwise**, give them the MP4's path, and the tracker doc's attach command filled in for this PR, ready to run.
 
-- **When the user asks you to post it**, run that command and give them the comment's URL.
-- **Otherwise**, give them the MP4's path and that command, ready to run.
-- **On a `gh` without `--attach`** (`gh pr comment --help` lists it), the fallback is the browser: drag the file into the PR description or a comment, where GitHub uploads it and leaves a link that renders as a player.
-
-The limit is 10MB on a free plan and 100MB on a paid one; `build` warns past 10MB. The upload is how the MP4 reaches the PR; the PR's branch stays free of it.
+The upload is how the MP4 reaches the PR; the PR's branch stays free of it. `build` warns past 10MB, the smallest common upload limit (GitHub's free plan).
