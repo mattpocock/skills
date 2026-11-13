@@ -954,7 +954,6 @@ body {
   margin: 48px 0 0;
   padding: 0;
   list-style: none;
-  min-width: 1100px;
   font-size: 52px;
   line-height: 1.25;
   color: var(--text);

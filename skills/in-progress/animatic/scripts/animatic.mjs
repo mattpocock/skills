@@ -200,6 +200,8 @@ const render = async ({ dir, build, moments }) => {
   try {
     cache = JSON.parse(fs.readFileSync(cacheFile, "utf8"));
   } catch {}
+  // PNGs left from a longer storyboard would mislead a look at build/.
+  for (const f of fs.readdirSync(build)) if (/^\d+\.png$/.test(f) && Number(f.slice(0, -4)) > moments.length) fs.rmSync(path.join(build, f));
   const todo = [];
   for (const m of moments) {
     if (m.image) continue;
@@ -230,7 +232,7 @@ const render = async ({ dir, build, moments }) => {
       if (m.page) await page.setContent(m.page, { waitUntil: "load" });
       else await page.goto(pathToFileURL(m.html).href, { waitUntil: "load", timeout: 30000 });
       await page.evaluate(() => document.fonts.ready);
-      const fixes = await page.evaluate(fitInPage);
+      const { fixes, warns: fitWarns } = await page.evaluate(fitInPage);
       // Content cut off by an overflow:hidden box is the commonest broken frame;
       // two lit things on one frame is the commonest unclear one.
       const { cut, lit } = await page.evaluate(() => {
@@ -250,7 +252,7 @@ const render = async ({ dir, build, moments }) => {
       });
       await page.screenshot({ path: m.png });
       await page.close();
-      const warns = [];
+      const warns = [...fitWarns];
       if (errors.length) warns.push(`page error: ${errors[0]}`);
       for (const c of cut) warns.push(`overflow, content cut in ${c}`);
       if (lit > 1) warns.push(`${lit} things lit; light one, or split the moment`);

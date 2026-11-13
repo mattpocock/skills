@@ -144,10 +144,10 @@ const terminal = (spec, warns) => {
 <div class="terminal gen${lit >= 0 ? " spotlight" : ""}" data-fit="rows" data-trim="top">${rows.join("")}</div></div></div>`;
 };
 
-const title = (spec, warns) => `<div class="frame frame--center"><div class="card">
+const title = (spec, warns) => `<div class="frame frame--center"><div class="gen-wrap" data-fit="scale"><div class="card">
 ${spec.kicker ? `<div class="kicker">${esc(spec.kicker)}</div>` : ""}
 <h1 class="headline">${String(spec.headline ?? "").split("\n").map((l) => prose(warns, "headline", l)).join("<br>")}<span class="rule"></span></h1>
-${spec.sub ? `<p class="subhead">${esc(spec.sub)}</p>` : ""}</div></div>`;
+${spec.sub ? `<p class="subhead">${esc(spec.sub)}</p>` : ""}</div></div></div>`;
 
 const diagram = (spec, warns) => {
   const nodes = (spec.nodes ?? []).map((n) => (typeof n === "string" ? { title: n } : n));
@@ -160,7 +160,7 @@ const diagram = (spec, warns) => {
     const cls = i === lit ? " lit" : lit >= 0 ? " muted" : "";
     parts.push(`<div class="node${cls}"${hidden(spec, i)}><div class="node-title">${prose(warns, "node", n.title)}</div>${n.sub ? `<div class="node-sub">${prose(warns, "node sub", n.sub)}</div>` : ""}</div>`);
   });
-  return `<div class="frame frame--center"><div class="gen-wrap" data-fit="shrink">
+  return `<div class="frame frame--center"><div class="gen-wrap" data-fit="scale">
 ${spec.title ? `<div class="overline">${prose(warns, "title", spec.title)}</div>` : ""}
 <div class="diagram gen" style="margin-top:56px">${parts.join("")}</div>
 ${spec.note ? `<div class="annotation" style="margin-top:72px">${prose(warns, "note", spec.note)}</div>` : ""}</div></div>`;
@@ -176,7 +176,7 @@ const list = (spec, warns) => {
     const tag = anyTag ? `<span class="tag ${TAGS[it.tag] ?? ""}">${esc(it.tag && it.tag.length === 1 ? (it.tag === "-" ? "−" : it.tag) : it.tag ? { add: "+", mod: "~", del: "−" }[TAGS[it.tag]] : "")}</span>` : "";
     return `<li class="${i === lit ? "lit" : ""}"${hidden(spec, i)}>${tag}<span class="text">${prose(warns, "item", it.text)}</span>${it.sub ? `<span class="sub">${prose(warns, "item sub", it.sub)}</span>` : ""}</li>`;
   });
-  return `<div class="frame frame--center"><div class="gen-wrap" data-fit="shrink">
+  return `<div class="frame frame--center"><div class="gen-wrap" data-fit="scale">
 ${spec.title ? `<div class="overline">${prose(warns, "title", spec.title)}</div>` : ""}
 <ol class="biglist${spec.mono ? " mono" : ""}${lit >= 0 ? " spotlight" : ""}">${lis.join("")}</ol></div></div>`;
 };
@@ -207,6 +207,7 @@ const page = (spec, warns) => {
 export const frameHtml = async (spec, { dir, home, css }) => {
   const warns = [];
   if (!TYPES.includes(spec.type)) throw new Error(`frame type "${spec.type}" is not one of ${TYPES.join(", ")}`);
+  if (spec.show === 0) warns.push(`"show": 0 leaves the frame empty; show the first item`);
   const body =
     spec.type === "code" ? await code(spec, dir, home, warns)
     : spec.type === "terminal" ? terminal(spec, warns)
@@ -250,27 +251,45 @@ export const fitInPage = () => {
     if (dropped) fixes.push(`folded ${dropped} line${dropped > 1 ? "s" : ""} to fit`);
   }
   const frame = document.querySelector(".frame");
-  for (const box of document.querySelectorAll('[data-fit="shrink"]')) {
+  const warns = [];
+  // A centred block is sized to its box: grown until it fills the frame, or
+  // shrunk (never below the 28px floor) until it fits.
+  for (const box of document.querySelectorAll('[data-fit="scale"]')) {
     let smallest = Infinity;
-    for (const el of box.querySelectorAll("*")) if (el.childNodes.length && [...el.childNodes].some((c) => c.nodeType === 3 && c.textContent.trim())) smallest = Math.min(smallest, parseFloat(getComputedStyle(el).fontSize));
+    for (const el of box.querySelectorAll("*")) if ([...el.childNodes].some((c) => c.nodeType === 3 && c.textContent.trim())) smallest = Math.min(smallest, parseFloat(getComputedStyle(el).fontSize));
     const floor = Math.min(1, 28 / smallest);
     const tooBig = () => frame.scrollHeight > frame.clientHeight + 2 || [...box.querySelectorAll(".diagram, .biglist")].some((el) => el.scrollWidth > el.clientWidth + 2);
+    // The content's own extent, whatever its wrappers' widths.
+    const extent = () => {
+      const rs = [...box.querySelectorAll(".card, .node, .arrow, li, .overline, .annotation")].map((el) => el.getBoundingClientRect()).filter((r) => r.width);
+      const l = Math.min(...rs.map((r) => r.left)), r = Math.max(...rs.map((r) => r.right));
+      const t = Math.min(...rs.map((r) => r.top)), b = Math.max(...rs.map((r) => r.bottom));
+      return { w: r - l, h: b - t };
+    };
+    const W = frame.clientWidth - 192;
+    const H = frame.clientHeight - 192;
     // First tighten the boxes (no text shrinks), then shrink to the floor,
     // and only then wrap a diagram onto a second row.
     if (tooBig()) {
       box.classList.add("tight");
       fixes.push("tightened to fit");
     }
-    let z = 1;
+    const { w, h } = extent();
+    let z = Math.min(2.2, (W * 0.9) / w, (H * 0.85) / h);
+    z = Math.max(floor, Math.floor(z * 20) / 20);
+    box.style.zoom = String(z);
     while (tooBig() && z - 0.05 >= floor - 1e-9) {
       z -= 0.05;
       box.style.zoom = String(z);
     }
+    if (z > 1) fixes.push(`grown to ${Math.round(z * 100)}% to fill the frame`);
     if (z < 1) fixes.push(`shrunk to ${Math.round(z * 100)}% to fit`);
     if (tooBig()) {
       box.classList.add("wrap");
       fixes.push("wrapped onto two rows to fit");
     }
+    const span = extent().w;
+    if (span < frame.clientWidth / 2) warns.push(`content spans ${Math.round((span / frame.clientWidth) * 100)}% of the width; a frame is at least half filled`);
   }
-  return fixes;
+  return { fixes, warns };
 };
