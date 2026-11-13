@@ -43,7 +43,7 @@ What does not fit is fitted, and `build` prints a `fit` line for each frame it c
 
 - **Code** folds away the lines farthest from the lit line, so long code needs no `lines`. A long line wraps under its own number.
 - **A terminal** drops its oldest lines.
-- **A diagram or a list** tightens its boxes, then shrinks to the 28px floor, then wraps. A diagram that wrapped holds too much: split it.
+- **A title, a diagram or a list** is sized to the frame: grown to fill it, or tightened, then shrunk to the 28px floor, then wrapped. A diagram that wrapped holds too much: split it. Content spanning under half the width warns.
 
 A `WARN` that survives fitting names a frame that holds too much: split the moment.
 
