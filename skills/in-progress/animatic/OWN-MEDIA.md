@@ -1,6 +1,6 @@
 # The user's own images or speech
 
-The storyboard does not care where a frame or a line came from. Any entry can take `"image"` (a PNG or JPEG) instead of a `"frame"`, and `"audio"` (a recorded file) instead of a `"say"`. `build` renders nothing for an image and letterboxes it onto a 1920x1080 frame without stretching it.
+The storyboard does not care where a frame or a line came from. Any entry can take `"image"` (a PNG or JPEG) instead of a `"frame"`, and `"audio"` (a recorded file) instead of a `"say"`. An image can be any size: `build` fits it whole onto a 1920x1080 frame, letterboxed on the kit's ground colour, without stretching it.
 
 ## Images the user already has
 

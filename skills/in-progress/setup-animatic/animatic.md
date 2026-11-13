@@ -12,7 +12,7 @@ Pass these, unchanged, to every `animatic.mjs` command (`build`, `say`, `setup`)
 
 ## Stages
 
-- **Voice**: edge-tts, `en-GB-RyanNeural` (Microsoft's neural voices, online, no key). Needs `edge-tts` on `PATH` (`pip install edge-tts`).
+- **Voice**: edge-tts, `en-GB-RyanNeural` (Microsoft's neural voices, online, no key). Needs `edge-tts` on `PATH` (`pipx install edge-tts`).
 - **Renderer**: generated frames on the kit (Playwright).
 - **Style**: the plain kit.
 - **Stitcher**: ffmpeg, through `build`.

@@ -2,7 +2,7 @@
 
 ## Another renderer
 
-The default renders each storyboard `"frame"` on the kit with Playwright. Another tool (headless Chrome, Puppeteer, Remotion stills, mermaid-cli, Excalidraw, Figma exports, a screenshot of the user's running app) renders a frame to a PNG at 1920x1080, and the storyboard entry takes it as `"image"`. Record the tool's command in the config's Stages, with what it is for ("diagrams: mermaid-cli"); the generated frames still cover every other screen. Two recipes:
+The default renders each storyboard `"frame"` on the kit with Playwright. Another tool (headless Chrome, Puppeteer, Remotion stills, mermaid-cli, Excalidraw, Figma exports, a screenshot of the user's running app) renders a frame to a PNG (1920x1080 is sharpest; `build` letterboxes any other size), and the storyboard entry takes it as `"image"`. Record the tool's command in the config's Stages, with what it is for ("diagrams: mermaid-cli"); the generated frames still cover every other screen. Two recipes:
 
 ```
 # mermaid-cli, for a diagram (npm i -g @mermaid-js/mermaid-cli)

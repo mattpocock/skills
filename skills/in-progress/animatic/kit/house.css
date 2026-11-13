@@ -347,7 +347,7 @@ body {
  * one element and the lines themselves keep the markup they already had.
  */
 .code--spotlight .l {
-  opacity: 0.32;
+  opacity: 0.6;
 }
 .code--spotlight .l.here {
   opacity: 1;
@@ -919,7 +919,7 @@ body {
   box-shadow: inset 4px 0 0 var(--accent);
 }
 .terminal.spotlight > * {
-  opacity: 0.32;
+  opacity: 0.6;
 }
 .terminal.spotlight > .here {
   opacity: 1;

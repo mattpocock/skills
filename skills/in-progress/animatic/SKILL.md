@@ -67,7 +67,7 @@ The target run time is the user's, PR.md's for a PR, or 90 seconds when they say
 node <skill>/scripts/animatic.mjs build storyboard.json --target 90 <flags>
 ```
 
-`build` checks the plan first: over the target by more than 10%, or with a line the voice would read as punctuation, it prints the plan with `WARN` lines and stops with nothing rendered or voiced. Cut moments or respell, and run it again. Then it renders and voices at once, stitches `animatic.mp4`, draws `sheet.png`, verifies the MP4 (streams, length, every frame on time and matching, the voice audible), and prints one report: the timeline, `fit` lines, and every `WARN`.
+`build` checks the plan first: over the target by more than 10%, or with a line the voice would read as punctuation, it prints the plan with `WARN` lines and stops with nothing rendered or voiced. Cut moments or respell, and run it again. Then it renders and voices at once, stitches `animatic.mp4` (constant 30fps H.264, so it plays in any player and survives upload), draws `sheet.png`, verifies the MP4 (streams, frame rate, length, every moment on screen from its start to its end and matching its PNG, the voice audible), and prints one report: the timeline, `fit` lines, and every `WARN`.
 
 Frames and speech are cached, so a rebuild redoes only what changed, in seconds.
 

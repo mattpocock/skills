@@ -25,6 +25,7 @@ The script runs the command once per line through the shell:
 - The line arrives on **stdin**, and as `{text}`, already shell-quoted. A command uses one or the other.
 - `{out}` is a path **with no extension**. The command writes `{out}.wav`, `{out}.mp3`, `{out}.aiff` or whatever its tool produces; the script converts it.
 - Speech is cached per line and per command string, so changing the command re-voices everything.
+- A line whose command fails, writes nothing or writes an empty file (edge-tts's "No audio received") is retried 3 times with a short backoff, then the run stops and names the line. An empty file is never cached. The same holds for every engine.
 
 For an engine with flags not shown below, read its `--help` and build the command the same way: text in, one audio file at `{out}.<ext>` out.
 
@@ -33,14 +34,14 @@ For an engine with flags not shown below, read its `--help` and build the comman
 Free and online, Microsoft's neural voices with no key (`edge-tts --list-voices` lists them; `en-GB-RyanNeural`, `en-US-AriaNeural`, `en-US-AndrewNeural` are good narrators):
 
 ```
-# pip install edge-tts
+# pipx install edge-tts
 --tts-command 'edge-tts --voice en-GB-RyanNeural --text {text} --write-media {out}.mp3'
 ```
 
 Free and local:
 
 ```
-# Piper (pip install piper-tts; download a voice .onnx first)
+# Piper (pipx install piper-tts; download a voice .onnx first)
 --tts-command 'piper --model ~/voices/en_US-lessac-medium.onnx --output_file {out}.wav'
 ```
 
