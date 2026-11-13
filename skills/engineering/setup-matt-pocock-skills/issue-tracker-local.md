@@ -9,6 +9,7 @@ Issues and specs for this repo live as markdown files in `.scratch/`.
 - Implementation issues are one file per ticket at `.scratch/<feature-slug>/issues/<NN>-<slug>.md`, numbered from `01`, never a single combined tickets file
 - Triage state is recorded as a `Status:` line near the top of each issue file (see `triage-labels.md` for the role strings)
 - Comments and conversation history append to the bottom of the file under a `## Comments` heading
+- An attached file (an image or a video) is copied into `.scratch/<feature-slug>/assets/` and linked from the comment with a relative path: `![alt](../assets/<file>)` from a ticket under `issues/`, `![alt](assets/<file>)` from `spec.md`
 
 ## When a skill says "publish to the issue tracker"
 
@@ -17,6 +18,10 @@ Create a new file under `.scratch/<feature-slug>/` (creating the directory if ne
 ## When a skill says "fetch the relevant ticket"
 
 Read the file at the referenced path. The user will normally pass the path or the issue number directly.
+
+## When a skill says "attach a file to a comment"
+
+Copy the file into the feature's `assets/` folder and link it from a comment under `## Comments`.
 
 ## Wayfinding operations
 
