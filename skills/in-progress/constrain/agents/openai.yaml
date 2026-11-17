@@ -1,0 +1,5 @@
+interface:
+  display_name: "Constrain"
+  short_description: "Fence a tool's API to an allowlist"
+policy:
+  allow_implicit_invocation: false
