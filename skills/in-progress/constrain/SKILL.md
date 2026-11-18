@@ -21,7 +21,7 @@ Each rule is pass/fail per occurrence (per member use, per import edge), so a fe
 
 The fence speaks through its **error messages**. The agent reads lint output and acts on it, so every message names what to use instead ("Read config through `config.ts`"; "Use `prisma.$queryRaw` with a tagged template"), never only what was refused.
 
-Any language, any checker. Use whatever the project already runs. When it cannot express a rule, fall back to [Semgrep](https://semgrep.dev) or [ast-grep](https://ast-grep.github.io), which cover most languages with one rule format.
+Any language, any checker: use whatever the project already runs.
 
 ## 1. Explore
 
@@ -58,51 +58,15 @@ Done when every member in the three groups is inside or outside its object's sur
 
 ## 4. Build the fence
 
-### Members
-
-Pick the mechanism per object. Where the object is identified by type, use a type-aware mechanism. A name-only rule matches the identifier in the source, so it misses aliases (`const { env } = process`, `const db = prisma`) and returned objects, and it over-matches anything else with the same name.
-
-- **ESLint**:
-  - Imports: `no-restricted-imports` with `allowImportNames` (under `paths` or `patterns`), or `allowImportNamePattern` (under `patterns` only).
-  - Objects by name: `no-restricted-properties`, with `object` plus `allowProperties` as that object's allowlist. It covers both reads and calls, but matches the name only.
-  - Banned patterns: `no-restricted-syntax` with an AST selector, which is also name-only.
-  - Objects by type: a custom typescript-eslint rule that asks the type checker through `ESLintUtils.getParserServices(context)` and `services.getTypeAtLocation(node)`. It needs type-aware linting switched on.
-- **ruff**: `flake8-tidy-imports.banned-api` (TID251) bans a module or a `module.attr` such as `os.environ`, resolved through imports. It cannot see members of an object a call returns, so fall back to Semgrep there.
-- **Go**:
-  - Imports: `depguard`.
-  - Members: `forbidigo`. With `analyze-types: true` it matches on package and type name instead of the source text, and `pkg` narrows a pattern to one import path.
-- **Rust**: clippy's `disallowed-methods` and `disallowed-types` in `clippy.toml`. They match resolved paths (`std::env::var`, `sqlx::query`), so they are type-aware already.
-- **Semgrep**:
-  - Typed metavariables constrain an object by type, for example `($X: DomSanitizer).sanitize(...)`.
-  - For a member allowlist, match `$X.$M` and exclude each allowed member with `pattern-not`.
-  - Its type inference is shallow and per file. It is reliable for local variables and arguments, not for class fields.
-- **ast-grep**: syntax only, so it matches by name.
+Pick each entry's check from [CHECKERS.md](./CHECKERS.md), in the section for the project's language. Prefer the project's own checker, then the checker's own allowlist, then a type-aware check for any object identified by type. Use a graph tool for import edges, since per-file rules can't see the graph as a whole.
 
 Where the checker only takes a denylist, generate it from the allowlist (every member of the object minus the allowed ones), and note in the config which allowlist it came from.
 
-When the only mechanism available matches by name but the object is identified by type, say so to the user, along with the aliases it will miss, before writing the rule.
+When the only check available is name-only but the object is identified by type, tell the user which aliases it will miss before writing the rule.
 
-### Import edges
+Every rule carries a message that names the alternative ("Read config through `config.ts`"; "`ui/` reaches the server through `api-client/`").
 
-A graph tool checks edges between modules, which per-file import rules cannot see as a whole. Prefer the tool's own allowlist and baseline where one exists:
-
-- **JS/TS**:
-  - dependency-cruiser's `allowed` rule set is an allowlist: any dependency matching none of its rules is reported as `not-in-allowed`. Set `allowedSeverity` to `error`, because it defaults to `warn`. `forbidden` rules cover the one-off bans.
-  - Its native ratchet: `--baseline` writes `.dependency-cruiser-known-violations.json`, `--ignore-known` drops those from the report, and `--baseline-mode shrink-only` lets the baseline only lose entries.
-  - eslint-plugin-boundaries is the alternative when the project wants edges checked inside ESLint, where they share ESLint's suppressions.
-- **Python**: import-linter's contracts (`forbidden`, `protected`, `layers`, `independence`). It has no baseline file. Its `ignore_imports` list plays that role, and with `unmatched_ignore_imports_alerting` left at `error`, an entry that no longer matches fails, so the list can only shrink.
-- **Go**: `depguard` with per-path rules, or go-arch-lint (`mayDependOn` in `.go-arch-lint.yml`, an allowlist per component). go-arch-lint has no baseline: existing violations are written into the config, marked `todo`.
-- **Java/Kotlin**: ArchUnit. Its `FreezingArchRule` is a native ratchet: it stores existing violations on the first run, fails on new ones, and shrinks the store as they are fixed.
-- **.NET**: NetArchTest or ArchUnitNET, with the generic baseline script from step 5.
-- **Rust**: cargo-deny bans crates from the dependency tree, but it cannot see edges between modules inside a crate. Say so to the user. To fence modules inside a crate, split them into workspace crates (so cargo-deny or the manifests hold the edge), or match `use` paths with Semgrep or ast-grep, which is name-only.
-
-Every edge rule carries a message that names the alternative ("`ui/` reaches the server through `api-client/`").
-
-### Fixtures
-
-Each custom rule gets fixtures: one that fails, one that passes, and one alias case that shows what the rule catches or misses. Run them with the checker's own rule tester where it has one.
-
-Every rule carries a message that names the alternative.
+Each custom rule gets three fixtures: one that fails, one that passes, and one alias case that shows what the rule catches or misses. Run them with the checker's own rule tester where it has one.
 
 Done when each decision from step 3 maps to exactly one rule entry (member or edge), and every name-only gap the user accepted is noted beside its rule.
 
@@ -111,15 +75,15 @@ Done when each decision from step 3 maps to exactly one rule entry (member or ed
 The codebase will already break the fence. Record those violations as a committed **baseline** and let the **ratchet** pay them down. It ratchets on two axes, and both only move one way:
 
 - **The baseline shrinks**: as code is touched, violations get fixed and the counts fall.
-- **The fence tightens**: a later run of this skill takes members off an allowlist and baselines the new violations.
+- **The fence tightens**: a later run of this skill takes members or edges off an allowlist and baselines the new violations.
 
-The mechanics:
+Use the checker's own ratchet from [CHECKERS.md](./CHECKERS.md) where it has one. Otherwise, commit a **generic baseline script**: a baseline file of counts per rule and per file (for edges, per importer and imported module), plus a script that runs the checker and compares its counts against the file. Either way, the ratchet does three things:
 
-- **Record**: write the baseline, per rule and per file, with counts (for edges, per importer and imported module). Use the checker's native mechanism where it exists: ESLint's `--suppress-all` writes `eslint-suppressions.json`, dependency-cruiser's `--baseline` writes its known-violations file, ArchUnit's `FreezingArchRule` keeps its own store, and import-linter's `ignore_imports` holds the existing edges. Otherwise write a small baseline file plus a check script, committed beside it.
-- **Hold**: CI fails when any count rises, or when a violation appears in a file or rule the baseline does not list. New code is fenced from day one.
-- **Shrink**: when a change lowers a count, the same change shrinks the baseline (ESLint's `--prune-suppressions`, dependency-cruiser's `--baseline --baseline-mode shrink-only`, or the check script rewriting the file; ArchUnit shrinks its store by itself). A stale baseline fails CI, so the debt paid stays paid. ESLint does this by default; keep `--pass-on-unpruned-suppressions` out of CI.
+- **Record**: write the baseline from the current violations.
+- **Hold**: CI fails when any count rises, or when a violation appears in a file or rule the baseline doesn't list. New code is fenced from day one.
+- **Shrink**: when a change lowers a count, the same change shrinks the baseline. A stale baseline fails CI, so a violation once fixed can't come back.
 
-When tightening an existing fence, baseline only the rules this run changed, leaving every other rule's baseline as it was (ESLint: `--suppress-rule <rule>`).
+When tightening an existing fence, record a baseline only for the rules this run changed, and leave every other rule's baseline as it was.
 
 Done when the checker passes on the current code with the baseline in place.
 
