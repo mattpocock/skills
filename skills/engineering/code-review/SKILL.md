@@ -34,6 +34,7 @@ Look for the originating spec, in this order:
 ### 3. Identify the standards sources
 
 Search the repo for every file that documents how code should be written. When `CODING_STANDARDS.md` or `CONTRIBUTING.md` exists, it must be on the list.
+Search the disk, not just git's tracked files: a standards file may be gitignored or a symlink.
 
 On top of whatever the repo documents, the Standards axis always carries the **smell baseline** below: a fixed set of Fowler code smells (_Refactoring_, ch.3) that applies even when a repo documents nothing. Two rules bind it:
 
