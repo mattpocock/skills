@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Frame example: terminal</title>
+    <!--
+      THE STYLESHEET IS THE CONTRACT; THIS MARKUP IS NOT. Copy this file, keep
+      the <link>, and rewrite the lines. This example shows a run that FAILS,
+      because a passing suite is the easy frame and a failure is the one a
+      moment is usually about.
+
+      Every line is its own element: .cmd draws the `$` prompt for you, .out is
+      program output. Colour a word with .ok / .bad / .warn / .info / .cyan /
+      .yellow / .magenta / .faint. Finish the last line with
+      <span class="caret"> if the moment is "and now we wait".
+
+      ONE OUTPUT LINE IS ONE ELEMENT AND MUST STAY ON ONE SOURCE LINE: `.cmd`
+      and `.out` carry `white-space: pre-wrap`, so a line break inserted inside
+      one becomes a line break in the captured frame.
+    -->
+    <link rel="stylesheet" href="./house.css" />
+  </head>
+  <body>
+    <div class="frame frame--inset">
+      <div class="window">
+        <div class="titlebar">
+          <div class="lights"><i></i><i></i><i></i></div>
+          <span class="title">zsh: acme-api</span>
+        </div>
+
+        <div class="terminal">
+<span class="cmd">npm test -- rate-limit</span>
+<span class="blank"></span>
+<span class="out"><span class="faint">RUN</span>  v3.2.4 ~/code/acme-api</span>
+<span class="blank"></span>
+<span class="out"><span class="bad">&rsaquo;</span> src/middleware/rate-limit.test.ts <span class="faint">(4 tests | 1 failed) 212ms</span></span>
+<span class="out">  <span class="ok">&check;</span> allows requests under the limit</span>
+<span class="out">  <span class="ok">&check;</span> blocks the request over the limit</span>
+<span class="out">  <span class="bad">&times;</span> counts each API key separately</span>
+<span class="out">  <span class="ok">&check;</span> resets after the window</span>
+<span class="blank"></span>
+<span class="out"><span class="bad">FAIL</span>  counts each API key separately</span>
+<span class="out"><span class="bad">AssertionError:</span> expected <span class="yellow">429</span> to be <span class="yellow">200</span></span>
+<span class="blank"></span>
+<span class="out"><span class="faint">     Tests</span>  <span class="bad">1 failed</span> | <span class="ok">3 passed</span> <span class="faint">(4)</span></span>
+<span class="blank"></span>
+<span class="cmd"><span class="caret"></span></span>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

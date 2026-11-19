@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Frame example: editor</title>
+    <!--
+      THE STYLESHEET IS THE CONTRACT; THIS MARKUP IS NOT. Copy this file, keep
+      the <link>, and rewrite everything below it. This example shows the
+      awkward case rather than the tidy one: a file tree with git status on
+      it, a tab strip, a diff, a squiggle, an inline diagnostic and a status
+      bar. Delete whichever of those your moment does not need.
+
+      HIGHLIGHTING IS HAND-WRITTEN <span class="t-*">: no highlighter runs, so
+      nothing is fetched while the frame is captured. The classes are Shiki's
+      vitesse-dark scopes: t-key, t-storage, t-str, t-num, t-fn, t-type,
+      t-class, t-prop, t-var, t-const, t-com, t-op, t-punc, t-tag, t-attr.
+
+      ONE LINE OF CODE IS ONE `.l` ELEMENT AND MUST STAY ON ONE SOURCE LINE.
+      `.l` carries `white-space: pre`, so a line break inserted inside it
+      becomes a line break in the captured frame. Keep a formatter off it.
+    -->
+    <link rel="stylesheet" href="./house.css" />
+  </head>
+  <body>
+    <div class="frame frame--full">
+      <div class="window">
+        <div class="titlebar">
+          <div class="lights"><i></i><i></i><i></i></div>
+          <span class="title">acme-api: rate-limit.ts</span>
+        </div>
+
+        <div class="panes">
+          <nav class="sidebar">
+            <div class="sidebar-heading">Explorer</div>
+            <ul class="tree">
+              <li class="dir">src</li>
+              <li class="dir indent">middleware</li>
+              <li class="indent-2 active">rate-limit.ts</li>
+              <li class="indent-2 modified">auth.ts</li>
+              <li class="dir indent">routes</li>
+              <li class="indent-2">orders.ts</li>
+              <li class="indent-2 added">health.ts</li>
+            </ul>
+          </nav>
+
+          <div class="main">
+            <div class="tabs">
+              <div class="tab active">rate-limit.ts</div>
+              <div class="tab">auth.ts <span class="dot"></span></div>
+            </div>
+
+            <div class="code">
+<span class="l"><span class="t-key">export</span> <span class="t-key">const</span> <span class="t-fn">rateLimit</span> <span class="t-op">=</span> <span class="t-punc">(</span><span class="t-var">opts</span><span class="t-punc">:</span> <span class="t-type">LimitOptions</span><span class="t-punc">)</span> <span class="t-op">=&gt;</span> <span class="t-punc">{</span></span>
+<span class="l">  <span class="t-key">const</span> <span class="t-var">hits</span> <span class="t-op">=</span> <span class="t-key">new</span> <span class="t-class">Map</span><span class="t-punc">&lt;</span><span class="t-type">string</span><span class="t-punc">,</span> <span class="t-type">number</span><span class="t-punc">&gt;();</span></span>
+<span class="l"> </span>
+<span class="l">  <span class="t-key">return</span> <span class="t-punc">(</span><span class="t-var">req</span><span class="t-punc">:</span> <span class="t-type">Request</span><span class="t-punc">)</span> <span class="t-op">=&gt;</span> <span class="t-punc">{</span></span>
+<span class="l del">    <span class="t-key">const</span> <span class="t-var">key</span> <span class="t-op">=</span> <span class="t-var">req</span><span class="t-punc">.</span><span class="t-prop">ip</span><span class="t-punc">;</span></span>
+<span class="l add">    <span class="t-com">// Behind the load balancer every request shares one IP.</span></span>
+<span class="l add">    <span class="t-key">const</span> <span class="t-var">key</span> <span class="t-op">=</span> <span class="t-var">req</span><span class="t-punc">.</span><span class="t-prop">headers</span><span class="t-punc">.</span><span class="t-fn">get</span><span class="t-punc">(</span><span class="t-str">"x-api-key"</span><span class="t-punc">)</span> <span class="t-op">??</span> <span class="t-var">req</span><span class="t-punc">.</span><span class="t-prop">ip</span><span class="t-punc">;</span></span>
+<span class="l">    <span class="t-key">const</span> <span class="t-var">count</span> <span class="t-op">=</span> <span class="t-punc">(</span><span class="t-var">hits</span><span class="t-punc">.</span><span class="t-fn">get</span><span class="t-punc">(</span><span class="t-var">key</span><span class="t-punc">)</span> <span class="t-op">??</span> <span class="t-num">0</span><span class="t-punc">)</span> <span class="t-op">+</span> <span class="t-num">1</span><span class="t-punc">;</span></span>
+<span class="l">    <span class="t-var">hits</span><span class="t-punc">.</span><span class="t-fn">set</span><span class="t-punc">(</span><span class="t-var">key</span><span class="t-punc">,</span> <span class="t-var">count</span><span class="t-punc">);</span></span>
+<span class="l"> </span>
+<span class="l here">    <span class="t-key">if</span> <span class="t-punc">(</span><span class="t-var">count</span> <span class="t-op">&gt;</span> <span class="t-var">opts</span><span class="t-punc">.</span><span class="t-var"><span class="squiggle">limt</span></span><span class="t-punc">)</span> <span class="t-key">return</span> <span class="t-fn">tooMany</span><span class="t-punc">();</span></span>
+<span class="l bare">      <span class="diagnostic">Property 'limt' does not exist. Did you mean 'limit'?</span></span>
+<span class="l">  <span class="t-punc">};</span></span>
+<span class="l"><span class="t-punc">};</span></span>
+            </div>
+
+            <div class="statusbar">
+              <span class="bad">&#9587; 1</span>
+              <span>&#9888; 0</span>
+              <span class="spacer"></span>
+              <span>Ln 11, Col 30</span>
+              <span>TypeScript</span>
+              <span class="good">fix/rate-limit-key</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

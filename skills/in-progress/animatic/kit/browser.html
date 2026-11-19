@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Frame example: browser</title>
+    <!--
+      THE STYLESHEET IS THE CONTRACT; THIS MARKUP IS NOT. Copy this file, keep
+      the <link>, rewrite the page.
+
+      The chrome is dark and the page inside it is LIGHT on purpose: a docs
+      site is the one thing on a developer's screen that is not dark, and a
+      dark page inside dark chrome just reads as a second editor. If the moment
+      is about a dark app, drop `.page` and build the app's UI out of the
+      window parts instead.
+    -->
+    <link rel="stylesheet" href="./house.css" />
+  </head>
+  <body>
+    <div class="frame frame--full">
+      <div class="window">
+        <div class="browserbar">
+          <div class="lights"><i></i><i></i><i></i></div>
+          <div class="nav-buttons">
+            <span>&lsaquo;</span><span>&rsaquo;</span
+            ><span>&circlearrowright;</span>
+          </div>
+          <div class="urlbar">
+            <svg class="lock" width="22" height="26" viewBox="0 0 24 28" fill="none" stroke="currentColor" stroke-width="2.5">
+              <rect x="3" y="12" width="18" height="14" rx="3" />
+              <path d="M7 12V8a5 5 0 0 1 10 0v4" />
+            </svg>
+            <span><span class="host">docs.acme.dev</span>/api/rate-limits</span>
+          </div>
+        </div>
+
+        <div class="page">
+          <h1>Rate limits</h1>
+          <p class="lede">
+            Every API key gets 100 requests a minute. Go over it and you get a
+            <code>429</code> until the minute is up.
+          </p>
+
+          <h2>Reading your remaining budget</h2>
+          <p>
+            Each response carries <code>X-RateLimit-Remaining</code>, so a
+            client can slow down before it is blocked.
+          </p>
+
+          <div class="signature">GET /orders
+X-API-Key: ak_live_3f9…
+X-RateLimit-Remaining: 41</div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

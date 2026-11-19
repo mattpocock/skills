@@ -1,0 +1,1002 @@
+/*
+ * The house stylesheet for animatic frames.
+ *
+ * THIS FILE IS THE CONTRACT (README.md). Every colour, face and size a frame
+ * should use is named here, so a frame that only uses these reads as one
+ * consistent screen without anyone deciding anything.
+ *
+ * THE PALETTE. Plain and neutral, so it suits anyone's project.
+ *   - A near-black ground, white headings, neutral grey body copy, and one
+ *     accent, a quiet blue, kept for the one thing a frame lights.
+ *   - The system's own sans-serif and monospace faces. Nothing is fetched,
+ *     so a frame renders the same offline and never waits on a webfont.
+ *   - Every editor, terminal and code-token colour is Shiki's vitesse-dark.
+ *     Its editor background #121212 sits one step off the ground #0f0f0f on
+ *     purpose, so a window reads as a window against the ground.
+ *
+ * SIZE. A frame is exactly 1920x1080 at DPR 1 and is watched on a laptop, or
+ * in a PR description at half that, so everything is authored large, to the
+ * type floor in STYLE.md.
+ */
+
+:root {
+  /* Ground and panels */
+  --ground: #0f0f0f;
+  --window: #121212;
+  --window-raised: #1a1a1a;
+  --line: #222222;
+  --plate: #1a1a1a;
+
+  /* Text */
+  --text: #ffffff;
+  --body: #d4d4d4;
+  --code-text: #dbd7ca;
+  --dim: #9ca3af;
+  --faint: #6b7280;
+
+  /* The one accent: what a frame lights */
+  --accent: #60a5fa;
+  --accent-soft: #bfdbfe;
+
+  /* States, from vitesse-dark's gutter + ansi set */
+  --ok: #4d9375;
+  --warn: #d4976c;
+  --error: #cb7676;
+  --info: #6394bf;
+  --cyan: #5eaab5;
+  --yellow: #e6cc77;
+  --magenta: #d9739f;
+
+  /* Type */
+  --sans: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --mono: ui-monospace, "SF Mono", Menlo, Consolas, "DejaVu Sans Mono", "Liberation Mono", monospace;
+
+  /* Spacing. The 96px gutter frames a centred card or diagram. */
+  --gutter: 96px;
+  --radius: 12px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+
+/*
+ * THE FRAME. Every page's outermost element. Fixed at the capture size so the
+ * page cannot reflow into something that looked fine in a wide browser window
+ * and wrong in the PNG. overflow:hidden is deliberate: content that does not
+ * fit is CUT, loudly, rather than quietly scrolled away.
+ */
+.frame {
+  width: 1920px;
+  height: 1080px;
+  overflow: hidden;
+  background: var(--ground);
+  color: var(--body);
+  font-family: var(--sans);
+  font-size: 28px;
+  line-height: 1.45;
+  display: flex;
+  flex-direction: column;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* A frame that is one big centred thing: a title card, a diagram. */
+.frame--center {
+  align-items: center;
+  justify-content: center;
+  padding: var(--gutter);
+}
+
+/* A frame that is one window filling the screen: an editor, a browser. */
+.frame--full {
+  padding: 0;
+}
+
+/* A frame that floats a window on the ground, with breathing room. */
+.frame--inset {
+  padding: 64px;
+}
+
+/* --------------------------------------------------------------------- */
+/* Window chrome                                                          */
+/* --------------------------------------------------------------------- */
+
+.window {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  background: var(--window);
+  overflow: hidden;
+}
+
+.frame--inset .window {
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.55);
+}
+
+.titlebar {
+  flex: none;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  padding: 0 28px;
+  background: var(--window);
+  border-bottom: 1px solid var(--line);
+  color: var(--dim);
+  font-size: 24px;
+}
+
+/* The three macOS window buttons. Drawn, not an image. */
+.lights {
+  display: flex;
+  gap: 12px;
+  flex: none;
+}
+.lights i {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #3a3a3a;
+}
+.lights i:nth-child(1) {
+  background: #ff5f57;
+}
+.lights i:nth-child(2) {
+  background: #febc2e;
+}
+.lights i:nth-child(3) {
+  background: #28c840;
+}
+
+.titlebar .title {
+  color: var(--dim);
+  font-size: 24px;
+}
+
+/* The body of a window: optional sidebar + main pane, side by side. */
+.panes {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+}
+
+.sidebar {
+  flex: none;
+  width: 380px;
+  background: var(--window);
+  border-right: 1px solid var(--line);
+  padding: 24px 0;
+  color: #bfbaaa;
+  font-size: 24px;
+  overflow: hidden;
+}
+
+.sidebar-heading {
+  padding: 0 28px 16px;
+  font-size: 19px;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--faint);
+  font-weight: 600;
+}
+
+.tree {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  font-family: var(--mono);
+  font-size: 23px;
+  line-height: 2;
+}
+.tree li {
+  padding: 0 28px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.tree li.indent {
+  padding-left: 56px;
+}
+.tree li.indent-2 {
+  padding-left: 84px;
+}
+.tree li.dir {
+  color: var(--body);
+}
+.tree li.active {
+  background: var(--window-raised);
+  color: var(--text);
+  box-shadow: inset 3px 0 0 var(--accent);
+}
+.tree li.added {
+  color: var(--ok);
+}
+.tree li.modified {
+  color: var(--info);
+}
+
+.main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Editor tab strip. */
+.tabs {
+  flex: none;
+  display: flex;
+  align-items: stretch;
+  background: var(--window);
+  border-bottom: 1px solid var(--line);
+  font-size: 23px;
+}
+.tab {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px 28px;
+  color: var(--dim);
+  border-right: 1px solid var(--line);
+  font-family: var(--mono);
+  white-space: nowrap;
+}
+.tab.active {
+  color: var(--code-text);
+  background: var(--window);
+  box-shadow: inset 0 2px 0 var(--accent);
+}
+.tab .dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--info);
+}
+
+/* The status bar along the bottom of a window. */
+.statusbar {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 32px;
+  padding: 12px 28px;
+  border-top: 1px solid var(--line);
+  color: #bfbaaa;
+  font-size: 21px;
+  font-family: var(--mono);
+}
+.statusbar .spacer {
+  flex: 1;
+}
+.statusbar .bad {
+  color: var(--error);
+}
+.statusbar .good {
+  color: var(--ok);
+}
+
+/* --------------------------------------------------------------------- */
+/* Code                                                                    */
+/* --------------------------------------------------------------------- */
+
+/*
+ * A code block. 30px / 1.6 is the floor for readability on a laptop; a frame
+ * that needs more lines needs a second moment. Highlighting is hand-authored <span>s using
+ * the .t-* classes below: no highlighter runs, so there is no build step and
+ * nothing is fetched while the frame is captured.
+ *
+ * Use a <div>, NOT a <pre>: each line is its own `.l` element carrying
+ * `white-space: pre`, so the newlines BETWEEN lines in your source are
+ * ignored and the markup can be indented like normal HTML. A <pre> would
+ * render every one of them as a second, blank line.
+ */
+.code {
+  flex: 1;
+  min-height: 0;
+  margin: 0;
+  padding: 32px 0;
+  overflow: hidden;
+  background: var(--window);
+  font-family: var(--mono);
+  font-size: 30px;
+  line-height: 1.6;
+  color: var(--code-text);
+  font-variant-ligatures: none;
+  counter-reset: line;
+}
+
+.code--lg {
+  font-size: 34px;
+}
+
+/* One line. The line number is generated, so the markup stays readable. */
+.code .l {
+  display: block;
+  padding: 0 48px 0 0;
+  white-space: pre;
+  counter-increment: line;
+}
+.code .l::before {
+  content: counter(line);
+  display: inline-block;
+  width: 110px;
+  padding-right: 32px;
+  text-align: right;
+  color: #dedcd550;
+  user-select: none;
+}
+/* The line the eye should land on. */
+.code .l.here {
+  background: var(--window-raised);
+}
+.code .l.here::before {
+  color: #bfbaaa;
+}
+/*
+ * The whole block pulled back so the `.here` line is the only one that reads.
+ * It goes on the BLOCK, not the line, so spotlighting a frame is one class on
+ * one element and the lines themselves keep the markup they already had.
+ */
+.code--spotlight .l {
+  opacity: 0.6;
+}
+.code--spotlight .l.here {
+  opacity: 1;
+}
+/* A diff. */
+.code .l.add {
+  background: rgba(77, 147, 117, 0.16);
+}
+.code .l.add::before {
+  color: var(--ok);
+}
+/* A removed line is not in the new file, so it takes no number: the lines
+ * around it keep the new file's real numbering. Its gutter shows a minus. */
+.code .l.del {
+  background: rgba(203, 118, 118, 0.16);
+  counter-increment: none;
+}
+.code .l.del::before {
+  content: "\2212";
+  color: var(--error);
+}
+/* A line with no number: a wrapped continuation, or an inline error. */
+.code .l.bare {
+  counter-increment: none;
+}
+.code .l.bare::before {
+  content: "";
+}
+
+/*
+ * A fold: lines skipped in an excerpt. It takes no number. Put the real line
+ * number back on the line after it with style="counter-set: line N" (that
+ * line then shows N), so an excerpt keeps the file's real numbering.
+ */
+.code .l.fold {
+  counter-increment: none;
+  color: var(--faint);
+}
+.code .l.fold::before {
+  content: "\22EF";
+}
+
+/* Red squiggle under the thing that is wrong. */
+.squiggle {
+  text-decoration: underline wavy var(--error);
+  text-decoration-thickness: 3px;
+  text-underline-offset: 8px;
+}
+
+/* An inline editor diagnostic, as VS Code draws it. */
+.diagnostic {
+  color: var(--error);
+  font-style: italic;
+  opacity: 0.9;
+}
+
+/* vitesse-dark token colours. */
+.t-com {
+  color: #758575dd;
+  font-style: italic;
+}
+.t-punc {
+  color: #666666;
+}
+.t-key {
+  color: #4d9375;
+}
+.t-storage,
+.t-op {
+  color: #cb7676;
+}
+.t-str {
+  color: #c98a7d;
+}
+.t-num {
+  color: #4c9a91;
+}
+.t-fn {
+  color: #80a665;
+}
+.t-type {
+  color: #5da994;
+}
+.t-class {
+  color: #6872ab;
+}
+.t-prop {
+  color: #b8a965;
+}
+.t-var {
+  color: #bd976a;
+}
+.t-const {
+  color: #c99076;
+}
+.t-tag {
+  color: #4d9375;
+}
+.t-attr {
+  color: #bd976a;
+}
+
+/* --------------------------------------------------------------------- */
+/* Terminal                                                               */
+/* --------------------------------------------------------------------- */
+
+.terminal {
+  flex: 1;
+  min-height: 0;
+  margin: 0;
+  padding: 32px 40px;
+  overflow: hidden;
+  background: var(--window);
+  font-family: var(--mono);
+  font-size: 30px;
+  line-height: 1.55;
+  color: var(--code-text);
+  font-variant-ligatures: none;
+}
+
+/*
+ * As with `.code`, each line is its own element and carries the whitespace
+ * rule, so the newlines BETWEEN lines in your markup are ignored. `.terminal`
+ * itself must NOT be a <pre>.
+ */
+.terminal .cmd,
+.terminal .out {
+  white-space: pre-wrap;
+}
+
+/* The shell prompt. The $ is generated so a line's markup is just its text. */
+.terminal .cmd {
+  display: block;
+  color: var(--text);
+}
+.terminal .cmd::before {
+  content: "$ ";
+  color: var(--ok);
+  font-weight: 600;
+}
+.terminal .out {
+  display: block;
+  color: #bfbaaa;
+}
+.terminal .ok {
+  color: var(--ok);
+}
+.terminal .bad {
+  color: var(--error);
+}
+.terminal .warn {
+  color: var(--warn);
+}
+.terminal .info {
+  color: var(--info);
+}
+.terminal .cyan {
+  color: var(--cyan);
+}
+.terminal .yellow {
+  color: var(--yellow);
+}
+.terminal .magenta {
+  color: var(--magenta);
+}
+.terminal .faint {
+  color: var(--faint);
+}
+.terminal .blank {
+  display: block;
+  height: 0.8em;
+}
+
+/* The block cursor at the end of the last line. */
+.caret {
+  display: inline-block;
+  width: 0.6em;
+  height: 1.05em;
+  vertical-align: text-bottom;
+  background: var(--accent-soft);
+}
+
+/* --------------------------------------------------------------------- */
+/* Claude Code                                                            */
+/* --------------------------------------------------------------------- */
+
+/*
+ * A Claude Code session, as its terminal shows it. Put `cc` beside
+ * `terminal` on the same element; each line below is one element, on ONE
+ * source line, like `.cmd` / `.out`. The glyphs are generated.
+ *   .you     a prompt the user typed ("> ", on a raised plate)
+ *   .say     the agent's reply text ("● ")
+ *   .tool    a collapsed tool call ("● ", green); wrap the name in <b>
+ *   .result  a tool call's one-line result ("└ ", under the call; Claude
+ *            Code draws "⎿", which many monospace faces lack)
+ *   .spin    the working line ("✻ Thinking…"), orange
+ *   .input   the input box at the bottom; .hint the line under it
+ */
+.cc .you,
+.cc .say,
+.cc .tool,
+.cc .result,
+.cc .spin,
+.cc .hint {
+  display: block;
+  white-space: pre-wrap;
+  padding-left: 2ch;
+  text-indent: -2ch;
+}
+.cc .you {
+  margin: 0 0 0.5em;
+  padding: 0.15em 0.6em 0.15em calc(2ch + 0.6em);
+  background: var(--window-raised);
+  color: var(--dim);
+}
+.cc .you::before {
+  content: "> ";
+}
+.cc .say {
+  color: var(--code-text);
+  margin-bottom: 0.5em;
+}
+.cc .say::before,
+.cc .tool::before {
+  content: "● ";
+  color: var(--text);
+}
+.cc .tool {
+  color: #bfbaaa;
+}
+.cc .tool::before {
+  color: var(--ok);
+}
+.cc .tool b {
+  color: var(--text);
+  font-weight: 600;
+}
+.cc .result {
+  padding-left: 5ch;
+  color: var(--dim);
+  margin-bottom: 0.4em;
+}
+.cc .result::before {
+  content: "└  ";
+  color: var(--faint);
+}
+.cc .spin {
+  color: var(--warn);
+}
+.cc code {
+  font-family: inherit;
+  color: var(--info);
+}
+.cc .input {
+  margin-top: 0.6em;
+  padding: 0.35em 0.7em;
+  border: 2px solid #4a4a4a;
+  border-radius: 10px;
+  color: var(--text);
+  white-space: pre-wrap;
+}
+.cc .input::before {
+  content: "> ";
+  color: var(--dim);
+}
+.cc .hint {
+  padding-left: 0.8em;
+  text-indent: 0;
+  color: var(--faint);
+  font-size: 24px;
+}
+
+/* --------------------------------------------------------------------- */
+/* Browser                                                                */
+/* --------------------------------------------------------------------- */
+
+.browserbar {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  padding: 18px 28px;
+  background: var(--window);
+  border-bottom: 1px solid var(--line);
+}
+
+.nav-buttons {
+  display: flex;
+  gap: 20px;
+  color: var(--faint);
+  font-size: 30px;
+  flex: none;
+}
+
+.urlbar {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  height: 56px;
+  padding: 0 24px;
+  border-radius: 28px;
+  background: var(--window-raised);
+  border: 1px solid var(--line);
+  color: #bfbaaa;
+  font-family: var(--mono);
+  font-size: 24px;
+  white-space: nowrap;
+  overflow: hidden;
+}
+.urlbar .lock {
+  color: var(--ok);
+  flex: none;
+}
+.urlbar .host {
+  color: var(--text);
+}
+
+/*
+ * The page inside the browser. Light on purpose: a browser showing a docs
+ * site is the one place on a developer's screen that is not dark, and a dark
+ * page inside dark chrome reads as another editor.
+ */
+.page {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  background: #ffffff;
+  color: #1c1917;
+  padding: 72px 96px;
+}
+.page h1 {
+  margin: 0 0 12px;
+  font-size: 68px;
+  line-height: 1.1;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+.page h2 {
+  margin: 48px 0 16px;
+  font-size: 40px;
+  font-weight: 700;
+}
+.page p {
+  margin: 0 0 24px;
+  font-size: 30px;
+  line-height: 1.55;
+  color: #44403c;
+  max-width: 1100px;
+}
+.page .lede {
+  font-size: 34px;
+  color: #292524;
+}
+.page code {
+  font-family: var(--mono);
+  font-size: 0.92em;
+  background: #f5f5f4;
+  border: 1px solid #e7e5e4;
+  border-radius: 6px;
+  padding: 2px 10px;
+}
+.page .signature {
+  font-family: var(--mono);
+  font-size: 28px;
+  line-height: 1.6;
+  background: #fafaf9;
+  border: 1px solid #e7e5e4;
+  border-left: 6px solid var(--accent);
+  border-radius: 8px;
+  padding: 28px 32px;
+  white-space: pre;
+  overflow: hidden;
+}
+
+/* --------------------------------------------------------------------- */
+/* Title card                                                             */
+/* --------------------------------------------------------------------- */
+
+/*
+ * A title card, scaled up to fill a frame: a plain plate, a small grey
+ * kicker, a white title, a short accent rule and one supporting line.
+ */
+.card {
+  min-width: 1200px;
+  max-width: 1500px;
+  padding: 72px 88px;
+  border-radius: 20px;
+  border: 1px solid var(--line);
+  background: var(--plate);
+}
+
+.kicker {
+  font-size: 28px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--dim);
+  margin-bottom: 28px;
+}
+
+.headline {
+  margin: 0;
+  font-size: 104px;
+  line-height: 1.05;
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  color: var(--text);
+}
+
+.headline .rule {
+  display: block;
+  width: 240px;
+  height: 8px;
+  margin-top: 36px;
+  background: var(--accent);
+  border-radius: 4px;
+}
+
+.subhead {
+  margin: 40px 0 0;
+  font-size: 38px;
+  line-height: 1.4;
+  color: var(--body);
+  max-width: 1080px;
+}
+
+/* --------------------------------------------------------------------- */
+/* Diagram                                                                */
+/* --------------------------------------------------------------------- */
+
+.diagram {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 40px;
+  width: 100%;
+}
+
+.node {
+  flex: none;
+  min-width: 420px;
+  padding: 52px 48px;
+  text-align: center;
+  background: var(--window);
+  border: 3px solid #2a2a2a;
+  border-radius: var(--radius);
+}
+.node .node-title {
+  font-size: 48px;
+  font-weight: 700;
+  color: var(--text);
+}
+.node .node-sub {
+  margin-top: 12px;
+  font-size: 32px;
+  color: var(--dim);
+  font-family: var(--mono);
+}
+/* The one box the moment is about. */
+.node.lit {
+  border-color: var(--accent);
+  background: var(--plate);
+}
+.node.lit .node-title {
+  color: var(--accent-soft);
+}
+.node.muted {
+  opacity: 0.7;
+}
+
+.arrow {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  color: #6f6f6f;
+  font-size: 68px;
+  line-height: 1;
+}
+.arrow .label {
+  font-size: 30px;
+  font-style: italic;
+  color: var(--dim);
+}
+
+/* An aside on a diagram: italic, in the soft accent. */
+.annotation {
+  font-size: 40px;
+  font-style: italic;
+  color: var(--accent-soft);
+}
+
+/* --------------------------------------------------------------------- */
+/* Shared parts                                                           */
+/* --------------------------------------------------------------------- */
+
+/* A caption strip along the bottom of a frame. Never the spoken line (that
+ * belongs to the narration), only a label the viewer must READ. */
+.caption {
+  flex: none;
+  padding: 28px var(--gutter);
+  background: var(--ground);
+  border-top: 1px solid var(--line);
+  color: var(--body);
+  font-size: 30px;
+}
+.caption strong {
+  color: var(--accent-soft);
+  font-weight: 600;
+}
+
+/* A run of words in prose the eye should land on: the inline twin of
+ * `.code .l.here`, the same raised plate and lifted text at word width.
+ * For PROSE (a label, a callout, a heading), never for code. */
+.spot {
+  padding: 0.08em 0.3em;
+  margin: 0 -0.06em;
+  border-radius: 6px;
+  background: var(--window-raised);
+  color: var(--accent-soft);
+  box-shadow: inset 0 -3px 0 var(--accent);
+}
+
+/* A section heading above a diagram or a pair of panes. */
+.overline {
+  font-size: 30px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--faint);
+}
+
+/* Two panes side by side: before/after, code/terminal, question/answer. */
+.split {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  gap: 2px;
+  background: var(--line);
+}
+.split > * {
+  flex: 1;
+  min-width: 0;
+}
+
+/* --------------------------------------------------------------------- */
+/* Generated frames (a storyboard "frame" spec; see FRAMES.md)            */
+/* --------------------------------------------------------------------- */
+
+/* The line number is the source's own, carried on the line, so the fitter
+ * can drop lines without renumbering. A long line wraps under its text. */
+.code.gen .l::before {
+  content: attr(data-n);
+}
+.code.gen .l {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  padding-left: 110px;
+  text-indent: -110px;
+}
+.code.gen .l.fold::before {
+  content: "\22EF";
+}
+.terminal.gen .here {
+  background: var(--window-raised);
+  box-shadow: inset 4px 0 0 var(--accent);
+}
+.terminal.spotlight > * {
+  opacity: 0.6;
+}
+.terminal.spotlight > .here {
+  opacity: 1;
+}
+.terminal .fold {
+  display: block;
+  color: var(--faint);
+}
+.terminal .fold::before {
+  content: "\22EF";
+}
+.gen-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  max-width: 100%;
+}
+.diagram.gen {
+  row-gap: 56px;
+}
+.tight .diagram {
+  gap: 24px;
+}
+.tight .node {
+  min-width: 0;
+  padding: 40px 32px;
+}
+.wrap .diagram {
+  flex-wrap: wrap;
+}
+.biglist {
+  margin: 48px 0 0;
+  padding: 0;
+  list-style: none;
+  font-size: 52px;
+  line-height: 1.25;
+  color: var(--text);
+}
+.biglist li {
+  display: flex;
+  align-items: baseline;
+  gap: 28px;
+  padding: 20px 36px;
+  margin-bottom: 12px;
+  border-radius: var(--radius);
+  border-left: 6px solid transparent;
+}
+.biglist.mono li > .text {
+  font-family: var(--mono);
+}
+.biglist .sub {
+  font-size: 32px;
+  color: var(--dim);
+  margin-left: auto;
+  padding-left: 32px;
+}
+.biglist .tag {
+  font-family: var(--mono);
+  font-weight: 700;
+  width: 1ch;
+}
+.biglist .tag.add {
+  color: var(--ok);
+}
+.biglist .tag.mod {
+  color: var(--warn);
+}
+.biglist .tag.del {
+  color: var(--error);
+}
+.biglist.spotlight li {
+  opacity: 0.45;
+}
+.biglist li.lit {
+  opacity: 1;
+  background: var(--plate);
+  border-left-color: var(--accent);
+  color: var(--accent-soft);
+}
+

@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Frame example: Claude Code</title>
+    <!--
+      THE STYLESHEET IS THE CONTRACT; THIS MARKUP IS NOT. Copy this file, keep
+      the <link>, and rewrite the lines. A Claude Code session is the terminal
+      frame with `cc` added: .you is a prompt the user typed, .say is the
+      agent's reply, .tool is a collapsed tool call (tool name in <b>) and
+      .result its one-line result, .spin the "working" line, and .input the box
+      the next prompt goes in. The glyphs (> ● └) are generated. Inline
+      <code> is coloured; .ok / .bad / .faint work as in a terminal.
+
+      Show only the last screenful: the moment is the newest exchange, so cut
+      the history from the top rather than shrinking the type.
+
+      ONE LINE IS ONE ELEMENT AND MUST STAY ON ONE SOURCE LINE, as in
+      terminal.html: the lines carry `white-space: pre-wrap`.
+    -->
+    <link rel="stylesheet" href="./house.css" />
+  </head>
+  <body>
+    <div class="frame frame--inset">
+      <div class="window">
+        <div class="titlebar">
+          <div class="lights"><i></i><i></i><i></i></div>
+          <span class="title">claude: acme-api</span>
+        </div>
+
+        <div class="terminal cc">
+<span class="you">the per-key rate limit test is failing. fix it, and don't touch the other tests</span>
+<span class="say">Let me look at the test and the middleware it covers.</span>
+<span class="tool"><b>Read</b>(src/middleware/rate-limit.ts)</span>
+<span class="result">Read 24 lines</span>
+<span class="tool"><b>Bash</b>(npm test -- rate-limit)</span>
+<span class="result"><span class="bad">1 failed</span> | <span class="ok">3 passed</span> (4)</span>
+<span class="say">The limiter keys on <code>req.ip</code>, and behind the load balancer every request has the same one. Keying on the API key fixes it.</span>
+<span class="tool"><b>Update</b>(src/middleware/rate-limit.ts)</span>
+<span class="result">Updated with <span class="ok">2 additions</span> and <span class="bad">1 removal</span></span>
+<span class="spin">✻ Running the tests again…</span>
+<div class="input">run the whole suite before you commit<span class="caret"></span></div>
+<span class="hint">? for shortcuts</span>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
