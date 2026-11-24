@@ -15,4 +15,4 @@ npx skills@latest add mattpocock/skills --skill=<name>
 - **[claude-handoff](./claude-handoff/SKILL.md)**: Hand the current conversation off to a fresh background agent that picks up the work immediately, seeded with a handoff summary via `claude --bg`. User-invoked.
 - **[setup-ts-deep-modules](./setup-ts-deep-modules/SKILL.md)**: Wire dependency-cruiser into a TypeScript repo so each package is a deep module: implementation hidden in subfolders, reachable only through its entry-point files, tests exercising it through those. User-invoked.
 - **[software-factory](./software-factory/SKILL.md)**: Shared language for designing a software factory: the tasks it runs and the services it plugs into. Call it alongside a grilling session. User-invoked.
-- **[chief-of-staff](./chief-of-staff/SKILL.md)**: Delegate every task to a fresh subagent and remember what it taught you in a dated wiki, so the next session picks up the thread. User-invoked.
+- **[chief-of-staff](./chief-of-staff/SKILL.md)**: Delegate the work to fresh subagents and remember what it taught you in a dated wiki, so the next session picks up the thread. User-invoked.
