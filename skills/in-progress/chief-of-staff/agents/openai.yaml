@@ -1,5 +1,5 @@
 interface:
   display_name: "Chief Of Staff"
-  short_description: "Pursue a long-running goal in a single session by co-ordinating subagents"
+  short_description: "Delegate every task to a fresh subagent and remember what it taught you in a dated wiki"
 policy:
   allow_implicit_invocation: false
