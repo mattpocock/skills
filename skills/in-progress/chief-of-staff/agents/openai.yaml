@@ -1,5 +1,5 @@
 interface:
   display_name: "Chief Of Staff"
-  short_description: "Delegate every task to a fresh subagent and remember what it taught you in a dated wiki"
+  short_description: "Delegate the work to fresh subagents and remember what it taught you in a dated wiki"
 policy:
   allow_implicit_invocation: false
