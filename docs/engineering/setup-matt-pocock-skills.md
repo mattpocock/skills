@@ -42,11 +42,11 @@ The tracker options:
 | **GitHub** | the repo's GitHub Issues | the `gh` CLI |
 | **GitLab** | the repo's GitLab Issues | the `glab` CLI |
 | **Local markdown** | files under `.scratch/<feature>/` in this repo | nothing, not even a remote |
-| **Other** | wherever you say | one paragraph from you describing the workflow |
+| **Other** | wherever you say | one paragraph from you describing the workflow, including how to attach a file to a comment |
 
-The first three ship as templates in the skill and work out of the box. Local markdown is a full option, not a fallback. The skill supports a solo project with no remote. One caveat: don't use local markdown if you use GitHub. They are alternatives, so pick one.
+The first three ship as templates in the skill and work out of the box. Each also records how a skill attaches a file (an image or a video) to a comment on an issue or PR: `gh issue comment` / `gh pr comment --attach` on GitHub, an upload through GitLab's API, or a copy in an `assets/` folder for local markdown. Skills that make media, like an animatic of a PR, post it that way instead of calling a tracker's CLI themselves. Local markdown is a full option, not a fallback. The skill supports a solo project with no remote. One caveat: don't use local markdown if you use GitHub. They are alternatives, so pick one.
 
-"Other" is a full option too. It is how Jira, Linear, Azure DevOps and Beads all work. You describe the workflow, the skill records your prose in `docs/agents/issue-tracker.md`, and the downstream skills follow the prose. Users have already built this: a Jira-over-[MCP](https://www.aihero.dev/ai-coding-dictionary/mcp) variant, a Gitea CLI shaped like `gh`, a hand-built local dashboard.
+"Other" is a full option too. It is how Jira, Linear, Azure DevOps and Beads all work. You describe the workflow (and how to attach a file, or that your tracker can't), the skill records your prose in `docs/agents/issue-tracker.md`, and the downstream skills follow the prose. Users have already built this: a Jira-over-[MCP](https://www.aihero.dev/ai-coding-dictionary/mcp) variant, a Gitea CLI shaped like `gh`, a hand-built local dashboard.
 
 ## Common questions
 

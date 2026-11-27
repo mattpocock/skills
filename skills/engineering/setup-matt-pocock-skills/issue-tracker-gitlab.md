@@ -8,9 +8,11 @@ Issues and specs for this repo live as GitLab issues. Use the [`glab`](https://g
 - **Read an issue**: `glab issue view <number> --comments`. Use `-F json` for machine-readable output.
 - **List issues**: `glab issue list -O json` with appropriate `--label` filters.
 - **Comment on an issue**: `glab issue note <number> --message "..."`. GitLab calls comments "notes".
+- **Attach a file to a comment** (an image or a video, on an issue or an MR): upload it to the project, then post the Markdown the upload returns as the note. The upload is a multipart POST to the project uploads API, with a token from the environment: `curl -sf --header "PRIVATE-TOKEN: $GITLAB_TOKEN" --form "file=@<file>" "https://<host>/api/v4/projects/<url-encoded owner%2Frepo>/uploads"`. Its JSON `markdown` field (`![name](/uploads/...)`) renders the file inline, a video as a player: post it with `glab issue note <number> --message "<text> <markdown>"` (or `glab mr note`). The size limit is the instance's attachment limit.
 - **Apply / remove labels**: `glab issue update <number> --label "..."` / `--unlabel "..."`. Multiple labels can be comma-separated or by repeating the flag.
 - **Close**: `glab issue close <number>`. `glab issue close` does not accept a closing comment, so post the explanation first with `glab issue note <number> --message "..."`, then close.
 - **Merge requests**: GitLab calls PRs "merge requests". Use `glab mr create`, `glab mr view`, `glab mr note`, etc., the same shape as `gh pr ...` with `mr` in place of `pr` and `note`/`--message` in place of `comment`/`--body`.
+- **Read an MR**: `glab mr view <number> --comments` and `glab mr diff <number>` for the diff.
 
 Infer the repo from `git remote -v`; `glab` does this automatically when run inside a clone.
 
@@ -20,7 +22,7 @@ Infer the repo from `git remote -v`; `glab` does this automatically when run ins
 
 When set to `yes`, MRs run through the same labels and states as issues, using the `glab mr` equivalents:
 
-- **Read an MR**: `glab mr view <number> --comments` and `glab mr diff <number>` for the diff.
+- **Read an MR**: as in **Read an MR** under Conventions.
 - **List external MRs for triage**: `glab mr list -O json`, then keep only MRs whose author is not a project member/owner (a contributor's MR, not a maintainer's in-flight work).
 - **Comment / label / close**: `glab mr note`, `glab mr update --label`/`--unlabel`, `glab mr close`.
 
@@ -33,6 +35,10 @@ Create a GitLab issue.
 ## When a skill says "fetch the relevant ticket"
 
 Run `glab issue view <number> --comments`.
+
+## When a skill says "attach a file to a comment"
+
+Upload the file and post its Markdown in a note, as in **Attach a file to a comment** above.
 
 ## Wayfinding operations
 
