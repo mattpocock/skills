@@ -12,6 +12,6 @@ Call the Skill tool with "tdd" where possible, at pre-agreed seams.
 
 Run typechecking regularly, single test files regularly, and the full test suite once at the end.
 
-Once done, call the Skill tool with "code-review" to review the work.
+Once done, commit your work to the current branch.
 
-Commit your work to the current branch.
+Then call the Skill tool with "code-review" to review the work, using the commit you started from as the fixed point. Commit any fixes on top.
