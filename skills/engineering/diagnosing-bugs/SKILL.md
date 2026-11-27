@@ -43,6 +43,7 @@ Treat the loop as a product. Once you have _a_ loop, **tighten** it:
 - Can I make it faster? (Cache setup, skip unrelated init, narrow the test scope.)
 - Can I make the signal sharper? (Assert on the specific symptom, not "didn't crash".)
 - Can I make it more deterministic? (Pin time, seed RNG, isolate filesystem, freeze network.)
+- Can I trust its green? (Show each command's exit status and errors beside the verdict, so a command that failed can't pass for one that ran clean.)
 
 A 30-second flaky loop is barely better than no loop; a 2-second deterministic one is tight, a debugging superpower.
 
