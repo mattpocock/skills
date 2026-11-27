@@ -68,12 +68,14 @@ Use a Mermaid `flowchart` or `graph` when the point is "X calls Y calls Z, and l
     flowchart LR
       A[OrderHandler] --> B[OrderValidator]
       B --> C[OrderRepo]
-      C -.leak.-> D[PricingClient]
+      C -.->|"leak"| D[PricingClient]
       classDef leak stroke:#dc2626,stroke-width:2px;
       class C,D leak
   </pre>
 </div>
 ```
+
+Always write edge labels in the pipe form (`-->|"..."|`, `-.->|"..."|`), since an inline label ends at its first period.
 
 ### Hand-built boxes-and-arrows (when Mermaid's layout fights you)
 
