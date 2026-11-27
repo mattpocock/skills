@@ -85,7 +85,7 @@ Do NOT close or modify any parent issue.
 
 ## Parent
 
-The parent issue's title followed by its reference on the tracker, such as `Spec title #1` (if the source was an existing issue, otherwise omit this section).
+The parent issue's title followed by its reference on the tracker.
 
 ## What to build
 
